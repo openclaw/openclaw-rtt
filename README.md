@@ -33,7 +33,9 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 <!-- latest-main:start -->
 
-No `openclaw@main` RTT run has been imported yet.
+| Ref | Result | Samples | Canary RTT | Avg | p50 | p95 | Max | Failed attempts | Started |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `2026.4.30+d6b2854b2b` | Pass | 0 | `14,148ms` | - | - | - | - | 0 | `2026-05-01T18:02:25.163Z` |
 
 <!-- latest-main:end -->
 
