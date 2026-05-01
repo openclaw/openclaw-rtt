@@ -93,6 +93,10 @@ async function main() {
   }
 
   const runDir = path.join(RUNS_DIR, result.run.id);
+  result.artifacts = {
+    ...result.artifacts,
+    resultPath: path.join(runDir, "result.json"),
+  };
   await fs.mkdir(runDir, { recursive: true });
   await fs.writeFile(path.join(runDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
 
