@@ -19,6 +19,9 @@ function assertRun(row, index) {
   if (row.run.status !== "pass" && row.run.status !== "fail") {
     throw new Error(`row ${index} has invalid run.status`);
   }
+  if (row.rtt?.warmSamples !== undefined && !Array.isArray(row.rtt.warmSamples)) {
+    throw new Error(`row ${index} has invalid rtt.warmSamples`);
+  }
 }
 
 async function main() {

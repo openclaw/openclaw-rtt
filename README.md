@@ -17,6 +17,7 @@ Expected source shape is the `result.json` emitted by:
 
 ```sh
 pnpm rtt openclaw@beta
+pnpm rtt openclaw@beta --samples 20
 pnpm rtt openclaw@latest
 pnpm rtt openclaw@2026.4.30 --provider live-frontier
 ```
@@ -30,19 +31,19 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 ## Latest Stable Sweep
 
-Measured on 2026-05-01 with the OpenClaw repo black-box harness on `mock-openai`, scenario `telegram-mentioned-message-reply`, and a 240s scenario timeout.
+Measured on 2026-05-01 with the OpenClaw repo black-box harness on `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
 
-The SUT is the published package running its own Telegram bot. The current repo only supplies the mock model server and Telegram driver. `Command RTT` is the second `/status` command round trip after startup.
+The SUT is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-01 normal-reply sweep](logs/2026-05-01-normal-reply.md).
 
-| npm version | Canary RTT | Command RTT | Result | Notes |
-|---|---:|---:|---|---|
-| `2026.4.15` | `35,753ms` | `3,649ms` | Pass | Older startup path; command RTT stable after provider is up. |
-| `2026.4.20` | `33,371ms` | `4,171ms` | Pass | Older startup path; command RTT stable after provider is up. |
-| `2026.4.21` | `32,558ms` | `4,300ms` | Pass | Older startup path; command RTT stable after provider is up. |
-| `2026.4.22` | `105,931ms` | `10,662ms` | Pass | Slow first response. |
-| `2026.4.23` | `239,125ms` | `13,194ms` | Pass | Slow first response. |
-| `2026.4.24` | `64,616ms` | `1,692ms` | Pass | Fast command RTT after startup. |
-| `2026.4.25` | `173,874ms` | `8,720ms` | Pass | Slow first response. |
-| `2026.4.26` | `129,844ms` | `42,086ms` | Pass | Slow first and second response. |
-| `2026.4.27` | `10,026ms` | `1,509ms` | Pass | Uses `messages.groupChat.visibleReplies=automatic`. |
-| `2026.4.29` | `9,629ms` | `2,502ms` | Pass | Uses `messages.groupChat.visibleReplies=automatic`. |
+| npm version | Result | Samples | Canary RTT | Avg | p50 | p95 | Max | Failed attempts | Notes |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `2026.4.15` | Pass | 20 | `46,712ms` | `7,372ms` | `4,652ms` | `16,338ms` | `29,685ms` | 3 | Older path; occasional slow samples. |
+| `2026.4.20` | Pass | 20 | `20,746ms` | `7,243ms` | `4,231ms` | `20,805ms` | `26,215ms` | 3 | Older path; median stable after startup. |
+| `2026.4.21` | Pass | 20 | `47,681ms` | `7,884ms` | `4,303ms` | `23,807ms` | `26,852ms` | 3 | Older path; median stable after startup. |
+| `2026.4.22` | Pass | 20 | `120,672ms` | `5,628ms` | `3,266ms` | `16,684ms` | `27,156ms` | 2 | Slow canary, fast median warm reply. |
+| `2026.4.23` | Fail | 0 | - | - | - | - | - | 20 | No normal-reply samples collected. |
+| `2026.4.24` | Pass | 20 | `65,359ms` | `11,980ms` | `8,286ms` | `24,771ms` | `27,054ms` | 2 | Slower warm replies. |
+| `2026.4.25` | Fail | 0 | `159,784ms` | - | - | - | - | 20 | Normal replies exceeded the 30s sample window. |
+| `2026.4.26` | Pass | 20 | `159,823ms` | `25,875ms` | `25,305ms` | `27,784ms` | `33,689ms` | 15 | Barely under threshold after many missed attempts. |
+| `2026.4.27` | Pass | 20 | `9,362ms` | `18,210ms` | `15,458ms` | `29,035ms` | `30,580ms` | 0 | No failed attempts, but high p95. |
+| `2026.4.29` | Fail | 0 | `9,704ms` | - | - | - | - | 20 | Fast canary, normal replies failed under sample threshold. |

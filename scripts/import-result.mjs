@@ -29,6 +29,12 @@ function requireNumber(value, label) {
   return value;
 }
 
+function validateOptionalNumber(value, label) {
+  if (value !== undefined) {
+    requireNumber(value, label);
+  }
+}
+
 function validateResult(value) {
   const result = requireObject(value, "result");
   const packageInfo = requireObject(result.package, "result.package");
@@ -49,11 +55,20 @@ function validateResult(value) {
   if (!Array.isArray(mode.scenarios)) {
     throw new Error("result.mode.scenarios must be an array.");
   }
-  if (rtt.canaryMs !== undefined) {
-    requireNumber(rtt.canaryMs, "result.rtt.canaryMs");
-  }
-  if (rtt.mentionReplyMs !== undefined) {
-    requireNumber(rtt.mentionReplyMs, "result.rtt.mentionReplyMs");
+  validateOptionalNumber(rtt.canaryMs, "result.rtt.canaryMs");
+  validateOptionalNumber(rtt.mentionReplyMs, "result.rtt.mentionReplyMs");
+  validateOptionalNumber(rtt.avgMs, "result.rtt.avgMs");
+  validateOptionalNumber(rtt.p50Ms, "result.rtt.p50Ms");
+  validateOptionalNumber(rtt.p95Ms, "result.rtt.p95Ms");
+  validateOptionalNumber(rtt.maxMs, "result.rtt.maxMs");
+  validateOptionalNumber(rtt.failedSamples, "result.rtt.failedSamples");
+  if (rtt.warmSamples !== undefined) {
+    if (!Array.isArray(rtt.warmSamples)) {
+      throw new Error("result.rtt.warmSamples must be an array.");
+    }
+    rtt.warmSamples.forEach((sample, index) => {
+      requireNumber(sample, `result.rtt.warmSamples[${index}]`);
+    });
   }
 
   return result;
