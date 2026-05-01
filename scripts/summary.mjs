@@ -1,30 +1,7 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-
-const DATA_PATH = path.resolve("data/rtt.jsonl");
+import { readRows } from "./read-rows.mjs";
 
 function formatMs(value) {
   return typeof value === "number" ? `${Math.round(value)}ms` : "-";
-}
-
-function compareStartedAt(a, b) {
-  return String(a.run.startedAt).localeCompare(String(b.run.startedAt));
-}
-
-async function readRows() {
-  try {
-    const text = await fs.readFile(DATA_PATH, "utf8");
-    return text
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => JSON.parse(line))
-      .sort(compareStartedAt);
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return [];
-    }
-    throw error;
-  }
 }
 
 const rows = await readRows();

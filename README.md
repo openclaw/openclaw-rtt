@@ -29,6 +29,14 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
 
+## Latest Main
+
+<!-- latest-main:start -->
+
+No `openclaw@main` RTT run has been imported yet.
+
+<!-- latest-main:end -->
+
 ## Latest Stable Sweep
 
 Measured on 2026-05-01 with the OpenClaw repo black-box harness on `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
