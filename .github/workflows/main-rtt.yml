@@ -54,16 +54,38 @@ jobs:
           corepack enable
           corepack prepare "pnpm@${PNPM_VERSION}" --activate
 
+      - name: Locate pnpm store
+        id: pnpm-store
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
+
+      - name: Restore pnpm store
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: openclaw-main-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
+          restore-keys: |
+            openclaw-main-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Build OpenClaw package
         id: pack
         working-directory: openclaw
         shell: bash
         run: |
           set -euo pipefail
-          pnpm install --frozen-lockfile
-          pnpm build
+          echo "::group::pnpm install"
+          time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          echo "::endgroup::"
+          echo "::group::pnpm build"
+          time pnpm build
+          echo "::endgroup::"
           mkdir -p .artifacts/rtt-package
-          pnpm pack --pack-destination .artifacts/rtt-package
+          echo "::group::npm pack"
+          time npm pack --ignore-scripts --silent --pack-destination .artifacts/rtt-package
+          echo "::endgroup::"
           package_tgz="$(find .artifacts/rtt-package -maxdepth 1 -name '*.tgz' -type f | sort | tail -1)"
           if [[ -z "$package_tgz" ]]; then
             echo "No package tgz produced." >&2
