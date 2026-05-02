@@ -42,7 +42,7 @@ function stableRows(rows) {
     byVersion.set(row.package.version, row);
   }
   return [...byVersion.values()].sort((left, right) =>
-    left.package.version.localeCompare(right.package.version, undefined, { numeric: true }),
+    right.package.version.localeCompare(left.package.version, undefined, { numeric: true }),
   );
 }
 
