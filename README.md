@@ -33,9 +33,9 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 <!-- latest-main:start -->
 
-| Ref | Result | Samples | Canary RTT | Avg | p50 | p95 | Max | Failed attempts | Started |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `2026.4.30+d87e6ee2ae` | Pass | 20 | `1,433ms` | `6,202ms` | `3,510ms` | `15,739ms` | `23,653ms` | 6 | `2026-05-02T01:08:31.751Z` |
+| Ref | Result | Samples | p50 | p95 | Started |
+|---|---:|---:|---:|---:|---:|
+| `2026.4.30+d87e6ee2ae` | Pass | 20 | `3,510ms` | `15,739ms` | `2026-05-02T01:08:31.751Z` |
 
 <!-- latest-main:end -->
 
@@ -47,17 +47,17 @@ The SUT is the published package running its own Telegram bot. The OpenClaw repo
 
 <!-- stable-sweep:start -->
 
-| npm version | Result | Samples | Canary RTT | Avg | p50 | p95 | Max | Failed attempts |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `2026.4.29` | Fail | 0 | `9,704ms` | - | - | - | - | 20 |
-| `2026.4.27` | Pass | 20 | `9,362ms` | `18,210ms` | `15,458ms` | `29,035ms` | `30,580ms` | 0 |
-| `2026.4.26` | Pass | 20 | `159,823ms` | `25,875ms` | `25,305ms` | `27,784ms` | `33,689ms` | 15 |
-| `2026.4.25` | Fail | 0 | `159,784ms` | - | - | - | - | 20 |
-| `2026.4.24` | Pass | 20 | `65,359ms` | `11,980ms` | `8,286ms` | `24,771ms` | `27,054ms` | 2 |
-| `2026.4.23` | Fail | 0 | - | - | - | - | - | 20 |
-| `2026.4.22` | Pass | 20 | `120,672ms` | `5,628ms` | `3,266ms` | `16,684ms` | `27,156ms` | 2 |
-| `2026.4.21` | Pass | 20 | `47,681ms` | `7,884ms` | `4,303ms` | `23,807ms` | `26,852ms` | 3 |
-| `2026.4.20` | Pass | 20 | `20,746ms` | `7,243ms` | `4,231ms` | `20,805ms` | `26,215ms` | 3 |
-| `2026.4.15` | Pass | 20 | `46,712ms` | `7,372ms` | `4,652ms` | `16,338ms` | `29,685ms` | 3 |
+| npm version | Result | Samples | p50 | p95 |
+|---|---:|---:|---:|---:|
+| `2026.4.29` | Fail | 0 | - | - |
+| `2026.4.27` | Pass | 20 | `15,458ms` | `29,035ms` |
+| `2026.4.26` | Pass | 20 | `25,305ms` | `27,784ms` |
+| `2026.4.25` | Fail | 0 | - | - |
+| `2026.4.24` | Pass | 20 | `8,286ms` | `24,771ms` |
+| `2026.4.23` | Fail | 0 | - | - |
+| `2026.4.22` | Pass | 20 | `3,266ms` | `16,684ms` |
+| `2026.4.21` | Pass | 20 | `4,303ms` | `23,807ms` |
+| `2026.4.20` | Pass | 20 | `4,231ms` | `20,805ms` |
+| `2026.4.15` | Pass | 20 | `4,652ms` | `16,338ms` |
 
 <!-- stable-sweep:end -->

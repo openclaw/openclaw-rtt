@@ -25,9 +25,9 @@ function mainTableFor(row) {
   return [
     LATEST_MAIN_START,
     "",
-    "| Ref | Result | Samples | Canary RTT | Avg | p50 | p95 | Max | Failed attempts | Started |",
-    "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
-    `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.canaryMs)} | ${formatMs(row.rtt.avgMs)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatMs(row.rtt.maxMs)} | ${row.rtt.failedSamples ?? 0} | \`${row.run.startedAt}\` |`,
+    "| Ref | Result | Samples | p50 | p95 | Started |",
+    "|---|---:|---:|---:|---:|---:|",
+    `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | \`${row.run.startedAt}\` |`,
     "",
     LATEST_MAIN_END,
   ].join("\n");
@@ -56,11 +56,11 @@ function stableTableFor(rows) {
   return [
     STABLE_START,
     "",
-    "| npm version | Result | Samples | Canary RTT | Avg | p50 | p95 | Max | Failed attempts |",
-    "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    "| npm version | Result | Samples | p50 | p95 |",
+    "|---|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.canaryMs)} | ${formatMs(row.rtt.avgMs)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatMs(row.rtt.maxMs)} | ${row.rtt.failedSamples ?? 0} |`,
+        `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} |`,
     ),
     "",
     STABLE_END,
