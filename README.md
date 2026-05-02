@@ -41,23 +41,23 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 ## Latest Stable Sweep
 
-Measured on 2026-05-01 with the OpenClaw repo black-box harness on `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
+Measured on 2026-05-02 with the OpenClaw repo black-box harness on Blacksmith Testbox using `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
 
-The SUT is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-01 normal-reply sweep](logs/2026-05-01-normal-reply.md).
+The SUT is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
 
 <!-- stable-sweep:start -->
 
 | npm version | Result | Samples | p50 | p95 |
 |---|---:|---:|---:|---:|
-| `2026.4.29` | Fail | 0 | - | - |
-| `2026.4.27` | Pass | 20 | `15,458ms` | `29,035ms` |
-| `2026.4.26` | Pass | 20 | `25,305ms` | `27,784ms` |
-| `2026.4.25` | Fail | 0 | - | - |
-| `2026.4.24` | Pass | 20 | `8,286ms` | `24,771ms` |
-| `2026.4.23` | Fail | 0 | - | - |
-| `2026.4.22` | Pass | 20 | `3,266ms` | `16,684ms` |
-| `2026.4.21` | Pass | 20 | `4,303ms` | `23,807ms` |
-| `2026.4.20` | Pass | 20 | `4,231ms` | `20,805ms` |
-| `2026.4.15` | Pass | 20 | `4,652ms` | `16,338ms` |
+| `2026.4.29` | Pass | 20 | `17,936ms` | `24,517ms` |
+| `2026.4.27` | Pass | 20 | `4,639ms` | `13,664ms` |
+| `2026.4.26` | Pass | 20 | `5,880ms` | `18,610ms` |
+| `2026.4.25` | Pass | 20 | `7,508ms` | `27,982ms` |
+| `2026.4.24` | Pass | 20 | `2,679ms` | `13,451ms` |
+| `2026.4.23` | Pass | 20 | `2,507ms` | `14,671ms` |
+| `2026.4.22` | Pass | 20 | `2,497ms` | `14,847ms` |
+| `2026.4.21` | Pass | 20 | `3,502ms` | `16,828ms` |
+| `2026.4.20` | Pass | 20 | `3,504ms` | `16,796ms` |
+| `2026.4.15` | Pass | 20 | `3,503ms` | `16,809ms` |
 
 <!-- stable-sweep:end -->
