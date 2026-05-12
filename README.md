@@ -35,7 +35,7 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 | Ref | Result | Samples | p50 | p95 | Started |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.10-beta.1+0e82b77857` | Pass | 20 | `900ms` | `2,004ms` | `2026-05-11T19:10:03.078Z` |
+| `2026.5.10-beta.1+06f1cd92ed` | Pass | 20 | `961ms` | `2,012ms` | `2026-05-12T00:55:19.019Z` |
 
 <!-- latest-main:end -->
 
