@@ -49,6 +49,7 @@ The SUT is the published package running its own Telegram bot. The OpenClaw repo
 
 | npm version | Result | Samples | p50 | p95 |
 |---|---:|---:|---:|---:|
+| `2026.5.12` | Fail | 14 | `991ms` | `2,125ms` |
 | `2026.5.7` | Pass | 20 | `3,499ms` | `21,847ms` |
 | `2026.5.6` | Pass | 20 | `3,497ms` | `16,762ms` |
 | `2026.5.4` | Pass | 20 | `3,504ms` | `16,673ms` |
