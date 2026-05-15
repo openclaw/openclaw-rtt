@@ -3,7 +3,6 @@ import path from "node:path";
 
 const DATA_PATH = path.resolve("data/discord-rtt.jsonl");
 const RUNS_DIR = path.resolve("discord-runs");
-const DISCORD_EPOCH_MS = 1_420_070_400_000n;
 
 function usage() {
   return [
@@ -81,13 +80,6 @@ function safeRunLabel(input) {
   return input.replace(/[^a-zA-Z0-9.-]+/gu, "_").replace(/^_+|_+$/gu, "");
 }
 
-function discordSnowflakeTimestampMs(snowflake) {
-  if (!/^[0-9]+$/u.test(snowflake)) {
-    return undefined;
-  }
-  return Number((BigInt(snowflake) >> 22n) + DISCORD_EPOCH_MS);
-}
-
 function quantile(sorted, q) {
   if (sorted.length === 0) {
     return undefined;
@@ -151,13 +143,13 @@ function extractCanaryRtt(observedMessages) {
     (message) =>
       message?.scenarioId === "discord-canary" &&
       message?.matchedScenario === true &&
-      typeof message.replyToMessageId === "string" &&
+      typeof message.triggerTimestamp === "string" &&
       typeof message.timestamp === "string",
   );
   if (!matched) {
     return undefined;
   }
-  const sentAtMs = discordSnowflakeTimestampMs(matched.replyToMessageId);
+  const sentAtMs = Date.parse(matched.triggerTimestamp);
   const repliedAtMs = Date.parse(matched.timestamp);
   if (!Number.isFinite(sentAtMs) || !Number.isFinite(repliedAtMs)) {
     return undefined;
