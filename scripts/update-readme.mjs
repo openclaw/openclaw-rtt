@@ -7,6 +7,8 @@ const LATEST_MAIN_START = "<!-- latest-main:start -->";
 const LATEST_MAIN_END = "<!-- latest-main:end -->";
 const RELEASE_START = "<!-- release-sweep:start -->";
 const RELEASE_END = "<!-- release-sweep:end -->";
+const DISCORD_RELEASE_START = "<!-- discord-release-sweep:start -->";
+const DISCORD_RELEASE_END = "<!-- discord-release-sweep:end -->";
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
@@ -15,11 +17,31 @@ function formatMs(value) {
   return typeof value === "number" ? `\`${Math.round(value).toLocaleString("en-US")}ms\`` : "-";
 }
 
-function rttCell(row) {
+function formatVersion(value) {
+  return /^[0-9a-f]{40}$/u.test(value) ? value.slice(0, 10) : value;
+}
+
+function resultLabel(row) {
+  return row.run.status === "pass" ? "Pass" : "Fail";
+}
+
+function sampleCount(row) {
+  return row.rtt.warmSamples?.length ?? 0;
+}
+
+function latestMainRow(label, row) {
   if (!row) {
-    return "-";
+    return `| ${label} | - | - | - | - | - | - |`;
   }
-  return `\`${row.package.version}\` ${row.run.status === "pass" ? "Pass" : "Fail"} ${formatMs(row.rtt.p50Ms)}/${formatMs(row.rtt.p95Ms)}`;
+  return [
+    `| ${label}`,
+    `\`${formatVersion(row.package.version)}\``,
+    resultLabel(row),
+    sampleCount(row),
+    formatMs(row.rtt.p50Ms),
+    formatMs(row.rtt.p95Ms),
+    `\`${row.run.startedAt}\` |`,
+  ].join(" | ");
 }
 
 function latestStartedAt(rows) {
@@ -43,18 +65,21 @@ function mainTableFor(telegramRow, discordRow) {
   return [
     LATEST_MAIN_START,
     "",
-    "| Target | Telegram p50/p95 | Discord p50/p95 | Updated |",
-    "|---|---:|---:|---:|",
-    `| \`openclaw@main\` | ${rttCell(telegramRow)} | ${rttCell(discordRow)} | \`${latestStartedAt(rows)}\` |`,
+    `Latest imported main run: \`${latestStartedAt(rows)}\``,
+    "",
+    "| Transport | Version/ref | Result | Samples | p50 | p95 | Updated |",
+    "|---|---:|---:|---:|---:|---:|---:|",
+    latestMainRow("Telegram", telegramRow),
+    latestMainRow("Discord", discordRow),
     "",
     LATEST_MAIN_END,
   ].join("\n");
 }
 
-function releaseRows(rows) {
+function releaseRows(rows, specRe = RELEASE_SPEC_RE) {
   const byVersion = new Map();
   for (const row of rows) {
-    if (!RELEASE_SPEC_RE.test(row.package.spec)) {
+    if (!specRe.test(row.package.spec)) {
       continue;
     }
     byVersion.set(row.package.version, row);
@@ -64,22 +89,22 @@ function releaseRows(rows) {
   );
 }
 
-function releaseTableFor(rows) {
+function releaseTableFor(rows, start, end) {
   const tableRows = releaseRows(rows);
   if (tableRows.length === 0) {
-    return [RELEASE_START, "", "No release RTT runs have been imported yet.", "", RELEASE_END].join("\n");
+    return [start, "", "No release RTT runs have been imported yet.", "", end].join("\n");
   }
   return [
-    RELEASE_START,
+    start,
     "",
-    "| npm version | Result | Samples | p50 | p95 |",
-    "|---|---:|---:|---:|---:|",
+    "| npm version | Result | Samples | p50 | p95 | Updated |",
+    "|---|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} |`,
+        `| \`${row.package.version}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | \`${row.run.startedAt}\` |`,
     ),
     "",
-    RELEASE_END,
+    end,
   ].join("\n");
 }
 
@@ -108,7 +133,17 @@ async function main() {
   );
   const next = UPDATE_LATEST_MAIN_ONLY
     ? withLatestMain
-    : replaceMarked(withLatestMain, RELEASE_START, RELEASE_END, releaseTableFor(rows));
+    : replaceMarked(
+        replaceMarked(
+          withLatestMain,
+          RELEASE_START,
+          RELEASE_END,
+          releaseTableFor(rows, RELEASE_START, RELEASE_END),
+        ),
+        DISCORD_RELEASE_START,
+        DISCORD_RELEASE_END,
+        releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
+      );
   await fs.writeFile(README_PATH, next);
 }
 
