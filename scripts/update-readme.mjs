@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
 
 const README_PATH = "README.md";
@@ -8,17 +9,33 @@ const RELEASE_START = "<!-- release-sweep:start -->";
 const RELEASE_END = "<!-- release-sweep:end -->";
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
+const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
 
 function formatMs(value) {
   return typeof value === "number" ? `\`${Math.round(value).toLocaleString("en-US")}ms\`` : "-";
 }
 
-function mainTableFor(row) {
+function rttCell(row) {
   if (!row) {
+    return "-";
+  }
+  return `\`${row.package.version}\` ${row.run.status === "pass" ? "Pass" : "Fail"} ${formatMs(row.rtt.p50Ms)}/${formatMs(row.rtt.p95Ms)}`;
+}
+
+function latestStartedAt(rows) {
+  return rows
+    .map((row) => row.run.startedAt)
+    .sort()
+    .at(-1);
+}
+
+function mainTableFor(telegramRow, discordRow) {
+  const rows = [telegramRow, discordRow].filter(Boolean);
+  if (rows.length === 0) {
     return [
       LATEST_MAIN_START,
       "",
-      "No `openclaw@main` RTT run has been imported yet.",
+      "No `openclaw@main` run has been imported yet.",
       "",
       LATEST_MAIN_END,
     ].join("\n");
@@ -26,9 +43,9 @@ function mainTableFor(row) {
   return [
     LATEST_MAIN_START,
     "",
-    "| Ref | Result | Samples | p50 | p95 | Started |",
-    "|---|---:|---:|---:|---:|---:|",
-    `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | \`${row.run.startedAt}\` |`,
+    "| Target | Telegram p50/p95 | Discord p50/p95 | Updated |",
+    "|---|---:|---:|---:|",
+    `| \`openclaw@main\` | ${rttCell(telegramRow)} | ${rttCell(discordRow)} | \`${latestStartedAt(rows)}\` |`,
     "",
     LATEST_MAIN_END,
   ].join("\n");
@@ -77,14 +94,21 @@ function replaceMarked(readme, start, end, replacement) {
 
 async function main() {
   const rows = await readRows();
+  const discordRows = await readDiscordRttRows();
   const latestMain = rows.filter((row) => row.package.spec === "openclaw@main").at(-1);
+  const latestDiscordMain = discordRows
+    .filter((row) => row.package.spec === "openclaw@main")
+    .at(-1);
   const readme = await fs.readFile(README_PATH, "utf8");
-  const next = replaceMarked(
-    replaceMarked(readme, LATEST_MAIN_START, LATEST_MAIN_END, mainTableFor(latestMain)),
-    RELEASE_START,
-    RELEASE_END,
-    releaseTableFor(rows),
+  const withLatestMain = replaceMarked(
+    readme,
+    LATEST_MAIN_START,
+    LATEST_MAIN_END,
+    mainTableFor(latestMain, latestDiscordMain),
   );
+  const next = UPDATE_LATEST_MAIN_ONLY
+    ? withLatestMain
+    : replaceMarked(withLatestMain, RELEASE_START, RELEASE_END, releaseTableFor(rows));
   await fs.writeFile(README_PATH, next);
 }
 

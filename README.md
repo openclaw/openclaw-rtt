@@ -1,6 +1,6 @@
 # OpenClaw RTT
 
-Time-series store for OpenClaw Telegram RTT measurements.
+Time-series store for OpenClaw Telegram and Discord RTT measurements.
 
 The measurement harness lives in `openclaw/openclaw`. This repo stores normalized results and later graph/dashboard code.
 
@@ -26,6 +26,8 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 
 - `data/rtt.jsonl`: append-only graph source, one normalized run per line.
 - `runs/<run-id>/result.json`: copied per-run result record for audit/debug.
+- `data/discord-rtt.jsonl`: append-only Discord RTT graph source.
+- `discord-runs/<run-id>/result.json`: copied per-run Discord RTT record.
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
 
@@ -33,9 +35,9 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 <!-- latest-main:start -->
 
-| Ref | Result | Samples | p50 | p95 | Started |
-|---|---:|---:|---:|---:|---:|
-| `2026.5.14+bea597b2d6` | Pass | 20 | `1,015ms` | `1,991ms` | `2026-05-15T07:18:48.980Z` |
+| Target | Telegram p50/p95 | Discord p50/p95 | Updated |
+|---|---:|---:|---:|
+| `openclaw@main` | `2026.5.14+bea597b2d6` Pass `1,015ms`/`1,991ms` | - | `2026-05-15T07:18:48.980Z` |
 
 <!-- latest-main:end -->
 
