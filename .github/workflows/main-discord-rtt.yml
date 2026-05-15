@@ -104,6 +104,8 @@ jobs:
         env:
           OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
           OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
+          OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
+          OPENCLAW_QA_CREDENTIAL_HTTP_TIMEOUT_MS: "60000"
           INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
         shell: bash
         run: |
@@ -123,28 +125,34 @@ jobs:
 
           for sample in $(seq 1 "$samples"); do
             output_dir="${output_root}/sample-${sample}"
-            mkdir -p "$output_dir"
-            set +e
-            pnpm openclaw qa discord \
-              --repo-root . \
-              --output-dir "${output_dir}" \
-              --provider-mode mock-openai \
-              --model mock-openai/gpt-5.5 \
-              --alt-model mock-openai/gpt-5.5-alt \
-              --fast \
-              --credential-source convex \
-              --credential-role ci \
-              --scenario discord-canary
-            status="$?"
-            set -e
-
             summary_path="${output_dir}/discord-qa-summary.json"
             observed_path="${output_dir}/discord-qa-observed-messages.json"
+            status=1
+            for attempt in 1 2 3; do
+              rm -rf "$output_dir"
+              mkdir -p "$output_dir"
+              set +e
+              pnpm openclaw qa discord \
+                --repo-root . \
+                --output-dir "${output_dir}" \
+                --provider-mode mock-openai \
+                --model mock-openai/gpt-5.5 \
+                --alt-model mock-openai/gpt-5.5-alt \
+                --fast \
+                --credential-source convex \
+                --credential-role ci \
+                --scenario discord-canary
+              status="$?"
+              set -e
+              if [[ -f "$summary_path" && -f "$observed_path" ]]; then
+                break
+              fi
+              if [[ "$attempt" -lt 3 ]]; then
+                sleep $((attempt * 15))
+              fi
+            done
             if [[ ! -f "$summary_path" || ! -f "$observed_path" ]]; then
               echo "No Discord QA artifacts produced for sample ${sample}." >&2
-              if [[ "$status" -eq 0 ]]; then
-                status=1
-              fi
               exit "$status"
             fi
             printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
