@@ -39,17 +39,19 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 <!-- latest-main:end -->
 
-## Latest Stable Sweep
+## Release Sweep
 
-Measured on 2026-05-02 with the OpenClaw repo black-box harness on Blacksmith Testbox using `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
+Measured with the OpenClaw repo black-box harness on Blacksmith using `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
 
 The SUT is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
 
-<!-- stable-sweep:start -->
+<!-- release-sweep:start -->
 
 | npm version | Result | Samples | p50 | p95 |
 |---|---:|---:|---:|---:|
-| `2026.5.12` | Pass | 20 | `991ms` | `2,125ms` |
+| `2026.5.14-beta.2` | Pass | 20 | `990ms` | `1,745ms` |
+| `2026.5.12` | Fail | 14 | `991ms` | `2,125ms` |
+| `2026.5.9-beta.1` | Pass | 20 | `2,517ms` | `14,692ms` |
 | `2026.5.7` | Pass | 20 | `3,499ms` | `21,847ms` |
 | `2026.5.6` | Pass | 20 | `3,497ms` | `16,762ms` |
 | `2026.5.4` | Pass | 20 | `3,504ms` | `16,673ms` |
@@ -66,4 +68,4 @@ The SUT is the published package running its own Telegram bot. The OpenClaw repo
 | `2026.4.20` | Pass | 20 | `3,504ms` | `16,796ms` |
 | `2026.4.15` | Pass | 20 | `3,503ms` | `16,809ms` |
 
-<!-- stable-sweep:end -->
+<!-- release-sweep:end -->

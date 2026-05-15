@@ -4,21 +4,12 @@ on:
   schedule:
     - cron: "15 */6 * * *"
   workflow_dispatch:
-    inputs:
-      channel:
-        description: OpenClaw npm channel
-        required: true
-        default: stable
-        type: choice
-        options:
-          - stable
-          - beta
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-rtt-${{ github.event.inputs.channel || 'stable' }}
+  group: release-rtt
   cancel-in-progress: false
 
 env:
@@ -43,11 +34,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Resolve OpenClaw package
+      - name: Resolve OpenClaw packages
         id: release
         working-directory: openclaw-rtt
-        env:
-          OPENCLAW_RTT_CHANNEL: ${{ github.event.inputs.channel || 'stable' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -112,21 +101,32 @@ jobs:
           OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
         shell: bash
         run: |
-          set +e
-          pnpm rtt "${{ steps.release.outputs.spec }}" \
-            --harness-root "$PWD" \
-            --output "$RUNNER_TEMP/openclaw-rtt-runs" \
-            --samples 20 \
-            --timeout-ms 240000 \
-            --sample-timeout-ms 30000
-          status="$?"
-          set -e
-          result_path="$(find "$RUNNER_TEMP/openclaw-rtt-runs" -maxdepth 3 -name result.json -type f | sort | tail -1)"
-          if [[ -z "$result_path" ]]; then
-            echo "No RTT result.json produced." >&2
-            exit "$status"
-          fi
-          echo "result_path=$result_path" >>"$GITHUB_OUTPUT"
+          set -euo pipefail
+          result_paths="$RUNNER_TEMP/openclaw-rtt-result-paths.txt"
+          : >"$result_paths"
+          for spec in ${{ steps.release.outputs.specs }}; do
+            output="$RUNNER_TEMP/openclaw-rtt-runs/$(printf '%s' "$spec" | tr -c 'A-Za-z0-9._-' '_')"
+            mkdir -p "$output"
+            set +e
+            pnpm rtt "$spec" \
+              --harness-root "$PWD" \
+              --output "$output" \
+              --samples 20 \
+              --timeout-ms 240000 \
+              --sample-timeout-ms 30000
+            status="$?"
+            set -e
+            result_path="$(find "$output" -maxdepth 3 -name result.json -type f | sort | tail -1)"
+            if [[ -z "$result_path" ]]; then
+              echo "No RTT result.json produced for $spec." >&2
+              if [[ "$status" -eq 0 ]]; then
+                status=1
+              fi
+              exit "$status"
+            fi
+            echo "$result_path" >>"$result_paths"
+          done
+          echo "result_paths=$result_paths" >>"$GITHUB_OUTPUT"
 
       - name: Import result
         if: steps.release.outputs.should_run == 'true'
@@ -134,7 +134,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/import-result.mjs "${{ steps.rtt.outputs.result_path }}"
+          while IFS= read -r result_path; do
+            node scripts/import-result.mjs "$result_path"
+          done <"${{ steps.rtt.outputs.result_paths }}"
           node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/summary.mjs
@@ -152,10 +154,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md data/rtt.jsonl runs/
-          git commit -m "data: record ${{ steps.release.outputs.channel }} rtt"
+          git commit -m "data: record release rtt batch"
           git push
 
       - name: Report skipped package
         if: steps.release.outputs.should_run != 'true'
         run: |
-          echo "No new ${{ steps.release.outputs.channel }} release to measure: ${{ steps.release.outputs.version }} (${{ steps.release.outputs.reason }})"
+          echo "No new release versions to measure after ${{ steps.release.outputs.anchor }} (${{ steps.release.outputs.reason }})"
