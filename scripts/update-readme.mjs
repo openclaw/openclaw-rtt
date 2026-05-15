@@ -4,9 +4,10 @@ import { readRows } from "./read-rows.mjs";
 const README_PATH = "README.md";
 const LATEST_MAIN_START = "<!-- latest-main:start -->";
 const LATEST_MAIN_END = "<!-- latest-main:end -->";
-const STABLE_START = "<!-- stable-sweep:start -->";
-const STABLE_END = "<!-- stable-sweep:end -->";
-const STABLE_SPEC_RE = /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*$/u;
+const RELEASE_START = "<!-- release-sweep:start -->";
+const RELEASE_END = "<!-- release-sweep:end -->";
+const RELEASE_SPEC_RE =
+  /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 
 function formatMs(value) {
   return typeof value === "number" ? `\`${Math.round(value).toLocaleString("en-US")}ms\`` : "-";
@@ -33,10 +34,10 @@ function mainTableFor(row) {
   ].join("\n");
 }
 
-function stableRows(rows) {
+function releaseRows(rows) {
   const byVersion = new Map();
   for (const row of rows) {
-    if (!STABLE_SPEC_RE.test(row.package.spec)) {
+    if (!RELEASE_SPEC_RE.test(row.package.spec)) {
       continue;
     }
     byVersion.set(row.package.version, row);
@@ -46,15 +47,13 @@ function stableRows(rows) {
   );
 }
 
-function stableTableFor(rows) {
-  const tableRows = stableRows(rows);
+function releaseTableFor(rows) {
+  const tableRows = releaseRows(rows);
   if (tableRows.length === 0) {
-    return [STABLE_START, "", "No stable release RTT runs have been imported yet.", "", STABLE_END].join(
-      "\n",
-    );
+    return [RELEASE_START, "", "No release RTT runs have been imported yet.", "", RELEASE_END].join("\n");
   }
   return [
-    STABLE_START,
+    RELEASE_START,
     "",
     "| npm version | Result | Samples | p50 | p95 |",
     "|---|---:|---:|---:|---:|",
@@ -63,7 +62,7 @@ function stableTableFor(rows) {
         `| \`${row.package.version}\` | ${row.run.status === "pass" ? "Pass" : "Fail"} | ${row.rtt.warmSamples?.length ?? 0} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} |`,
     ),
     "",
-    STABLE_END,
+    RELEASE_END,
   ].join("\n");
 }
 
@@ -82,9 +81,9 @@ async function main() {
   const readme = await fs.readFile(README_PATH, "utf8");
   const next = replaceMarked(
     replaceMarked(readme, LATEST_MAIN_START, LATEST_MAIN_END, mainTableFor(latestMain)),
-    STABLE_START,
-    STABLE_END,
-    stableTableFor(rows),
+    RELEASE_START,
+    RELEASE_END,
+    releaseTableFor(rows),
   );
   await fs.writeFile(README_PATH, next);
 }
