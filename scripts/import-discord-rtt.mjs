@@ -204,6 +204,7 @@ async function main() {
   const warmSamples = samples.flatMap((sample) => (sample.status === "pass" ? [sample.rttMs] : []));
   const failedSamples = samples.length - warmSamples.length;
   const runDir = path.join(RUNS_DIR, runId);
+  const resultPath = path.join("discord-runs", runId, "result.json");
   const result = {
     package: {
       spec: args.spec,
@@ -236,7 +237,7 @@ async function main() {
       })),
     },
     artifacts: {
-      resultPath: path.join(runDir, "result.json"),
+      resultPath,
     },
   };
 

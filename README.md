@@ -2,7 +2,7 @@
 
 Time-series store for OpenClaw Telegram and Discord RTT measurements.
 
-The measurement harness lives in `openclaw/openclaw`. This repo stores normalized results and later graph/dashboard code.
+The measurement harness lives in `openclaw/openclaw`. This repo stores normalized results and the README dashboard.
 
 ## Import A Run
 
@@ -10,6 +10,7 @@ From this repo:
 
 ```sh
 node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
+node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
 node scripts/summary.mjs
 ```
 
@@ -31,17 +32,22 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
 
-## Latest Main
+## Dashboard
+
+Current `openclaw@main` snapshot. Telegram and Discord run on separate schedules, so each row keeps its own update time.
 
 <!-- latest-main:start -->
 
-| Target | Telegram p50/p95 | Discord p50/p95 | Updated |
-|---|---:|---:|---:|
-| `openclaw@main` | `2026.5.14+bea597b2d6` Pass `1,015ms`/`1,991ms` | - | `2026-05-15T07:18:48.980Z` |
+Latest imported main run: `2026-05-15T17:32:31.071Z`
+
+| Transport | Version/ref | Result | Samples | p50 | p95 | Updated |
+|---|---:|---:|---:|---:|---:|---:|
+| Telegram | `2026.5.14+bea597b2d6` | Pass | 20 | `1,015ms` | `1,991ms` | `2026-05-15T07:18:48.980Z` |
+| Discord | `c7dcf79585` | Pass | 1 | `5,652ms` | `5,652ms` | `2026-05-15T17:32:31.071Z` |
 
 <!-- latest-main:end -->
 
-## Release Sweep
+## Telegram Release Sweep
 
 Measured with the OpenClaw repo black-box harness on Blacksmith using `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
 
@@ -51,26 +57,36 @@ End-to-end latency measured over Telegram using `mock-openai`.
 
 <!-- release-sweep:start -->
 
-| npm version | Result | Samples | p50 | p95 |
-|---|---:|---:|---:|---:|
-| `2026.5.14-beta.2` | Pass | 20 | `990ms` | `1,745ms` |
-| `2026.5.14-beta.1` | Pass | 20 | `1,004ms` | `3,915ms` |
-| `2026.5.12` | Pass | 20 | `2,858ms` | `23,061ms` |
-| `2026.5.9-beta.1` | Pass | 20 | `2,517ms` | `14,692ms` |
-| `2026.5.7` | Pass | 20 | `3,499ms` | `21,847ms` |
-| `2026.5.6` | Pass | 20 | `3,497ms` | `16,762ms` |
-| `2026.5.4` | Pass | 20 | `3,504ms` | `16,673ms` |
-| `2026.5.3` | Pass | 20 | `3,505ms` | `16,741ms` |
-| `2026.5.2` | Pass | 20 | `3,501ms` | `16,759ms` |
-| `2026.4.29` | Pass | 20 | `17,936ms` | `24,517ms` |
-| `2026.4.27` | Pass | 20 | `4,639ms` | `13,664ms` |
-| `2026.4.26` | Pass | 20 | `5,880ms` | `18,610ms` |
-| `2026.4.25` | Pass | 20 | `7,508ms` | `27,982ms` |
-| `2026.4.24` | Pass | 20 | `2,679ms` | `13,451ms` |
-| `2026.4.23` | Pass | 20 | `2,507ms` | `14,671ms` |
-| `2026.4.22` | Pass | 20 | `2,497ms` | `14,847ms` |
-| `2026.4.21` | Pass | 20 | `3,502ms` | `16,828ms` |
-| `2026.4.20` | Pass | 20 | `3,504ms` | `16,796ms` |
-| `2026.4.15` | Pass | 20 | `3,503ms` | `16,809ms` |
+| npm version | Result | Samples | p50 | p95 | Updated |
+|---|---:|---:|---:|---:|---:|
+| `2026.5.14-beta.2` | Pass | 20 | `990ms` | `1,745ms` | `2026-05-15T11:25:24.501Z` |
+| `2026.5.14-beta.1` | Pass | 20 | `1,004ms` | `3,915ms` | `2026-05-15T12:12:25.166Z` |
+| `2026.5.12` | Pass | 20 | `2,858ms` | `23,061ms` | `2026-05-15T14:57:36.884Z` |
+| `2026.5.9-beta.1` | Pass | 20 | `2,517ms` | `14,692ms` | `2026-05-09T13:46:04.963Z` |
+| `2026.5.7` | Pass | 20 | `3,499ms` | `21,847ms` | `2026-05-07T22:34:10.660Z` |
+| `2026.5.6` | Pass | 20 | `3,497ms` | `16,762ms` | `2026-05-07T01:10:20.034Z` |
+| `2026.5.4` | Pass | 20 | `3,504ms` | `16,673ms` | `2026-05-05T12:55:16.706Z` |
+| `2026.5.3` | Pass | 20 | `3,505ms` | `16,741ms` | `2026-05-04T09:49:15.970Z` |
+| `2026.5.2` | Pass | 20 | `3,501ms` | `16,759ms` | `2026-05-03T01:14:23.528Z` |
+| `2026.4.29` | Pass | 20 | `17,936ms` | `24,517ms` | `2026-05-02T06:17:26.914Z` |
+| `2026.4.27` | Pass | 20 | `4,639ms` | `13,664ms` | `2026-05-02T06:11:35.226Z` |
+| `2026.4.26` | Pass | 20 | `5,880ms` | `18,610ms` | `2026-05-02T06:05:19.893Z` |
+| `2026.4.25` | Pass | 20 | `7,508ms` | `27,982ms` | `2026-05-02T05:59:20.038Z` |
+| `2026.4.24` | Pass | 20 | `2,679ms` | `13,451ms` | `2026-05-02T05:54:14.272Z` |
+| `2026.4.23` | Pass | 20 | `2,507ms` | `14,671ms` | `2026-05-02T05:49:14.713Z` |
+| `2026.4.22` | Pass | 20 | `2,497ms` | `14,847ms` | `2026-05-02T05:34:51.113Z` |
+| `2026.4.21` | Pass | 20 | `3,502ms` | `16,828ms` | `2026-05-02T05:43:01.319Z` |
+| `2026.4.20` | Pass | 20 | `3,504ms` | `16,796ms` | `2026-05-02T05:26:57.320Z` |
+| `2026.4.15` | Pass | 20 | `3,503ms` | `16,809ms` | `2026-05-02T05:20:28.620Z` |
 
 <!-- release-sweep:end -->
+
+## Discord Release Sweep
+
+Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials.
+
+<!-- discord-release-sweep:start -->
+
+No release RTT runs have been imported yet.
+
+<!-- discord-release-sweep:end -->
