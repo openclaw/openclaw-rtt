@@ -1,15 +1,24 @@
-name: Stable Release RTT
+name: Release RTT
 
 on:
   schedule:
     - cron: "15 */6 * * *"
   workflow_dispatch:
+    inputs:
+      channel:
+        description: OpenClaw npm channel
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
 
 permissions:
   contents: write
 
 concurrency:
-  group: stable-release-rtt
+  group: release-rtt-${{ github.event.inputs.channel || 'stable' }}
   cancel-in-progress: false
 
 env:
@@ -19,7 +28,7 @@ env:
 
 jobs:
   measure:
-    name: Measure new stable OpenClaw release RTT
+    name: Measure OpenClaw release RTT
     runs-on: blacksmith-32vcpu-ubuntu-2404
     timeout-minutes: 90
     steps:
@@ -34,13 +43,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Resolve latest stable release
+      - name: Resolve OpenClaw package
         id: release
         working-directory: openclaw-rtt
+        env:
+          OPENCLAW_RTT_CHANNEL: ${{ github.event.inputs.channel || 'stable' }}
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/resolve-latest-stable.mjs
+          node scripts/resolve-openclaw-package.mjs
 
       - name: Checkout OpenClaw harness
         if: steps.release.outputs.should_run == 'true'
@@ -141,10 +152,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md data/rtt.jsonl runs/
-          git commit -m "data: record stable release rtt"
+          git commit -m "data: record ${{ steps.release.outputs.channel }} rtt"
           git push
 
-      - name: Report skipped release
+      - name: Report skipped package
         if: steps.release.outputs.should_run != 'true'
         run: |
-          echo "No new stable release to measure: ${{ steps.release.outputs.version }} (${{ steps.release.outputs.reason }})"
+          echo "No new ${{ steps.release.outputs.channel }} release to measure: ${{ steps.release.outputs.version }} (${{ steps.release.outputs.reason }})"
