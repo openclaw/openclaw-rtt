@@ -45,13 +45,15 @@ Measured with the OpenClaw repo black-box harness on Blacksmith using `mock-open
 
 The SUT is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
 
+End-to-end latency measured over Telegram using `mock-openai`. 
+
 <!-- release-sweep:start -->
 
 | npm version | Result | Samples | p50 | p95 |
 |---|---:|---:|---:|---:|
 | `2026.5.14-beta.2` | Pass | 20 | `990ms` | `1,745ms` |
 | `2026.5.14-beta.1` | Pass | 20 | `1,004ms` | `3,915ms` |
-| `2026.5.12` | Fail | 14 | `991ms` | `2,125ms` |
+| `2026.5.12` | Pass | 20 | `991ms` | `2,125ms` |
 | `2026.5.9-beta.1` | Pass | 20 | `2,517ms` | `14,692ms` |
 | `2026.5.7` | Pass | 20 | `3,499ms` | `21,847ms` |
 | `2026.5.6` | Pass | 20 | `3,497ms` | `16,762ms` |
