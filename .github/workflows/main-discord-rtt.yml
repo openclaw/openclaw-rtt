@@ -1,0 +1,188 @@
+name: Main Discord RTT
+
+on:
+  schedule:
+    - cron: "30 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Number of Discord canary RTT samples
+        required: false
+        default: "20"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: main-discord-rtt
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "10.33.0"
+
+jobs:
+  measure:
+    name: Measure OpenClaw main Discord RTT
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: qa-live-shared
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          path: openclaw-rtt
+          fetch-depth: 0
+
+      - name: Checkout OpenClaw main
+        uses: actions/checkout@v6
+        with:
+          repository: openclaw/openclaw
+          ref: main
+          path: openclaw
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+
+      - name: Locate pnpm store
+        id: pnpm-store
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
+
+      - name: Restore pnpm store
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: openclaw-main-discord-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
+          restore-keys: |
+            openclaw-main-discord-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Install OpenClaw dependencies
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+
+      - name: Resolve OpenClaw ref
+        id: openclaw_ref
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          revision="$(git rev-parse --short=10 HEAD)"
+          echo "version=${version}+${revision}" >>"$GITHUB_OUTPUT"
+
+      - name: Build private QA runtime
+        working-directory: openclaw
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm build
+
+      - name: Run Discord RTT samples
+        id: discord_rtt
+        working-directory: openclaw
+        env:
+          OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
+          OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          samples="${INPUT_SAMPLES:-20}"
+          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
+            echo "samples must be a positive integer, got: $samples" >&2
+            exit 1
+          fi
+
+          output_root=".artifacts/qa-e2e/discord-rtt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sample_paths="$RUNNER_TEMP/openclaw-discord-rtt-samples.tsv"
+          : >"$sample_paths"
+          echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
+          echo "sample_paths=${sample_paths}" >>"$GITHUB_OUTPUT"
+
+          for sample in $(seq 1 "$samples"); do
+            output_dir="${output_root}/sample-${sample}"
+            mkdir -p "$output_dir"
+            set +e
+            pnpm openclaw qa discord \
+              --repo-root . \
+              --output-dir "${output_dir}" \
+              --provider-mode mock-openai \
+              --model mock-openai/gpt-5.5 \
+              --alt-model mock-openai/gpt-5.5-alt \
+              --fast \
+              --credential-source convex \
+              --credential-role ci \
+              --scenario discord-canary
+            status="$?"
+            set -e
+
+            summary_path="${output_dir}/discord-qa-summary.json"
+            observed_path="${output_dir}/discord-qa-observed-messages.json"
+            if [[ ! -f "$summary_path" || ! -f "$observed_path" ]]; then
+              echo "No Discord QA artifacts produced for sample ${sample}." >&2
+              if [[ "$status" -eq 0 ]]; then
+                status=1
+              fi
+              exit "$status"
+            fi
+            printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
+          done
+
+      - name: Import Discord RTT result
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/import-discord-rtt.mjs "${{ steps.discord_rtt.outputs.sample_paths }}" \
+            --spec openclaw@main \
+            --version "${{ steps.openclaw_ref.outputs.version }}" \
+            --provider-mode mock-openai
+          node scripts/update-readme.mjs --latest-main-only
+          node scripts/validate.mjs
+          node scripts/discord-rtt-summary.mjs
+
+      - name: Upload Discord RTT artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-discord-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/.artifacts/qa-e2e/discord-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Commit result
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet --exit-code; then
+            echo "No Discord RTT changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md data/discord-rtt.jsonl discord-runs/
+          git commit -m "data: record main discord rtt"
+          git push

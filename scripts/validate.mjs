@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const DATA_PATH = path.resolve("data/rtt.jsonl");
+const DISCORD_RTT_DATA_PATH = path.resolve("data/discord-rtt.jsonl");
 
 function assertRun(row, index) {
   if (typeof row !== "object" || row === null) {
@@ -24,13 +25,37 @@ function assertRun(row, index) {
   }
 }
 
-async function main() {
+function assertDiscordRttRun(row, index) {
+  if (typeof row !== "object" || row === null) {
+    throw new Error(`Discord RTT row ${index} must be an object`);
+  }
+  if (typeof row.package?.spec !== "string") {
+    throw new Error(`Discord RTT row ${index} missing package.spec`);
+  }
+  if (typeof row.package?.version !== "string") {
+    throw new Error(`Discord RTT row ${index} missing package.version`);
+  }
+  if (typeof row.run?.id !== "string") {
+    throw new Error(`Discord RTT row ${index} missing run.id`);
+  }
+  if (row.run.status !== "pass" && row.run.status !== "fail") {
+    throw new Error(`Discord RTT row ${index} has invalid run.status`);
+  }
+  if (!Array.isArray(row.rtt?.warmSamples)) {
+    throw new Error(`Discord RTT row ${index} missing rtt.warmSamples`);
+  }
+  if (row.rtt.warmSamples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample))) {
+    throw new Error(`Discord RTT row ${index} has invalid rtt.warmSamples`);
+  }
+}
+
+async function validateJsonl(pathname, label, assertRow) {
   let text = "";
   try {
-    text = await fs.readFile(DATA_PATH, "utf8");
+    text = await fs.readFile(pathname, "utf8");
   } catch (error) {
     if (error?.code === "ENOENT") {
-      process.stdout.write("ok: no data/rtt.jsonl yet\n");
+      process.stdout.write(`ok: no ${path.relative(process.cwd(), pathname)} yet\n`);
       return;
     }
     throw error;
@@ -40,13 +65,18 @@ async function main() {
   const lines = text.split("\n").filter(Boolean);
   lines.forEach((line, index) => {
     const row = JSON.parse(line);
-    assertRun(row, index + 1);
+    assertRow(row, index + 1);
     if (seen.has(row.run.id)) {
-      throw new Error(`duplicate run id: ${row.run.id}`);
+      throw new Error(`duplicate ${label} run id: ${row.run.id}`);
     }
     seen.add(row.run.id);
   });
-  process.stdout.write(`ok: ${lines.length} rows\n`);
+  process.stdout.write(`ok: ${lines.length} ${label} rows\n`);
+}
+
+async function main() {
+  await validateJsonl(DATA_PATH, "RTT", assertRun);
+  await validateJsonl(DISCORD_RTT_DATA_PATH, "Discord RTT", assertDiscordRttRun);
 }
 
 main().catch((error) => {

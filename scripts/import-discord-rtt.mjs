@@ -1,0 +1,261 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+
+const DATA_PATH = path.resolve("data/discord-rtt.jsonl");
+const RUNS_DIR = path.resolve("discord-runs");
+const DISCORD_EPOCH_MS = 1_420_070_400_000n;
+
+function usage() {
+  return [
+    "Usage: node scripts/import-discord-rtt.mjs <sample-paths.tsv>",
+    "  --spec <openclaw@spec>",
+    "  --version <version-or-ref>",
+    "  [--provider-mode <mock-openai|live-frontier>]",
+  ].join("\n");
+}
+
+function parseArgs(argv) {
+  const args = { providerMode: "mock-openai" };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (!args.samplesPath && !arg.startsWith("--")) {
+      args.samplesPath = arg;
+      continue;
+    }
+    if (arg === "--spec") {
+      args.spec = argv[(index += 1)];
+      continue;
+    }
+    if (arg === "--version") {
+      args.version = argv[(index += 1)];
+      continue;
+    }
+    if (arg === "--provider-mode") {
+      args.providerMode = argv[(index += 1)];
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}\n${usage()}`);
+  }
+  if (!args.samplesPath || !args.spec || !args.version) {
+    throw new Error(usage());
+  }
+  return args;
+}
+
+function requireObject(value, label) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+  return value;
+}
+
+function requireString(value, label) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return value;
+}
+
+function requireNumber(value, label) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`${label} must be a finite number.`);
+  }
+  return value;
+}
+
+function validateSummary(value) {
+  const summary = requireObject(value, "summary");
+  const counts = requireObject(summary.counts, "summary.counts");
+  requireString(summary.startedAt, "summary.startedAt");
+  requireString(summary.finishedAt, "summary.finishedAt");
+  requireNumber(counts.total, "summary.counts.total");
+  requireNumber(counts.passed, "summary.counts.passed");
+  requireNumber(counts.failed, "summary.counts.failed");
+  if (!Array.isArray(summary.scenarios)) {
+    throw new Error("summary.scenarios must be an array.");
+  }
+  return summary;
+}
+
+function safeRunLabel(input) {
+  return input.replace(/[^a-zA-Z0-9.-]+/gu, "_").replace(/^_+|_+$/gu, "");
+}
+
+function discordSnowflakeTimestampMs(snowflake) {
+  if (!/^[0-9]+$/u.test(snowflake)) {
+    return undefined;
+  }
+  return Number((BigInt(snowflake) >> 22n) + DISCORD_EPOCH_MS);
+}
+
+function quantile(sorted, q) {
+  if (sorted.length === 0) {
+    return undefined;
+  }
+  const index = Math.min(sorted.length - 1, Math.max(0, Math.ceil(sorted.length * q) - 1));
+  return sorted[index];
+}
+
+function stats(samples) {
+  const sorted = [...samples].sort((left, right) => left - right);
+  const total = sorted.reduce((sum, value) => sum + value, 0);
+  return {
+    avgMs: sorted.length ? total / sorted.length : undefined,
+    p50Ms: quantile(sorted, 0.5),
+    p95Ms: quantile(sorted, 0.95),
+    maxMs: sorted.at(-1),
+  };
+}
+
+async function readJson(pathname) {
+  return JSON.parse(await fs.readFile(pathname, "utf8"));
+}
+
+async function readSampleEntries(samplesPath) {
+  const text = await fs.readFile(samplesPath, "utf8");
+  return text
+    .split("\n")
+    .filter(Boolean)
+    .map((line, index) => {
+      const [summaryPath, observedMessagesPath] = line.split("\t");
+      if (!summaryPath || !observedMessagesPath) {
+        throw new Error(`Invalid sample-paths line ${index + 1}: expected summary and observed paths.`);
+      }
+      return { summaryPath, observedMessagesPath };
+    });
+}
+
+async function existingRunIds() {
+  try {
+    const text = await fs.readFile(DATA_PATH, "utf8");
+    return new Set(
+      text
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => JSON.parse(line).run?.id)
+        .filter(Boolean),
+    );
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return new Set();
+    }
+    throw error;
+  }
+}
+
+function extractCanaryRtt(observedMessages) {
+  if (!Array.isArray(observedMessages)) {
+    throw new Error("discord observed messages must be an array.");
+  }
+  const matched = observedMessages.find(
+    (message) =>
+      message?.scenarioId === "discord-canary" &&
+      message?.matchedScenario === true &&
+      typeof message.replyToMessageId === "string" &&
+      typeof message.timestamp === "string",
+  );
+  if (!matched) {
+    return undefined;
+  }
+  const sentAtMs = discordSnowflakeTimestampMs(matched.replyToMessageId);
+  const repliedAtMs = Date.parse(matched.timestamp);
+  if (!Number.isFinite(sentAtMs) || !Number.isFinite(repliedAtMs)) {
+    return undefined;
+  }
+  const rttMs = Math.max(0, Math.round(repliedAtMs - sentAtMs));
+  return Number.isFinite(rttMs) ? rttMs : undefined;
+}
+
+async function readSample(entry, index) {
+  const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
+  const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
+  const scenario = summary.scenarios.find((item) => item?.id === "discord-canary");
+  const rttMs = extractCanaryRtt(observedMessages);
+  return {
+    index,
+    summary,
+    status: scenario?.status === "pass" && rttMs !== undefined ? "pass" : "fail",
+    rttMs,
+    details: scenario?.details,
+  };
+}
+
+function buildRunId(startedAt, spec) {
+  return `${startedAt.replaceAll(":", "").replaceAll(".", "")}-${safeRunLabel(spec)}-discord-rtt`;
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const entries = await readSampleEntries(path.resolve(args.samplesPath));
+  if (entries.length === 0) {
+    throw new Error("No Discord RTT samples to import.");
+  }
+
+  const samples = [];
+  for (let index = 0; index < entries.length; index += 1) {
+    samples.push(await readSample(entries[index], index + 1));
+  }
+  const startedAt = samples[0].summary.startedAt;
+  const finishedAt = samples.at(-1).summary.finishedAt;
+  const startedAtMs = Date.parse(startedAt);
+  const finishedAtMs = Date.parse(finishedAt);
+  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs)) {
+    throw new Error("Discord RTT sample timestamps must be parseable.");
+  }
+
+  const runId = buildRunId(startedAt, args.spec);
+  const seen = await existingRunIds();
+  if (seen.has(runId)) {
+    throw new Error(`Discord RTT run already imported: ${runId}`);
+  }
+
+  const warmSamples = samples.flatMap((sample) => (sample.status === "pass" ? [sample.rttMs] : []));
+  const failedSamples = samples.length - warmSamples.length;
+  const runDir = path.join(RUNS_DIR, runId);
+  const result = {
+    package: {
+      spec: args.spec,
+      version: args.version,
+    },
+    run: {
+      id: runId,
+      startedAt,
+      finishedAt,
+      durationMs: finishedAtMs - startedAtMs,
+      status: failedSamples === 0 ? "pass" : "fail",
+    },
+    mode: {
+      providerMode: args.providerMode,
+      scenarios: ["discord-canary"],
+      credentialSource: samples[0].summary.credentials?.source,
+      credentialRole: samples[0].summary.credentials?.role,
+    },
+    rtt: {
+      warmSamples,
+      failedSamples,
+      ...stats(warmSamples),
+    },
+    discord: {
+      samples: samples.map((sample) => ({
+        index: sample.index,
+        status: sample.status,
+        ...(sample.rttMs === undefined ? {} : { rttMs: sample.rttMs }),
+        ...(sample.details ? { details: sample.details } : {}),
+      })),
+    },
+    artifacts: {
+      resultPath: path.join(runDir, "result.json"),
+    },
+  };
+
+  await fs.mkdir(runDir, { recursive: true });
+  await fs.writeFile(path.join(runDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
+  await fs.mkdir(path.dirname(DATA_PATH), { recursive: true });
+  await fs.appendFile(DATA_PATH, `${JSON.stringify(result)}\n`);
+  process.stdout.write(`imported ${runId}\n`);
+}
+
+main().catch((error) => {
+  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.exitCode = 1;
+});
