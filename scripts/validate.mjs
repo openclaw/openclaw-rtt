@@ -75,6 +75,28 @@ function assertChannelRttRun(row, index) {
   if (row.run.status !== "pass" && row.run.status !== "fail") {
     throw new Error(`Channel RTT row ${index} has invalid run.status`);
   }
+  if (row.polling !== undefined) {
+    if (typeof row.polling !== "object" || row.polling === null || Array.isArray(row.polling)) {
+      throw new Error(`Channel RTT row ${index} has invalid polling`);
+    }
+    if (
+      row.polling.attemptSamples !== undefined &&
+      (!Array.isArray(row.polling.attemptSamples) ||
+        row.polling.attemptSamples.some(
+          (sample) => !Number.isInteger(sample) || sample < 1,
+        ))
+    ) {
+      throw new Error(`Channel RTT row ${index} has invalid polling.attemptSamples`);
+    }
+    const retryCount = row.polling.retryCount;
+    if (retryCount !== undefined && (!Number.isInteger(retryCount) || retryCount < 0)) {
+      throw new Error(`Channel RTT row ${index} has invalid polling.retryCount`);
+    }
+    const maxAttempts = row.polling.maxAttempts;
+    if (maxAttempts !== undefined && (!Number.isInteger(maxAttempts) || maxAttempts < 1)) {
+      throw new Error(`Channel RTT row ${index} has invalid polling.maxAttempts`);
+    }
+  }
   if (!Array.isArray(row.rtt?.warmSamples)) {
     throw new Error(`Channel RTT row ${index} missing rtt.warmSamples`);
   }

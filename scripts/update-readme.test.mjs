@@ -55,6 +55,11 @@ test("renders channel RTT and RSS metrics in the README channel table", async ()
         finishedAt: "2026-05-16T00:00:02.000Z",
         status: "pass",
       },
+      polling: {
+        attemptSamples: [1, 2],
+        retryCount: 1,
+        maxAttempts: 2,
+      },
       rtt: { warmSamples: [300, 400], p50Ms: 300, p95Ms: 400 },
       resources: {
         maxRssKbSamples: [204800, 307200],
@@ -66,9 +71,9 @@ test("renders channel RTT and RSS metrics in the README channel table", async ()
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
   const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
-  assert.match(readme, /\| Channel \| Scenario \| Version\/ref \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Updated \|/u);
+  assert.match(readme, /\| Channel \| Scenario \| Version\/ref \| Result \| Samples \| Retries \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Updated \|/u);
   assert.match(
     readme,
-    /\| Slack \| `slack-canary` \| `2026\.5\.16\+abcdef1234` \| Pass \| 2 \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `2026-05-16T00:00:00\.000Z` \|/u,
+    /\| Slack \| `slack-canary` \| `2026\.5\.16\+abcdef1234` \| Pass \| 2 \| 1 \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `2026-05-16T00:00:00\.000Z` \|/u,
   );
 });

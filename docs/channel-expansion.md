@@ -20,6 +20,7 @@ Required pieces:
 - Add or extend a workflow that runs `pnpm openclaw qa <channel>` with Convex-managed CI credentials and `OPENCLAW_QA_REDACT_PUBLIC_METADATA=1`.
 - Import with `scripts/import-live-transport-rtt.mjs`, passing the summary TSV, channel id, `openclaw@main` or release spec, version/ref, provider mode, and scenario id.
 - Capture per-sample resource metrics with `/usr/bin/time` and include the metrics path in the importer TSV so RSS appears beside RTT in the dashboard.
+- Record the attempt count in the resource metrics file. The importer stores per-sample attempts and aggregate retry count so the dashboard can show when a green sample needed transient recovery.
 - Commit only `README.md`, `data/channel-rtt/<channel>.jsonl`, and `channel-runs/<channel>/`.
 - Add importer proof with `node --test` when the new channel has a new artifact shape.
 
@@ -27,7 +28,7 @@ Required pieces:
 
 `main-channel-rtt.yml` starts with Slack and WhatsApp because both are built-in OpenClaw live transports and their summaries already carry scenario-level RTT fields. The workflow runs channels serially to avoid competing README/data commits.
 
-Each sample is wrapped with `/usr/bin/time` and imports max RSS in kilobytes alongside the scenario RTT. The README renders RTT p50/p95 and RSS p50/max for the latest run per channel/spec.
+Each sample is wrapped with `/usr/bin/time` and imports max RSS in kilobytes alongside the scenario RTT. The workflow uses bounded exponential retry for transient missing-summary failures and writes the final attempt count into the imported row. The README renders retries, RTT p50/p95, and RSS p50/max for the latest run per channel/spec.
 
 Discord is intentionally not migrated in the same step. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
 
