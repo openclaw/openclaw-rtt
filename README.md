@@ -97,6 +97,7 @@ No release RTT runs have been imported yet.
 ## Channel Expansion
 
 Generic live-transport RTT imports for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
+Design notes: [Channel expansion](docs/channel-expansion.md).
 
 <!-- channel-rtt:start -->
 
