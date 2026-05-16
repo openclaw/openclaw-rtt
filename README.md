@@ -99,7 +99,7 @@ The system under test is the published package running its own Telegram bot. The
 | `2026.4.22` | Pass | 20 | `2,497ms` | `14,847ms` | `135MB` | `135MB` |
 | `2026.4.21` | Pass | 20 | `3,502ms` | `16,828ms` | `146MB` | `146MB` |
 | `2026.4.20` | Pass | 20 | `3,504ms` | `16,796ms` | `136MB` | `136MB` |
-| `2026.4.15` | Pass | 20 | `3,503ms` | `16,809ms` | - | - |
+| `2026.4.15` | Pass | 20 | `3,503ms` | `16,809ms` | `135MB` | `135MB` |
 
 <!-- release-sweep:end -->
 
