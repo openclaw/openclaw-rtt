@@ -250,7 +250,7 @@ jobs:
 
       - name: Upload ${{ matrix.label }} RTT artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: main-${{ matrix.channel }}-rtt-${{ github.run_id }}-${{ github.run_attempt }}
           path: openclaw/.artifacts/qa-e2e/${{ matrix.channel }}-rtt-${{ github.run_id }}-${{ github.run_attempt }}
