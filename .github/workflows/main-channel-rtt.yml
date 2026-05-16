@@ -3,6 +3,15 @@ name: Main Channel RTT
 on:
   schedule:
     - cron: "45 */6 * * *"
+  pull_request:
+    paths:
+      - ".github/workflows/main-channel-rtt.yml"
+      - "scripts/channel-rtt-config.mjs"
+      - "scripts/channel-rtt-summary.mjs"
+      - "scripts/import-live-transport-rtt.mjs"
+      - "scripts/read-channel-rtt-rows.mjs"
+      - "scripts/update-readme.mjs"
+      - "scripts/validate.mjs"
   workflow_dispatch:
     inputs:
       samples:
@@ -121,7 +130,7 @@ jobs:
         id: channel_rtt
         working-directory: openclaw
         env:
-          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
           OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
           OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
           OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
@@ -131,7 +140,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          samples="${INPUT_SAMPLES:-20}"
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            samples="${INPUT_SAMPLES:-1}"
+          else
+            samples="${INPUT_SAMPLES:-20}"
+          fi
           if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
             echo "samples must be a positive integer, got: $samples" >&2
             exit 1
@@ -213,7 +226,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git pull --rebase origin main
+          if [[ "${GITHUB_EVENT_NAME}" != "pull_request" ]]; then
+            git pull --rebase origin main
+          fi
           node scripts/import-live-transport-rtt.mjs "${{ steps.channel_rtt.outputs.sample_paths }}" \
             --channel "${{ matrix.channel }}" \
             --spec openclaw@main \
@@ -234,6 +249,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Commit result
+        if: github.event_name != 'pull_request'
         working-directory: openclaw-rtt
         shell: bash
         run: |
