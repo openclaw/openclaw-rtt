@@ -70,7 +70,7 @@ function rttRow(overrides) {
   };
 }
 
-test("renders channel RTT and RSS metrics in the README channel table", async () => {
+test("merges channel RTT details into the dashboard", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   await writeJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"), [
@@ -96,13 +96,18 @@ test("renders channel RTT and RSS metrics in the README channel table", async ()
     readme.indexOf("<!-- channel-rtt:start -->"),
     readme.indexOf("<!-- channel-rtt:end -->"),
   );
-  assert.match(channelSection, /\| Channel \| Version\/ref \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Updated \|/u);
-  assert.match(
-    channelSection,
-    /\| Slack \| `2026\.5\.16\+abcdef1234` \| Pass \| 2 \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `2026-05-16T00:00:00\.000Z` \|/u,
+  assert.match(channelSection, /Merged into the Dashboard table above\./u);
+  assert.doesNotMatch(channelSection, /\| Channel \| Version\/ref \|/u);
+
+  const dashboardSection = readme.slice(
+    readme.indexOf("<!-- latest-main:start -->"),
+    readme.indexOf("<!-- latest-main:end -->"),
   );
-  assert.doesNotMatch(channelSection, /\| Channel \| Scenario \|/u);
-  assert.doesNotMatch(channelSection, /\| Channel \|.*\| Retries \|/u);
+  assert.match(dashboardSection, /Version\/ref: Slack `2026\.5\.16\+abcdef1234`/u);
+  assert.match(
+    dashboardSection,
+    /\| Slack \| Pass \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `slack-canary` \|/u,
+  );
 });
 
 test("renders latest main dashboard rows for Telegram, Discord, and live channels", async () => {
@@ -151,11 +156,20 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
 
   const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
   assert.match(readme, /Latest imported channel run: `2026-05-16T00:03:00\.000Z`/u);
-  assert.match(readme, /\| Channel \| Scope \| Scenario \| Version\/ref \| Result \| Samples \| Retries \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Updated \|/u);
-  assert.match(readme, /\| Telegram \| Main \| `telegram-mentioned-message-reply` \| `2026\.5\.16\+telegram1234` \| Pass \| 2 \| - \| `1,000ms` \| `2,000ms` \| - \| - \| `2026-05-16T00:00:00\.000Z` \|/u);
-  assert.match(readme, /\| Discord \| Main \| `discord-canary` \| `2026\.5\.16\+discord1234` \| Pass \| 2 \| - \| `6,000ms` \| `7,000ms` \| - \| - \| `2026-05-16T00:01:00\.000Z` \|/u);
-  assert.match(readme, /\| Slack \| Main \| `slack-canary` \| `2026\.5\.16\+slack1234` \| Pass \| 2 \| 0 \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \| `2026-05-16T00:02:00\.000Z` \|/u);
-  assert.match(readme, /\| WhatsApp \| Main \| `whatsapp-canary` \| `2026\.5\.16\+whatsapp1234` \| Pass \| 2 \| 1 \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \| `2026-05-16T00:03:00\.000Z` \|/u);
+  assert.match(
+    readme,
+    /Version\/ref: Telegram `2026\.5\.16\+telegram1234`; Discord `2026\.5\.16\+discord1234`; Slack `2026\.5\.16\+slack1234`; WhatsApp `2026\.5\.16\+whatsapp1234`/u,
+  );
+  assert.match(readme, /\| Channel \| Result \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Scenario \|/u);
+  assert.doesNotMatch(readme, /\| Channel \| Scope \|/u);
+  assert.doesNotMatch(readme, /\| Channel \|.*\| Version\/ref \|/u);
+  assert.doesNotMatch(readme, /\| Channel \|.*\| Samples \|/u);
+  assert.doesNotMatch(readme, /\| Channel \|.*\| Retries \|/u);
+  assert.doesNotMatch(readme, /\| Channel \|.*\| Updated \|/u);
+  assert.match(readme, /\| Telegram \| Pass \| `1,000ms` \| `2,000ms` \| - \| - \| `telegram-mentioned-message-reply` \|/u);
+  assert.match(readme, /\| Discord \| Pass \| `6,000ms` \| `7,000ms` \| - \| - \| `discord-canary` \|/u);
+  assert.match(readme, /\| Slack \| Pass \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \| `slack-canary` \|/u);
+  assert.match(readme, /\| WhatsApp \| Pass \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \| `whatsapp-canary` \|/u);
 });
 
 test("renders release coverage gaps across Telegram and Discord", async () => {
@@ -202,21 +216,37 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
     coverageSection,
     /Discord release gap: 1 version missing; 2 Telegram versions are not supported by the Discord release canary\./u,
   );
-  assert.match(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
+  assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:03:00\.000Z`/u);
+  assert.match(coverageSection, /\| Version \| Telegram \| Discord \|/u);
+  assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.1` \| Pass · 2 samples · `1,100ms` \/ `2,100ms` \| Pass · 2 samples · `6,000ms` \/ `7,000ms` \| `2026-05-16T00:03:00\.000Z` \|/u,
+    /\| `2026\.5\.16-beta\.1` \| `1,100ms` \/ `2,100ms` \| `6,000ms` \/ `7,000ms` \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.12` \| Pass · 2 samples · `1,000ms` \/ `2,000ms` \| Missing \| `2026-05-16T00:00:00\.000Z` \|/u,
+    /\| `2026\.5\.12` \| `1,000ms` \/ `2,000ms` \| Missing \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.4\.15` \| Pass · 2 samples · `900ms` \/ `1,900ms` \| Not supported \| `2026-05-15T00:00:00\.000Z` \|/u,
+    /\| `2026\.4\.15` \| `900ms` \/ `1,900ms` \| Not supported \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| Pass · 2 samples · `950ms` \/ `1,950ms` \| Not supported \| `2026-05-15T01:00:00\.000Z` \|/u,
+    /\| `2026\.5\.3` \| `950ms` \/ `1,950ms` \| Not supported \|/u,
   );
+
+  const telegramSection = readme.slice(
+    readme.indexOf("<!-- release-sweep:start -->"),
+    readme.indexOf("<!-- release-sweep:end -->"),
+  );
+  assert.match(telegramSection, /\| npm version \| Result \| Samples \| p50 \| p95 \| RSS p50 \| RSS max \|/u);
+  assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Updated \|/u);
+
+  const discordSection = readme.slice(
+    readme.indexOf("<!-- discord-release-sweep:start -->"),
+    readme.indexOf("<!-- discord-release-sweep:end -->"),
+  );
+  assert.match(discordSection, /\| npm version \| Result \| Samples \| p50 \| p95 \| RSS p50 \| RSS max \|/u);
+  assert.doesNotMatch(discordSection, /\| npm version \|.*\| Updated \|/u);
 });

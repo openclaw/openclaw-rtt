@@ -87,31 +87,18 @@ function sampleCount(row) {
   return row.rtt.warmSamples?.length ?? 0;
 }
 
-function retryCount(row) {
-  return row.polling?.retryCount ?? 0;
-}
-
-function scenarioLabel(value) {
-  return value ? `\`${value}\`` : "-";
-}
-
-function latestMainRow({ label, row, scenario, retries = "-", rssP50 = "-", rssMax = "-" }) {
+function latestMainRow({ label, row, scenario, rssP50 = "-", rssMax = "-" }) {
   if (!row) {
-    return `| ${label} | Main | ${scenarioLabel(scenario)} | - | - | - | - | - | - | - | - | - |`;
+    return `| ${label} | - | - | - | - | - |`;
   }
   return [
     `| ${label}`,
-    "Main",
-    scenarioLabel(scenario),
-    `\`${formatVersion(row.package.version)}\``,
     resultLabel(row),
-    sampleCount(row),
-    retries,
     formatMs(row.rtt.p50Ms),
     formatMs(row.rtt.p95Ms),
     rssP50,
     rssMax,
-    `\`${row.run.startedAt}\` |`,
+    `\`${scenario}\` |`,
   ].join(" | ");
 }
 
@@ -120,6 +107,19 @@ function latestStartedAt(rows) {
     .map((row) => row.run.startedAt)
     .sort()
     .at(-1);
+}
+
+function versionSummary(rows) {
+  const byVersion = new Map();
+  for (const row of rows) {
+    const version = formatVersion(row.package.version);
+    const labels = byVersion.get(version) ?? [];
+    labels.push(row.channel?.label ?? "Unknown");
+    byVersion.set(version, labels);
+  }
+  return [...byVersion.entries()]
+    .map(([version, labels]) => `${labels.join("/")} \`${version}\``)
+    .join("; ");
 }
 
 function mainChannelRttRows(rows) {
@@ -142,7 +142,6 @@ function mainDashboardRows(telegramRow, discordRow, channelRows) {
       label: row.channel.label,
       scenario: row.channel.scenario,
       row,
-      retries: retryCount(row),
       rssP50: formatRssKb(row.resources?.maxRssKb?.p50),
       rssMax: formatRssKb(row.resources?.maxRssKb?.max),
     })),
@@ -176,9 +175,14 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
     LATEST_MAIN_START,
     "",
     `Latest imported channel run: \`${latestStartedAt(rows)}\``,
+    `Version/ref: ${versionSummary(
+      tableRows
+        .filter((entry) => entry.row)
+        .map((entry) => ({ ...entry.row, channel: { label: entry.label } })),
+    )}`,
     "",
-    "| Channel | Scope | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |",
-    "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max | Scenario |",
+    "|---|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map((row) => latestMainRow(row)),
     "",
     LATEST_MAIN_END,
@@ -204,11 +208,11 @@ function releaseTableFor(rows, start, end) {
   return [
     start,
     "",
-    "| npm version | Result | Samples | p50 | p95 | Updated |",
-    "|---|---:|---:|---:|---:|---:|",
+    "| npm version | Result | Samples | p50 | p95 | RSS p50 | RSS max |",
+    "|---|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| \`${row.package.version}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | \`${row.run.startedAt}\` |`,
+        `| \`${row.package.version}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.max)} |`,
     ),
     "",
     end,
@@ -227,7 +231,8 @@ function releaseMetricCell(row, missingLabel = "Missing") {
   if (!row) {
     return missingLabel;
   }
-  return `${resultLabel(row)} · ${sampleCount(row)} samples · ${formatMs(row.rtt.p50Ms)} / ${formatMs(row.rtt.p95Ms)}`;
+  const metric = `${formatMs(row.rtt.p50Ms)} / ${formatMs(row.rtt.p95Ms)}`;
+  return row.run.status === "pass" ? metric : `${resultLabel(row)} · ${metric}`;
 }
 
 function releaseCoverageTableFor(telegramRows, discordRows) {
@@ -269,16 +274,19 @@ function releaseCoverageTableFor(telegramRows, discordRows) {
   return [
     RELEASE_COVERAGE_START,
     "",
+    `Latest imported channel run: \`${latestStartedAt(
+      versions.flatMap((version) => [telegramByVersion.get(version), discordByVersion.get(version)]).filter(Boolean),
+    )}\``,
+    "",
     discordGapSummary,
     "",
-    "| Version | Telegram | Discord | Updated |",
-    "|---|---:|---:|---:|",
+    "| Version | Telegram | Discord |",
+    "|---|---:|---:|",
     ...versions.map((version) => {
       const telegramRow = telegramByVersion.get(version);
       const discordRow = discordByVersion.get(version);
-      const updated = latestStartedAt([telegramRow, discordRow].filter(Boolean));
       const discordMissingLabel = isDiscordReleaseSupportedVersion(version) ? "Missing" : "Not supported";
-      return `| \`${version}\` | ${releaseMetricCell(telegramRow)} | ${releaseMetricCell(discordRow, discordMissingLabel)} | \`${updated}\` |`;
+      return `| \`${version}\` | ${releaseMetricCell(telegramRow)} | ${releaseMetricCell(discordRow, discordMissingLabel)} |`;
     }),
     "",
     RELEASE_COVERAGE_END,
@@ -304,18 +312,7 @@ function channelRttTableFor(rows) {
   if (tableRows.length === 0) {
     return [CHANNEL_RTT_START, "", "No channel RTT runs have been imported yet.", "", CHANNEL_RTT_END].join("\n");
   }
-  return [
-    CHANNEL_RTT_START,
-    "",
-    "| Channel | Version/ref | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |",
-    "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
-    ...tableRows.map(
-      (row) =>
-        `| ${row.channel.label} | \`${formatVersion(row.package.version)}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.max)} | \`${row.run.startedAt}\` |`,
-    ),
-    "",
-    CHANNEL_RTT_END,
-  ].join("\n");
+  return [CHANNEL_RTT_START, "", "Merged into the Dashboard table above.", "", CHANNEL_RTT_END].join("\n");
 }
 
 function replaceMarked(readme, start, end, replacement) {
