@@ -261,14 +261,15 @@ async function main() {
     },
   };
 
+  if (args.requirePass && result.run.status !== "pass") {
+    throw new Error(`Discord RTT run failed: ${runId}`);
+  }
+
   await fs.mkdir(runDir, { recursive: true });
   await fs.writeFile(path.join(runDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
   await fs.mkdir(path.dirname(DATA_PATH), { recursive: true });
   await fs.appendFile(DATA_PATH, `${JSON.stringify(result)}\n`);
   process.stdout.write(`imported ${runId}\n`);
-  if (args.requirePass && result.run.status !== "pass") {
-    throw new Error(`Discord RTT run failed: ${runId}`);
-  }
 }
 
 main().catch((error) => {

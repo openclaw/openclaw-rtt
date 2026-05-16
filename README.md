@@ -59,7 +59,7 @@ These cells are useful for coverage, not cross-channel latency ranking: Telegram
 
 <!-- release-coverage:start -->
 
-Discord release gap: 12 versions missing; 5 older Telegram versions predate Discord canary support.
+Discord release gap: 1 version missing; 7 Telegram versions are not supported by the Discord release canary.
 
 | Version | Telegram | Discord | Updated |
 |---|---:|---:|---:|
@@ -67,18 +67,18 @@ Discord release gap: 12 versions missing; 5 older Telegram versions predate Disc
 | `2026.5.16-beta.1` | Pass · 20 samples · `1,196ms` / `1,969ms` | Pass · 20 samples · `21,140ms` / `22,665ms` | `2026-05-16T13:04:27.192Z` |
 | `2026.5.14-beta.2` | Pass · 20 samples · `990ms` / `1,745ms` | Pass · 20 samples · `21,273ms` / `21,924ms` | `2026-05-16T12:48:02.968Z` |
 | `2026.5.14-beta.1` | Pass · 20 samples · `1,004ms` / `3,915ms` | Pass · 20 samples · `22,035ms` / `22,796ms` | `2026-05-16T12:31:17.042Z` |
-| `2026.5.12` | Pass · 20 samples · `2,858ms` / `23,061ms` | Missing | `2026-05-15T14:57:36.884Z` |
-| `2026.5.9-beta.1` | Pass · 20 samples · `2,517ms` / `14,692ms` | Missing | `2026-05-09T13:46:04.963Z` |
-| `2026.5.7` | Pass · 20 samples · `3,499ms` / `21,847ms` | Missing | `2026-05-07T22:34:10.660Z` |
-| `2026.5.6` | Pass · 20 samples · `3,497ms` / `16,762ms` | Missing | `2026-05-07T01:10:20.034Z` |
-| `2026.5.4` | Pass · 20 samples · `3,504ms` / `16,673ms` | Missing | `2026-05-05T12:55:16.706Z` |
-| `2026.5.3` | Pass · 20 samples · `3,505ms` / `16,741ms` | Missing | `2026-05-04T09:49:15.970Z` |
-| `2026.5.2` | Pass · 20 samples · `3,501ms` / `16,759ms` | Missing | `2026-05-03T01:14:23.528Z` |
-| `2026.4.29` | Pass · 20 samples · `17,936ms` / `24,517ms` | Missing | `2026-05-02T06:17:26.914Z` |
-| `2026.4.27` | Pass · 20 samples · `4,639ms` / `13,664ms` | Missing | `2026-05-02T06:11:35.226Z` |
-| `2026.4.26` | Pass · 20 samples · `5,880ms` / `18,610ms` | Missing | `2026-05-02T06:05:19.893Z` |
+| `2026.5.12` | Pass · 20 samples · `2,858ms` / `23,061ms` | Pass · 20 samples · `20,640ms` / `22,622ms` | `2026-05-16T15:37:46.452Z` |
+| `2026.5.9-beta.1` | Pass · 20 samples · `2,517ms` / `14,692ms` | Pass · 20 samples · `16,759ms` / `18,006ms` | `2026-05-16T15:34:41.306Z` |
+| `2026.5.7` | Pass · 20 samples · `3,499ms` / `21,847ms` | Pass · 20 samples · `18,948ms` / `22,954ms` | `2026-05-16T15:30:47.091Z` |
+| `2026.5.6` | Pass · 20 samples · `3,497ms` / `16,762ms` | Pass · 20 samples · `18,001ms` / `18,832ms` | `2026-05-16T15:25:23.193Z` |
+| `2026.5.4` | Pass · 20 samples · `3,504ms` / `16,673ms` | Pass · 20 samples · `18,937ms` / `19,896ms` | `2026-05-16T15:22:48.829Z` |
+| `2026.5.3` | Pass · 20 samples · `3,505ms` / `16,741ms` | Not supported | `2026-05-04T09:49:15.970Z` |
+| `2026.5.2` | Pass · 20 samples · `3,501ms` / `16,759ms` | Pass · 20 samples · `20,146ms` / `21,604ms` | `2026-05-16T15:19:33.576Z` |
+| `2026.4.29` | Pass · 20 samples · `17,936ms` / `24,517ms` | Not supported | `2026-05-02T06:17:26.914Z` |
+| `2026.4.27` | Pass · 20 samples · `4,639ms` / `13,664ms` | Pass · 20 samples · `36,858ms` / `38,863ms` | `2026-05-16T15:02:01.552Z` |
+| `2026.4.26` | Pass · 20 samples · `5,880ms` / `18,610ms` | Pass · 20 samples · `32,689ms` / `34,092ms` | `2026-05-16T15:02:15.436Z` |
 | `2026.4.25` | Pass · 20 samples · `7,508ms` / `27,982ms` | Missing | `2026-05-02T05:59:20.038Z` |
-| `2026.4.24` | Pass · 20 samples · `2,679ms` / `13,451ms` | Missing | `2026-05-02T05:54:14.272Z` |
+| `2026.4.24` | Pass · 20 samples · `2,679ms` / `13,451ms` | Pass · 20 samples · `33,328ms` / `34,734ms` | `2026-05-16T15:01:50.408Z` |
 | `2026.4.23` | Pass · 20 samples · `2,507ms` / `14,671ms` | Not supported | `2026-05-02T05:49:14.713Z` |
 | `2026.4.22` | Pass · 20 samples · `2,497ms` / `14,847ms` | Not supported | `2026-05-02T05:34:51.113Z` |
 | `2026.4.21` | Pass · 20 samples · `3,502ms` / `16,828ms` | Not supported | `2026-05-02T05:43:01.319Z` |
@@ -135,6 +135,15 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 | `2026.5.16-beta.1` | Pass | 20 | `21,140ms` | `22,665ms` | `2026-05-16T13:04:27.192Z` |
 | `2026.5.14-beta.2` | Pass | 20 | `21,273ms` | `21,924ms` | `2026-05-16T12:48:02.968Z` |
 | `2026.5.14-beta.1` | Pass | 20 | `22,035ms` | `22,796ms` | `2026-05-16T12:31:17.042Z` |
+| `2026.5.12` | Pass | 20 | `20,640ms` | `22,622ms` | `2026-05-16T15:37:46.452Z` |
+| `2026.5.9-beta.1` | Pass | 20 | `16,759ms` | `18,006ms` | `2026-05-16T15:34:41.306Z` |
+| `2026.5.7` | Pass | 20 | `18,948ms` | `22,954ms` | `2026-05-16T15:30:47.091Z` |
+| `2026.5.6` | Pass | 20 | `18,001ms` | `18,832ms` | `2026-05-16T15:25:23.193Z` |
+| `2026.5.4` | Pass | 20 | `18,937ms` | `19,896ms` | `2026-05-16T15:22:48.829Z` |
+| `2026.5.2` | Pass | 20 | `20,146ms` | `21,604ms` | `2026-05-16T15:19:33.576Z` |
+| `2026.4.27` | Pass | 20 | `36,858ms` | `38,863ms` | `2026-05-16T15:02:01.552Z` |
+| `2026.4.26` | Pass | 20 | `32,689ms` | `34,092ms` | `2026-05-16T15:02:15.436Z` |
+| `2026.4.24` | Pass | 20 | `33,328ms` | `34,734ms` | `2026-05-16T15:01:50.408Z` |
 
 <!-- discord-release-sweep:end -->
 

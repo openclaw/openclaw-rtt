@@ -10,6 +10,7 @@ const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
+const DISCORD_RELEASE_UNSUPPORTED_VERSIONS = new Set(["2026.4.29", "2026.5.3"]);
 
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
@@ -76,7 +77,10 @@ function releaseVersionSet(rows) {
 }
 
 function isDiscordReleaseSupportedVersion(version) {
-  return compareVersions(version, DISCORD_RELEASE_MIN_VERSION) >= 0;
+  return (
+    compareVersions(version, DISCORD_RELEASE_MIN_VERSION) >= 0 &&
+    !DISCORD_RELEASE_UNSUPPORTED_VERSIONS.has(version)
+  );
 }
 
 function releaseRows(rows) {

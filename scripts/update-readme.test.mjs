@@ -173,6 +173,11 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
       rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
     }),
     rttRow({
+      package: { spec: "openclaw@2026.5.3", version: "2026.5.3" },
+      run: { id: "telegram-2026.5.3", startedAt: "2026-05-15T01:00:00.000Z", status: "pass" },
+      rtt: { warmSamples: [950, 1950], p50Ms: 950, p95Ms: 1950 },
+    }),
+    rttRow({
       package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
       run: { id: "telegram-2026.5.16-beta.1", startedAt: "2026-05-16T00:02:00.000Z", status: "pass" },
       rtt: { warmSamples: [1100, 2100], p50Ms: 1100, p95Ms: 2100 },
@@ -195,7 +200,7 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
   );
   assert.match(
     coverageSection,
-    /Discord release gap: 1 version missing; 1 older Telegram version predates Discord canary support\./u,
+    /Discord release gap: 1 version missing; 2 Telegram versions are not supported by the Discord release canary\./u,
   );
   assert.match(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
@@ -209,5 +214,9 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
   assert.match(
     coverageSection,
     /\| `2026\.4\.15` \| Pass · 2 samples · `900ms` \/ `1,900ms` \| Not supported \| `2026-05-15T00:00:00\.000Z` \|/u,
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.3` \| Pass · 2 samples · `950ms` \/ `1,950ms` \| Not supported \| `2026-05-15T01:00:00\.000Z` \|/u,
   );
 });

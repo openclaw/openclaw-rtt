@@ -7,7 +7,7 @@
 - Telegram main/release RTT still uses the older `pnpm rtt` result shape and writes `data/rtt.jsonl`.
 - Discord main RTT uses the live QA lane but has its own importer and writes `data/discord-rtt.jsonl`.
 - Slack and WhatsApp main RTT use the reusable live-transport lane and write `data/channel-rtt/<channel>.jsonl`.
-- Release Discord uses its own importer today and writes `data/discord-rtt.jsonl`; the resolver backfills missing versions from the Telegram release baseline before measuring future versions.
+- Release Discord uses its own importer today and writes `data/discord-rtt.jsonl`; the resolver backfills missing versions from the Telegram release baseline before measuring future versions. It skips releases that predate or fail the Discord canary contract instead of reporting them as runnable gaps.
 - Matrix, iMessage, Microsoft Teams, and future channels have no reusable data lane here yet.
 - CI only measured live scheduled data. It did not protect PRs that change importers, README generation, or workflows.
 - Scheduled workflows needed `contents: write` to commit results, but secondary OpenClaw checkouts did not need persisted credentials.

@@ -26,6 +26,7 @@ const RELEASE_SPEC_RE =
 const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
+const DISCORD_RELEASE_UNSUPPORTED_VERSIONS = new Set(["2026.4.29", "2026.5.3"]);
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
 
 function formatMs(value) {
@@ -72,7 +73,10 @@ function compareVersions(left, right) {
 }
 
 function isDiscordReleaseSupportedVersion(version) {
-  return compareVersions(version, DISCORD_RELEASE_MIN_VERSION) >= 0;
+  return (
+    compareVersions(version, DISCORD_RELEASE_MIN_VERSION) >= 0 &&
+    !DISCORD_RELEASE_UNSUPPORTED_VERSIONS.has(version)
+  );
 }
 
 function resultLabel(row) {
@@ -253,15 +257,15 @@ function releaseCoverageTableFor(telegramRows, discordRows) {
       !discordByVersion.has(version) &&
       !isDiscordReleaseSupportedVersion(version),
   );
-  const unsupportedVerb = unsupportedDiscord.length === 1 ? "predates" : "predate";
-  const discordGapSummary =
+  const missingSummary =
     missingDiscord.length === 0
-      ? "Discord release gap: none."
-      : `Discord release gap: ${missingDiscord.length} version${missingDiscord.length === 1 ? "" : "s"} missing${
-          unsupportedDiscord.length === 0
-            ? ""
-            : `; ${unsupportedDiscord.length} older Telegram version${unsupportedDiscord.length === 1 ? "" : "s"} ${unsupportedVerb} Discord canary support`
-        }.`;
+      ? "none"
+      : `${missingDiscord.length} version${missingDiscord.length === 1 ? "" : "s"} missing`;
+  const unsupportedSummary =
+    unsupportedDiscord.length === 0
+      ? ""
+      : `; ${unsupportedDiscord.length} Telegram version${unsupportedDiscord.length === 1 ? " is" : "s are"} not supported by the Discord release canary`;
+  const discordGapSummary = `Discord release gap: ${missingSummary}${unsupportedSummary}.`;
   return [
     RELEASE_COVERAGE_START,
     "",
