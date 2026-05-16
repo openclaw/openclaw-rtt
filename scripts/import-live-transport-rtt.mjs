@@ -14,6 +14,7 @@ function usage() {
     "  --version <version-or-ref>",
     "  [--provider-mode <mock-openai|live-frontier>]",
     "  [--scenario <scenario-id>]",
+    "  [--require-pass]",
   ].join("\n");
 }
 
@@ -43,6 +44,10 @@ function parseArgs(argv) {
     }
     if (arg === "--scenario") {
       args.scenario = argv[(index += 1)];
+      continue;
+    }
+    if (arg === "--require-pass") {
+      args.requirePass = true;
       continue;
     }
     throw new Error(`Unknown argument: ${arg}\n${usage()}`);
@@ -362,6 +367,9 @@ async function main() {
   await fs.mkdir(path.dirname(dataPath), { recursive: true });
   await fs.appendFile(dataPath, `${JSON.stringify(result)}\n`);
   process.stdout.write(`imported ${runId}\n`);
+  if (args.requirePass && result.run.status !== "pass") {
+    throw new Error(`Channel RTT run failed: ${runId}`);
+  }
 }
 
 main().catch((error) => {

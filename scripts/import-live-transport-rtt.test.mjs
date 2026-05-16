@@ -134,3 +134,50 @@ test("falls back to observed message timestamps when summaries do not carry RTT"
   assert.equal(row.run.status, "pass");
   assert.deepEqual(row.rtt.warmSamples, [456]);
 });
+
+test("can require imported channel samples to pass", async () => {
+  const workspace = await makeWorkspace();
+  const summaryPath = path.join(workspace, "sample-1", "slack-qa-summary.json");
+  await writeJson(summaryPath, {
+    credentials: { kind: "slack", role: "ci", source: "convex" },
+    startedAt: "2026-05-16T02:00:00.000Z",
+    finishedAt: "2026-05-16T02:00:05.000Z",
+    counts: { total: 1, passed: 0, failed: 1 },
+    scenarios: [
+      {
+        id: "slack-canary",
+        title: "Slack canary",
+        status: "fail",
+        details: "credential pool exhausted",
+      },
+    ],
+  });
+  const samplesPath = path.join(workspace, "samples.tsv");
+  await fs.writeFile(samplesPath, `${summaryPath}\n`);
+
+  await assert.rejects(
+    execFileAsync(
+      process.execPath,
+      [
+        IMPORT_SCRIPT,
+        samplesPath,
+        "--channel",
+        "slack",
+        "--spec",
+        "openclaw@main",
+        "--version",
+        "2026.5.16+abcdef1234",
+        "--provider-mode",
+        "mock-openai",
+        "--require-pass",
+      ],
+      { cwd: workspace },
+    ),
+    /Channel RTT run failed/u,
+  );
+
+  const [row] = await readJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"));
+  assert.equal(row.run.status, "fail");
+  assert.deepEqual(row.rtt.warmSamples, []);
+  assert.equal(row.rtt.failedSamples, 1);
+});
