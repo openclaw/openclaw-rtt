@@ -111,6 +111,17 @@ function stats(samples) {
   };
 }
 
+function numericStats(samples) {
+  const sorted = [...samples].sort((left, right) => left - right);
+  const total = sorted.reduce((sum, value) => sum + value, 0);
+  return {
+    avg: sorted.length ? total / sorted.length : undefined,
+    p50: quantile(sorted, 0.5),
+    p95: quantile(sorted, 0.95),
+    max: sorted.at(-1),
+  };
+}
+
 async function readJson(pathname) {
   return JSON.parse(await fs.readFile(pathname, "utf8"));
 }
@@ -121,11 +132,11 @@ async function readSampleEntries(samplesPath) {
     .split("\n")
     .filter(Boolean)
     .map((line, index) => {
-      const [summaryPath, observedMessagesPath] = line.split("\t");
+      const [summaryPath, observedMessagesPath, resourceMetricsPath] = line.split("\t");
       if (!summaryPath) {
         throw new Error(`Invalid sample-paths line ${index + 1}: expected summary path.`);
       }
-      return { summaryPath, observedMessagesPath };
+      return { summaryPath, observedMessagesPath, resourceMetricsPath };
     });
 }
 
@@ -170,6 +181,25 @@ function extractObservedRtt(observedMessages, scenarioId) {
   return Number.isFinite(rttMs) ? rttMs : undefined;
 }
 
+async function readResourceMetrics(pathname) {
+  if (!pathname) {
+    return {};
+  }
+  const text = await fs.readFile(path.resolve(pathname), "utf8");
+  const metrics = {};
+  for (const line of text.split("\n")) {
+    const [key, value] = line.split("=");
+    if (!key || value === undefined) {
+      continue;
+    }
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) {
+      metrics[key] = numeric;
+    }
+  }
+  return metrics;
+}
+
 function selectScenario(summary, scenarioId) {
   const scenario = summary.scenarios.find((item) => item?.id === scenarioId);
   if (!scenario) {
@@ -186,9 +216,18 @@ async function readSample(entry, index, scenarioId) {
   if (rttMs === undefined && entry.observedMessagesPath) {
     rttMs = extractObservedRtt(await readJson(path.resolve(entry.observedMessagesPath)), scenarioId);
   }
+  const resourceMetrics = await readResourceMetrics(entry.resourceMetricsPath);
   return {
     index,
     summary,
+    resources: {
+      ...(resourceMetrics.max_rss_kb === undefined
+        ? {}
+        : { maxRssKb: resourceMetrics.max_rss_kb }),
+      ...(resourceMetrics.elapsed_seconds === undefined
+        ? {}
+        : { elapsedSeconds: resourceMetrics.elapsed_seconds }),
+    },
     scenario: {
       details: scenario.details,
       id: scenario.id,
@@ -241,6 +280,12 @@ async function main() {
   const warmSamples = samples.flatMap((sample) =>
     sample.scenario.status === "pass" ? [sample.scenario.rttMs] : [],
   );
+  const maxRssKbSamples = samples.flatMap((sample) =>
+    typeof sample.resources.maxRssKb === "number" ? [sample.resources.maxRssKb] : [],
+  );
+  const elapsedSecondsSamples = samples.flatMap((sample) =>
+    typeof sample.resources.elapsedSeconds === "number" ? [sample.resources.elapsedSeconds] : [],
+  );
   const failedSamples = samples.length - warmSamples.length;
   const runDir = path.join(channelRttRunsDir(channel.id), runId);
   const resultPath = path.join(runDir, "result.json");
@@ -271,10 +316,20 @@ async function main() {
       failedSamples,
       ...stats(warmSamples),
     },
+    resources: {
+      maxRssKbSamples,
+      elapsedSecondsSamples,
+      maxRssKb: numericStats(maxRssKbSamples),
+      elapsedSeconds: numericStats(elapsedSecondsSamples),
+    },
     samples: samples.map((sample) => ({
       index: sample.index,
       status: sample.scenario.status,
       ...(sample.scenario.rttMs === undefined ? {} : { rttMs: sample.scenario.rttMs }),
+      ...(sample.resources.maxRssKb === undefined ? {} : { maxRssKb: sample.resources.maxRssKb }),
+      ...(sample.resources.elapsedSeconds === undefined
+        ? {}
+        : { elapsedSeconds: sample.resources.elapsedSeconds }),
       ...(sample.scenario.details ? { details: sample.scenario.details } : {}),
     })),
     artifacts: {
