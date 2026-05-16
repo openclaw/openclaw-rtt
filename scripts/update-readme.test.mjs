@@ -30,6 +30,10 @@ async function writeReadme(workspace) {
       "old main",
       "<!-- latest-main:end -->",
       "",
+      "<!-- release-coverage:start -->",
+      "old release coverage",
+      "<!-- release-coverage:end -->",
+      "",
       "<!-- release-sweep:start -->",
       "old release",
       "<!-- release-sweep:end -->",
@@ -152,4 +156,58 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   assert.match(readme, /\| Discord \| Main \| `discord-canary` \| `2026\.5\.16\+discord1234` \| Pass \| 2 \| - \| `6,000ms` \| `7,000ms` \| - \| - \| `2026-05-16T00:01:00\.000Z` \|/u);
   assert.match(readme, /\| Slack \| Main \| `slack-canary` \| `2026\.5\.16\+slack1234` \| Pass \| 2 \| 0 \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \| `2026-05-16T00:02:00\.000Z` \|/u);
   assert.match(readme, /\| WhatsApp \| Main \| `whatsapp-canary` \| `2026\.5\.16\+whatsapp1234` \| Pass \| 2 \| 1 \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \| `2026-05-16T00:03:00\.000Z` \|/u);
+});
+
+test("renders release coverage gaps across Telegram and Discord", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+    rttRow({
+      package: { spec: "openclaw@2026.4.15", version: "2026.4.15" },
+      run: { id: "telegram-2026.4.15", startedAt: "2026-05-15T00:00:00.000Z", status: "pass" },
+      rtt: { warmSamples: [900, 1900], p50Ms: 900, p95Ms: 1900 },
+    }),
+    rttRow({
+      package: { spec: "openclaw@2026.5.12", version: "2026.5.12" },
+      run: { id: "telegram-2026.5.12", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
+      rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
+    }),
+    rttRow({
+      package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+      run: { id: "telegram-2026.5.16-beta.1", startedAt: "2026-05-16T00:02:00.000Z", status: "pass" },
+      rtt: { warmSamples: [1100, 2100], p50Ms: 1100, p95Ms: 2100 },
+    }),
+  ]);
+  await writeJsonl(path.join(workspace, "data/discord-rtt.jsonl"), [
+    rttRow({
+      package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+      run: { id: "discord-2026.5.16-beta.1", startedAt: "2026-05-16T00:03:00.000Z", status: "pass" },
+      rtt: { warmSamples: [6000, 7000], p50Ms: 6000, p95Ms: 7000 },
+    }),
+  ]);
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const coverageSection = readme.slice(
+    readme.indexOf("<!-- release-coverage:start -->"),
+    readme.indexOf("<!-- release-coverage:end -->"),
+  );
+  assert.match(
+    coverageSection,
+    /Discord release gap: 1 version missing; 1 older Telegram version predates Discord canary support\./u,
+  );
+  assert.match(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.16-beta\.1` \| Pass · 2 samples · `1,100ms` \/ `2,100ms` \| Pass · 2 samples · `6,000ms` \/ `7,000ms` \| `2026-05-16T00:03:00\.000Z` \|/u,
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.12` \| Pass · 2 samples · `1,000ms` \/ `2,000ms` \| Missing \| `2026-05-16T00:00:00\.000Z` \|/u,
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.4\.15` \| Pass · 2 samples · `900ms` \/ `1,900ms` \| Not supported \| `2026-05-15T00:00:00\.000Z` \|/u,
+  );
 });

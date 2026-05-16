@@ -9,6 +9,7 @@ const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
+const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
 
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
@@ -66,6 +67,18 @@ function latestStableVersion(rows) {
     .at(-1);
 }
 
+function releaseVersionSet(rows) {
+  return new Set(
+    rows
+      .map((row) => row.package?.version)
+      .filter((version) => typeof version === "string" && parseVersion(version)),
+  );
+}
+
+function isDiscordReleaseSupportedVersion(version) {
+  return compareVersions(version, DISCORD_RELEASE_MIN_VERSION) >= 0;
+}
+
 function releaseRows(rows) {
   return rows.filter(
     (row) =>
@@ -86,6 +99,7 @@ function writeOutput(values) {
 
 const discordRows = releaseRows(await readDiscordRttRows());
 const baselineRows = releaseRows(await readRows());
+const baselineVersions = releaseVersionSet(baselineRows);
 const anchor = latestReleaseVersion(discordRows) ?? latestStableVersion(baselineRows);
 if (!anchor) {
   throw new Error("No measured openclaw release baseline found.");
@@ -94,17 +108,34 @@ if (!anchor) {
 const measured = new Set(discordRows.map((row) => `${row.package.spec}\0${row.package.version}`));
 const queue = (await npmVersions())
   .filter((version) => typeof version === "string" && parseVersion(version))
-  .filter((version) => compareVersions(version, anchor) > 0)
   .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))
   .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
+  .filter(
+    (pkg) =>
+      (baselineVersions.has(pkg.version) && isDiscordReleaseSupportedVersion(pkg.version)) ||
+      compareVersions(pkg.version, anchor) > 0,
+  )
   .sort((left, right) => compareVersions(left.version, right.version));
+const missingBaselineCount = queue.filter((pkg) => baselineVersions.has(pkg.version)).length;
+const unsupportedBaselineCount = [...baselineVersions].filter(
+  (version) => !isDiscordReleaseSupportedVersion(version),
+).length;
+const reason =
+  queue.length === 0
+    ? "no-new-or-missing-discord-release-versions"
+    : missingBaselineCount > 0
+      ? "missing-discord-release-versions"
+      : "new-discord-release-versions";
 
 await writeOutput({
   anchor,
   count: String(queue.length),
+  baseline_count: String(baselineVersions.size),
+  missing_baseline_count: String(missingBaselineCount),
+  unsupported_baseline_count: String(unsupportedBaselineCount),
   specs: queue.map((pkg) => pkg.spec).join(" "),
   versions: queue.map((pkg) => pkg.version).join(" "),
   matrix: JSON.stringify(queue),
   should_run: queue.length > 0 ? "true" : "false",
-  reason: queue.length > 0 ? "new-discord-release-versions" : "no-new-discord-release-versions",
+  reason,
 });

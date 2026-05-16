@@ -6,7 +6,9 @@
 
 - Telegram main/release RTT still uses the older `pnpm rtt` result shape and writes `data/rtt.jsonl`.
 - Discord main RTT uses the live QA lane but has its own importer and writes `data/discord-rtt.jsonl`.
-- Release Discord, Slack, WhatsApp, Matrix, iMessage, Microsoft Teams, and future channels had no reusable data lane here.
+- Slack and WhatsApp main RTT use the reusable live-transport lane and write `data/channel-rtt/<channel>.jsonl`.
+- Release Discord uses its own importer today and writes `data/discord-rtt.jsonl`; the resolver backfills missing versions from the Telegram release baseline before measuring future versions.
+- Matrix, iMessage, Microsoft Teams, and future channels have no reusable data lane here yet.
 - CI only measured live scheduled data. It did not protect PRs that change importers, README generation, or workflows.
 - Scheduled workflows needed `contents: write` to commit results, but secondary OpenClaw checkouts did not need persisted credentials.
 
@@ -26,13 +28,15 @@ Required pieces:
 
 ## First Wave
 
-`main-channel-rtt.yml` starts with Slack and WhatsApp because both are built-in OpenClaw live transports and their summaries already carry scenario-level RTT fields. The workflow runs channels serially to avoid competing README/data commits.
+`main-channel-rtt.yml` starts with Slack and WhatsApp because both are built-in OpenClaw live transports and their summaries already carry scenario-level RTT fields. The workflow measures channels in parallel, uploads per-channel import artifacts, and then uses one serialized report job to avoid competing README/data commits.
 
-Each sample is wrapped with `/usr/bin/time` and imports max RSS in kilobytes alongside the scenario RTT. The workflow uses bounded exponential retry for transient missing-summary failures and writes the final attempt count into the imported row. The README renders retries, RTT p50/p95, and RSS p50/max for the latest run per channel/spec.
+Each sample is wrapped with `/usr/bin/time` and imports max RSS in kilobytes alongside the scenario RTT. The workflow uses bounded exponential retry for transient missing-summary failures and writes the final attempt count into the imported row. The README keeps the public channel table compact with RTT p50/p95 and RSS p50/max; retry and scenario details stay in the JSON rows and summaries.
 
-Discord is intentionally not migrated in the same step. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
+Discord is intentionally not migrated to `data/channel-rtt` yet. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
 
 Telegram is listed in the channel config for the future live-transport path, but the current production graph remains on the older `pnpm rtt` package-result path because that is what release sweeps already use.
+
+Do not read cross-channel values as pure transport rankings. Telegram release rows use `telegram-mentioned-message-reply`; Discord, Slack, and WhatsApp rows use canary scenarios. The live-transport lane also includes QA-lab process overhead in RSS because the measured process is `pnpm openclaw qa <channel>`, not only the channel adapter.
 
 ## CI And Security
 
@@ -46,9 +50,8 @@ Telegram is listed in the channel config for the future live-transport path, but
 
 Recommended order:
 
-1. Discord release RTT via the generic importer once the main lane has produced channel data.
-2. Telegram live-transport main RTT if we want one dashboard shape for all channel canaries.
-3. Matrix once its QA runner is available as a stable `pnpm openclaw qa <channel>` contribution in the release artifact.
-4. iMessage and Microsoft Teams after they expose equivalent live transport summaries and CI-safe credentials.
+1. Telegram live-transport main RTT if we want one dashboard shape for all channel canaries.
+2. Matrix once its QA runner is available as a stable `pnpm openclaw qa <channel>` contribution in the release artifact.
+3. iMessage and Microsoft Teams after they expose equivalent live transport summaries and CI-safe credentials.
 
 Do not add a channel by copying an entire bespoke importer. That path looks fast once and then becomes boring maintenance debt.

@@ -8,6 +8,8 @@ const LATEST_MAIN_START = "<!-- latest-main:start -->";
 const LATEST_MAIN_END = "<!-- latest-main:end -->";
 const RELEASE_START = "<!-- release-sweep:start -->";
 const RELEASE_END = "<!-- release-sweep:end -->";
+const RELEASE_COVERAGE_START = "<!-- release-coverage:start -->";
+const RELEASE_COVERAGE_END = "<!-- release-coverage:end -->";
 const DISCORD_RELEASE_START = "<!-- discord-release-sweep:start -->";
 const DISCORD_RELEASE_END = "<!-- discord-release-sweep:end -->";
 const CHANNEL_RTT_START = "<!-- channel-rtt:start -->";
@@ -21,6 +23,9 @@ const MAIN_DASHBOARD_ORDER = new Map([
 ]);
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
+const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
+const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
+const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
 
 function formatMs(value) {
@@ -35,6 +40,39 @@ function formatRssKb(value) {
 
 function formatVersion(value) {
   return /^[0-9a-f]{40}$/u.test(value) ? value.slice(0, 10) : value;
+}
+
+function parseVersion(version) {
+  const stableMatch = STABLE_VERSION_RE.exec(version);
+  if (stableMatch) {
+    return [...stableMatch.slice(1).map(Number), Number.MAX_SAFE_INTEGER];
+  }
+
+  const betaMatch = BETA_VERSION_RE.exec(version);
+  if (betaMatch) {
+    return betaMatch.slice(1).map(Number);
+  }
+
+  return undefined;
+}
+
+function compareVersions(left, right) {
+  const leftParts = parseVersion(left);
+  const rightParts = parseVersion(right);
+  if (!leftParts || !rightParts) {
+    throw new Error(`Cannot compare unsupported versions: ${left}, ${right}`);
+  }
+  for (let index = 0; index < leftParts.length; index += 1) {
+    const diff = leftParts[index] - rightParts[index];
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+}
+
+function isDiscordReleaseSupportedVersion(version) {
+  return compareVersions(version, DISCORD_RELEASE_MIN_VERSION) >= 0;
 }
 
 function resultLabel(row) {
@@ -151,9 +189,7 @@ function releaseRows(rows, specRe = RELEASE_SPEC_RE) {
     }
     byVersion.set(row.package.version, row);
   }
-  return [...byVersion.values()].sort((left, right) =>
-    right.package.version.localeCompare(left.package.version, undefined, { numeric: true }),
-  );
+  return [...byVersion.values()].sort((left, right) => compareVersions(right.package.version, left.package.version));
 }
 
 function releaseTableFor(rows, start, end) {
@@ -172,6 +208,76 @@ function releaseTableFor(rows, start, end) {
     ),
     "",
     end,
+  ].join("\n");
+}
+
+function releaseRowByVersion(rows) {
+  const byVersion = new Map();
+  for (const row of releaseRows(rows)) {
+    byVersion.set(row.package.version, row);
+  }
+  return byVersion;
+}
+
+function releaseMetricCell(row, missingLabel = "Missing") {
+  if (!row) {
+    return missingLabel;
+  }
+  return `${resultLabel(row)} · ${sampleCount(row)} samples · ${formatMs(row.rtt.p50Ms)} / ${formatMs(row.rtt.p95Ms)}`;
+}
+
+function releaseCoverageTableFor(telegramRows, discordRows) {
+  const telegramByVersion = releaseRowByVersion(telegramRows);
+  const discordByVersion = releaseRowByVersion(discordRows);
+  const versions = [...new Set([...telegramByVersion.keys(), ...discordByVersion.keys()])].sort((left, right) =>
+    compareVersions(right, left),
+  );
+  if (versions.length === 0) {
+    return [
+      RELEASE_COVERAGE_START,
+      "",
+      "No release RTT runs have been imported yet.",
+      "",
+      RELEASE_COVERAGE_END,
+    ].join("\n");
+  }
+  const missingDiscord = versions.filter(
+    (version) =>
+      telegramByVersion.has(version) &&
+      !discordByVersion.has(version) &&
+      isDiscordReleaseSupportedVersion(version),
+  );
+  const unsupportedDiscord = versions.filter(
+    (version) =>
+      telegramByVersion.has(version) &&
+      !discordByVersion.has(version) &&
+      !isDiscordReleaseSupportedVersion(version),
+  );
+  const unsupportedVerb = unsupportedDiscord.length === 1 ? "predates" : "predate";
+  const discordGapSummary =
+    missingDiscord.length === 0
+      ? "Discord release gap: none."
+      : `Discord release gap: ${missingDiscord.length} version${missingDiscord.length === 1 ? "" : "s"} missing${
+          unsupportedDiscord.length === 0
+            ? ""
+            : `; ${unsupportedDiscord.length} older Telegram version${unsupportedDiscord.length === 1 ? "" : "s"} ${unsupportedVerb} Discord canary support`
+        }.`;
+  return [
+    RELEASE_COVERAGE_START,
+    "",
+    discordGapSummary,
+    "",
+    "| Version | Telegram | Discord | Updated |",
+    "|---|---:|---:|---:|",
+    ...versions.map((version) => {
+      const telegramRow = telegramByVersion.get(version);
+      const discordRow = discordByVersion.get(version);
+      const updated = latestStartedAt([telegramRow, discordRow].filter(Boolean));
+      const discordMissingLabel = isDiscordReleaseSupportedVersion(version) ? "Missing" : "Not supported";
+      return `| \`${version}\` | ${releaseMetricCell(telegramRow)} | ${releaseMetricCell(discordRow, discordMissingLabel)} | \`${updated}\` |`;
+    }),
+    "",
+    RELEASE_COVERAGE_END,
   ].join("\n");
 }
 
@@ -237,7 +343,12 @@ async function main() {
     : replaceMarked(
         replaceMarked(
           replaceMarked(
-            withLatestMain,
+            replaceMarked(
+              withLatestMain,
+              RELEASE_COVERAGE_START,
+              RELEASE_COVERAGE_END,
+              releaseCoverageTableFor(rows, discordRows),
+            ),
             RELEASE_START,
             RELEASE_END,
             releaseTableFor(rows, RELEASE_START, RELEASE_END),

@@ -51,6 +51,42 @@ Latest imported channel run: `2026-05-16T13:47:20.951Z`
 
 <!-- latest-main:end -->
 
+## Release Coverage
+
+Version-by-version release coverage across channel families. The Discord release workflow queues missing versions from the Telegram release baseline before future versions.
+
+These cells are useful for coverage, not cross-channel latency ranking: Telegram uses `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`, and canary scenarios are not strict apples-to-apples with Telegram mention replies.
+
+<!-- release-coverage:start -->
+
+Discord release gap: 12 versions missing; 5 older Telegram versions predate Discord canary support.
+
+| Version | Telegram | Discord | Updated |
+|---|---:|---:|---:|
+| `2026.5.16-beta.2` | Pass · 20 samples · `1,050ms` / `2,002ms` | Pass · 20 samples · `26,639ms` / `27,767ms` | `2026-05-16T13:20:58.769Z` |
+| `2026.5.16-beta.1` | Pass · 20 samples · `1,196ms` / `1,969ms` | Pass · 20 samples · `21,140ms` / `22,665ms` | `2026-05-16T13:04:27.192Z` |
+| `2026.5.14-beta.2` | Pass · 20 samples · `990ms` / `1,745ms` | Pass · 20 samples · `21,273ms` / `21,924ms` | `2026-05-16T12:48:02.968Z` |
+| `2026.5.14-beta.1` | Pass · 20 samples · `1,004ms` / `3,915ms` | Pass · 20 samples · `22,035ms` / `22,796ms` | `2026-05-16T12:31:17.042Z` |
+| `2026.5.12` | Pass · 20 samples · `2,858ms` / `23,061ms` | Missing | `2026-05-15T14:57:36.884Z` |
+| `2026.5.9-beta.1` | Pass · 20 samples · `2,517ms` / `14,692ms` | Missing | `2026-05-09T13:46:04.963Z` |
+| `2026.5.7` | Pass · 20 samples · `3,499ms` / `21,847ms` | Missing | `2026-05-07T22:34:10.660Z` |
+| `2026.5.6` | Pass · 20 samples · `3,497ms` / `16,762ms` | Missing | `2026-05-07T01:10:20.034Z` |
+| `2026.5.4` | Pass · 20 samples · `3,504ms` / `16,673ms` | Missing | `2026-05-05T12:55:16.706Z` |
+| `2026.5.3` | Pass · 20 samples · `3,505ms` / `16,741ms` | Missing | `2026-05-04T09:49:15.970Z` |
+| `2026.5.2` | Pass · 20 samples · `3,501ms` / `16,759ms` | Missing | `2026-05-03T01:14:23.528Z` |
+| `2026.4.29` | Pass · 20 samples · `17,936ms` / `24,517ms` | Missing | `2026-05-02T06:17:26.914Z` |
+| `2026.4.27` | Pass · 20 samples · `4,639ms` / `13,664ms` | Missing | `2026-05-02T06:11:35.226Z` |
+| `2026.4.26` | Pass · 20 samples · `5,880ms` / `18,610ms` | Missing | `2026-05-02T06:05:19.893Z` |
+| `2026.4.25` | Pass · 20 samples · `7,508ms` / `27,982ms` | Missing | `2026-05-02T05:59:20.038Z` |
+| `2026.4.24` | Pass · 20 samples · `2,679ms` / `13,451ms` | Missing | `2026-05-02T05:54:14.272Z` |
+| `2026.4.23` | Pass · 20 samples · `2,507ms` / `14,671ms` | Not supported | `2026-05-02T05:49:14.713Z` |
+| `2026.4.22` | Pass · 20 samples · `2,497ms` / `14,847ms` | Not supported | `2026-05-02T05:34:51.113Z` |
+| `2026.4.21` | Pass · 20 samples · `3,502ms` / `16,828ms` | Not supported | `2026-05-02T05:43:01.319Z` |
+| `2026.4.20` | Pass · 20 samples · `3,504ms` / `16,796ms` | Not supported | `2026-05-02T05:26:57.320Z` |
+| `2026.4.15` | Pass · 20 samples · `3,503ms` / `16,809ms` | Not supported | `2026-05-02T05:20:28.620Z` |
+
+<!-- release-coverage:end -->
+
 ## Telegram Release Sweep
 
 Measured with the OpenClaw repo black-box harness on Blacksmith using `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
@@ -105,6 +141,7 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 ## Channel Expansion
 
 Generic live-transport RTT imports for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
+Slack and WhatsApp rows come from `openclaw qa <channel>` canaries, so their RSS columns include the QA-lab sample process and should not be read as pure channel transport memory.
 Design notes: [Channel expansion](docs/channel-expansion.md).
 
 <!-- channel-rtt:start -->
