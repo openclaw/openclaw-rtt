@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "channel-rtt-summary": "node scripts/channel-rtt-summary.mjs",
+    "check": "node --check scripts/*.mjs && node scripts/validate.mjs && node scripts/update-readme.mjs && git diff --exit-code README.md",
     "discord-rtt-summary": "node scripts/discord-rtt-summary.mjs",
+    "import-live-transport-rtt": "node scripts/import-live-transport-rtt.mjs",
     "import-result": "node scripts/import-result.mjs",
     "import-discord-rtt": "node scripts/import-discord-rtt.mjs",
     "summary": "node scripts/summary.mjs",
+    "test": "node --test scripts/*.test.mjs",
     "update-readme": "node scripts/update-readme.mjs",
     "validate": "node scripts/validate.mjs"
   },

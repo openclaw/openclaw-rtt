@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
 
@@ -9,6 +10,8 @@ const RELEASE_START = "<!-- release-sweep:start -->";
 const RELEASE_END = "<!-- release-sweep:end -->";
 const DISCORD_RELEASE_START = "<!-- discord-release-sweep:start -->";
 const DISCORD_RELEASE_END = "<!-- discord-release-sweep:end -->";
+const CHANNEL_RTT_START = "<!-- channel-rtt:start -->";
+const CHANNEL_RTT_END = "<!-- channel-rtt:end -->";
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
@@ -108,6 +111,39 @@ function releaseTableFor(rows, start, end) {
   ].join("\n");
 }
 
+function channelRttRows(rows) {
+  const byKey = new Map();
+  for (const row of rows) {
+    byKey.set(`${row.channel.id}\0${row.channel.scenario}\0${row.package.spec}`, row);
+  }
+  return [...byKey.values()].sort((left, right) => {
+    const channelDiff = String(left.channel.label).localeCompare(String(right.channel.label));
+    if (channelDiff !== 0) {
+      return channelDiff;
+    }
+    return String(right.run.startedAt).localeCompare(String(left.run.startedAt));
+  });
+}
+
+function channelRttTableFor(rows) {
+  const tableRows = channelRttRows(rows);
+  if (tableRows.length === 0) {
+    return [CHANNEL_RTT_START, "", "No channel RTT runs have been imported yet.", "", CHANNEL_RTT_END].join("\n");
+  }
+  return [
+    CHANNEL_RTT_START,
+    "",
+    "| Channel | Scenario | Version/ref | Result | Samples | p50 | p95 | Updated |",
+    "|---|---|---:|---:|---:|---:|---:|---:|",
+    ...tableRows.map(
+      (row) =>
+        `| ${row.channel.label} | \`${row.channel.scenario}\` | \`${formatVersion(row.package.version)}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | \`${row.run.startedAt}\` |`,
+    ),
+    "",
+    CHANNEL_RTT_END,
+  ].join("\n");
+}
+
 function replaceMarked(readme, start, end, replacement) {
   const startIndex = readme.indexOf(start);
   const endIndex = readme.indexOf(end);
@@ -120,6 +156,7 @@ function replaceMarked(readme, start, end, replacement) {
 async function main() {
   const rows = await readRows();
   const discordRows = await readDiscordRttRows();
+  const channelRows = await readChannelRttRows();
   const latestMain = rows.filter((row) => row.package.spec === "openclaw@main").at(-1);
   const latestDiscordMain = discordRows
     .filter((row) => row.package.spec === "openclaw@main")
@@ -135,14 +172,19 @@ async function main() {
     ? withLatestMain
     : replaceMarked(
         replaceMarked(
-          withLatestMain,
-          RELEASE_START,
-          RELEASE_END,
-          releaseTableFor(rows, RELEASE_START, RELEASE_END),
+          replaceMarked(
+            withLatestMain,
+            RELEASE_START,
+            RELEASE_END,
+            releaseTableFor(rows, RELEASE_START, RELEASE_END),
+          ),
+          DISCORD_RELEASE_START,
+          DISCORD_RELEASE_END,
+          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
         ),
-        DISCORD_RELEASE_START,
-        DISCORD_RELEASE_END,
-        releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
+        CHANNEL_RTT_START,
+        CHANNEL_RTT_END,
+        channelRttTableFor(channelRows),
       );
   await fs.writeFile(README_PATH, next);
 }

@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Syntax
+        run: node --check scripts/*.mjs
+
+      - name: Test
+        run: node --test scripts/*.test.mjs
+
+      - name: Validate data
+        run: node scripts/validate.mjs
+
+      - name: Verify README generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/update-readme.mjs
+          git diff --exit-code README.md
