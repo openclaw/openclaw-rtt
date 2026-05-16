@@ -102,6 +102,8 @@ Design notes: [Channel expansion](docs/channel-expansion.md).
 
 <!-- channel-rtt:start -->
 
-No channel RTT runs have been imported yet.
+| Channel | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Slack | `slack-canary` | `2026.5.17+9b560b8a41` | Pass | 20 | 0 | `4,598ms` | `5,863ms` | `672MB` | `7,137MB` | `2026-05-16T11:50:14.124Z` |
 
 <!-- channel-rtt:end -->
