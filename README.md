@@ -16,12 +16,11 @@ Treat cross-channel numbers as coverage and regression signal, not a pure transp
 
 ## Dashboard
 
-Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules, so the latest import time and per-channel refs sit above the compact table.
+Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules, so the latest import time and latest version/ref sit above the compact table.
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-05-16T13:47:20.951Z`
-Version/ref: Telegram `2026.5.16+df0d061c7a`; Discord `2026.5.16+e975c3b212`; Slack/WhatsApp `2026.5.17+b9921e21b9`
+Latest imported channel run: `2026-05-16T13:47:20.951Z` · latest `2026.5.17` / `b9921e21b9`
 
 | Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max |
 |---|---:|---:|---:|---:|---:|

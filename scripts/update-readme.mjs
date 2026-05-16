@@ -89,7 +89,7 @@ function sampleCount(row) {
 
 function latestMainRow({ label, row, rssP50 = "-", rssMax = "-" }) {
   if (!row) {
-    return `| ${label} | - | - | - | - |`;
+    return `| ${label} | - | - | - | - | - |`;
   }
   return [
     `| ${label}`,
@@ -108,17 +108,22 @@ function latestStartedAt(rows) {
     .at(-1);
 }
 
-function versionSummary(rows) {
-  const byVersion = new Map();
-  for (const row of rows) {
-    const version = formatVersion(row.package.version);
-    const labels = byVersion.get(version) ?? [];
-    labels.push(row.channel?.label ?? "Unknown");
-    byVersion.set(version, labels);
+function latestRow(rows) {
+  return [...rows].sort((left, right) => String(left.run.startedAt).localeCompare(String(right.run.startedAt))).at(-1);
+}
+
+function versionAndRef(value) {
+  const formatted = formatVersion(value);
+  const [version, ref] = formatted.split("+", 2);
+  if (ref) {
+    return `\`${version}\` / \`${ref}\``;
   }
-  return [...byVersion.entries()]
-    .map(([version, labels]) => `${labels.join("/")} \`${version}\``)
-    .join("; ");
+  return `\`${formatted}\``;
+}
+
+function latestRunSummary(rows) {
+  const row = latestRow(rows);
+  return `Latest imported channel run: \`${row.run.startedAt}\` · latest ${versionAndRef(row.package.version)}`;
 }
 
 function mainChannelRttRows(rows) {
@@ -173,12 +178,7 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
   return [
     LATEST_MAIN_START,
     "",
-    `Latest imported channel run: \`${latestStartedAt(rows)}\``,
-    `Version/ref: ${versionSummary(
-      tableRows
-        .filter((entry) => entry.row)
-        .map((entry) => ({ ...entry.row, channel: { label: entry.label } })),
-    )}`,
+    latestRunSummary(rows),
     "",
     "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max |",
     "|---|---:|---:|---:|---:|---:|",
