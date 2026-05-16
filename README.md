@@ -29,6 +29,8 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 - `runs/<run-id>/result.json`: copied per-run result record for audit/debug.
 - `data/discord-rtt.jsonl`: append-only Discord RTT graph source.
 - `discord-runs/<run-id>/result.json`: copied per-run Discord RTT record.
+- `data/channel-rtt/<channel>.jsonl`: append-only graph source for new live-transport channel RTT runs.
+- `channel-runs/<channel>/<run-id>/result.json`: copied per-run channel result record.
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
 
@@ -91,3 +93,13 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 No release RTT runs have been imported yet.
 
 <!-- discord-release-sweep:end -->
+
+## Channel Expansion
+
+Generic live-transport RTT imports for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
+
+<!-- channel-rtt:start -->
+
+No channel RTT runs have been imported yet.
+
+<!-- channel-rtt:end -->

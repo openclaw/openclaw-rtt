@@ -50,6 +50,7 @@ jobs:
           ref: main
           path: openclaw
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Set up Blacksmith Docker Builder
         if: steps.release.outputs.should_run == 'true'

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 
 const DATA_PATH = path.resolve("data/rtt.jsonl");
 const DISCORD_RTT_DATA_PATH = path.resolve("data/discord-rtt.jsonl");
@@ -49,6 +50,39 @@ function assertDiscordRttRun(row, index) {
   }
 }
 
+function assertChannelRttRun(row, index) {
+  if (typeof row !== "object" || row === null) {
+    throw new Error(`Channel RTT row ${index} must be an object`);
+  }
+  if (typeof row.channel?.id !== "string") {
+    throw new Error(`Channel RTT row ${index} missing channel.id`);
+  }
+  if (typeof row.channel?.label !== "string") {
+    throw new Error(`Channel RTT row ${index} missing channel.label`);
+  }
+  if (typeof row.channel?.scenario !== "string") {
+    throw new Error(`Channel RTT row ${index} missing channel.scenario`);
+  }
+  if (typeof row.package?.spec !== "string") {
+    throw new Error(`Channel RTT row ${index} missing package.spec`);
+  }
+  if (typeof row.package?.version !== "string") {
+    throw new Error(`Channel RTT row ${index} missing package.version`);
+  }
+  if (typeof row.run?.id !== "string") {
+    throw new Error(`Channel RTT row ${index} missing run.id`);
+  }
+  if (row.run.status !== "pass" && row.run.status !== "fail") {
+    throw new Error(`Channel RTT row ${index} has invalid run.status`);
+  }
+  if (!Array.isArray(row.rtt?.warmSamples)) {
+    throw new Error(`Channel RTT row ${index} missing rtt.warmSamples`);
+  }
+  if (row.rtt.warmSamples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample))) {
+    throw new Error(`Channel RTT row ${index} has invalid rtt.warmSamples`);
+  }
+}
+
 async function validateJsonl(pathname, label, assertRow) {
   let text = "";
   try {
@@ -74,9 +108,23 @@ async function validateJsonl(pathname, label, assertRow) {
   process.stdout.write(`ok: ${lines.length} ${label} rows\n`);
 }
 
+async function validateChannelRttRows() {
+  const rows = await readChannelRttRows();
+  const seen = new Set();
+  rows.forEach((row, index) => {
+    assertChannelRttRun(row, index + 1);
+    if (seen.has(row.run.id)) {
+      throw new Error(`duplicate Channel RTT run id: ${row.run.id}`);
+    }
+    seen.add(row.run.id);
+  });
+  process.stdout.write(`ok: ${rows.length} Channel RTT rows\n`);
+}
+
 async function main() {
   await validateJsonl(DATA_PATH, "RTT", assertRun);
   await validateJsonl(DISCORD_RTT_DATA_PATH, "Discord RTT", assertDiscordRttRun);
+  await validateChannelRttRows();
 }
 
 main().catch((error) => {

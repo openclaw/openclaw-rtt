@@ -1,12 +1,12 @@
-name: Main Discord RTT
+name: Main Channel RTT
 
 on:
   schedule:
-    - cron: "30 */6 * * *"
+    - cron: "45 */6 * * *"
   workflow_dispatch:
     inputs:
       samples:
-        description: Number of Discord canary RTT samples
+        description: Number of RTT samples
         required: false
         default: "20"
         type: string
@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: main-discord-rtt
+  group: main-channel-rtt
   cancel-in-progress: false
 
 env:
@@ -25,10 +25,25 @@ env:
 
 jobs:
   measure:
-    name: Measure OpenClaw main Discord RTT
-    runs-on: ubuntu-24.04
+    name: Measure OpenClaw main ${{ matrix.label }} RTT
+    runs-on: blacksmith-32vcpu-ubuntu-2404
     timeout-minutes: 120
     environment: qa-live-shared
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - channel: slack
+            label: Slack
+            scenario: slack-canary
+            summary: slack-qa-summary.json
+            observed: slack-qa-observed-messages.json
+          - channel: whatsapp
+            label: WhatsApp
+            scenario: whatsapp-canary
+            summary: whatsapp-qa-summary.json
+            observed: whatsapp-qa-observed-messages.json
     steps:
       - name: Checkout RTT tracker
         uses: actions/checkout@v6
@@ -69,9 +84,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: openclaw-main-discord-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
+          key: openclaw-main-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
           restore-keys: |
-            openclaw-main-discord-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
+            openclaw-main-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install OpenClaw dependencies
         working-directory: openclaw
@@ -99,16 +114,16 @@ jobs:
           set -euo pipefail
           time pnpm build
 
-      - name: Run Discord RTT samples
-        id: discord_rtt
+      - name: Run ${{ matrix.label }} RTT samples
+        id: channel_rtt
         working-directory: openclaw
         env:
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
           OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
           OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
           OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
           OPENCLAW_QA_CREDENTIAL_HTTP_TIMEOUT_MS: "60000"
           OPENCLAW_QA_REDACT_PUBLIC_METADATA: "1"
-          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -119,22 +134,22 @@ jobs:
             exit 1
           fi
 
-          output_root=".artifacts/qa-e2e/discord-rtt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          sample_paths="$RUNNER_TEMP/openclaw-discord-rtt-samples.tsv"
+          output_root=".artifacts/qa-e2e/${{ matrix.channel }}-rtt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sample_paths="$RUNNER_TEMP/openclaw-${{ matrix.channel }}-rtt-samples.tsv"
           : >"$sample_paths"
           echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
           echo "sample_paths=${sample_paths}" >>"$GITHUB_OUTPUT"
 
           for sample in $(seq 1 "$samples"); do
             output_dir="${output_root}/sample-${sample}"
-            summary_path="${output_dir}/discord-qa-summary.json"
-            observed_path="${output_dir}/discord-qa-observed-messages.json"
+            summary_path="${output_dir}/${{ matrix.summary }}"
+            observed_path="${output_dir}/${{ matrix.observed }}"
             status=1
             for attempt in 1 2 3; do
               rm -rf "$output_dir"
               mkdir -p "$output_dir"
               set +e
-              pnpm openclaw qa discord \
+              pnpm openclaw qa "${{ matrix.channel }}" \
                 --repo-root . \
                 --output-dir "${output_dir}" \
                 --provider-mode mock-openai \
@@ -143,42 +158,50 @@ jobs:
                 --fast \
                 --credential-source convex \
                 --credential-role ci \
-                --scenario discord-canary
+                --scenario "${{ matrix.scenario }}" \
+                --allow-failures
               status="$?"
               set -e
-              if [[ -f "$summary_path" && -f "$observed_path" ]]; then
+              if [[ -f "$summary_path" ]]; then
                 break
               fi
               if [[ "$attempt" -lt 3 ]]; then
                 sleep $((attempt * 15))
               fi
             done
-            if [[ ! -f "$summary_path" || ! -f "$observed_path" ]]; then
-              echo "No Discord QA artifacts produced for sample ${sample}." >&2
+            if [[ ! -f "$summary_path" ]]; then
+              echo "No ${{ matrix.label }} QA summary produced for sample ${sample}." >&2
               exit "$status"
             fi
-            printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
+            if [[ -f "$observed_path" ]]; then
+              printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
+            else
+              printf '%s\n' "${PWD}/${summary_path}" >>"$sample_paths"
+            fi
           done
 
-      - name: Import Discord RTT result
+      - name: Import ${{ matrix.label }} RTT result
         working-directory: openclaw-rtt
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/import-discord-rtt.mjs "${{ steps.discord_rtt.outputs.sample_paths }}" \
+          git pull --rebase origin main
+          node scripts/import-live-transport-rtt.mjs "${{ steps.channel_rtt.outputs.sample_paths }}" \
+            --channel "${{ matrix.channel }}" \
             --spec openclaw@main \
             --version "${{ steps.openclaw_ref.outputs.version }}" \
-            --provider-mode mock-openai
-          node scripts/update-readme.mjs --latest-main-only
+            --provider-mode mock-openai \
+            --scenario "${{ matrix.scenario }}"
+          node scripts/update-readme.mjs
           node scripts/validate.mjs
-          node scripts/discord-rtt-summary.mjs
+          node scripts/channel-rtt-summary.mjs
 
-      - name: Upload Discord RTT artifacts
+      - name: Upload ${{ matrix.label }} RTT artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: main-discord-rtt-${{ github.run_id }}-${{ github.run_attempt }}
-          path: openclaw/.artifacts/qa-e2e/discord-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          name: main-${{ matrix.channel }}-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/.artifacts/qa-e2e/${{ matrix.channel }}-rtt-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 14
           if-no-files-found: warn
 
@@ -188,11 +211,11 @@ jobs:
         run: |
           set -euo pipefail
           if git diff --quiet --exit-code; then
-            echo "No Discord RTT changes to commit."
+            echo "No ${{ matrix.label }} RTT changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/discord-rtt.jsonl discord-runs/
-          git commit -m "data: record main discord rtt"
+          git add README.md data/channel-rtt/${{ matrix.channel }}.jsonl channel-runs/${{ matrix.channel }}/
+          git commit -m "data: record main ${{ matrix.channel }} rtt"
           git push
