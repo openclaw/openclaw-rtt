@@ -80,7 +80,7 @@ The system under test is the published package running its own Telegram bot. The
 | npm version | Result | Samples | p50 | p95 | RSS p50 | RSS max |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.2` | Pass | 20 | `1,050ms` | `2,002ms` | `145MB` | `145MB` |
-| `2026.5.16-beta.1` | Pass | 20 | `1,196ms` | `1,969ms` | - | - |
+| `2026.5.16-beta.1` | Pass | 20 | `1,196ms` | `1,969ms` | `145MB` | `145MB` |
 | `2026.5.14-beta.2` | Pass | 20 | `990ms` | `1,745ms` | - | - |
 | `2026.5.14-beta.1` | Pass | 20 | `1,004ms` | `3,915ms` | - | - |
 | `2026.5.12` | Pass | 20 | `2,858ms` | `23,061ms` | - | - |
