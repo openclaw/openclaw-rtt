@@ -109,8 +109,70 @@ jobs:
           set -euo pipefail
           time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
+      - name: Run RSS backfill
+        if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill == 'true'
+        working-directory: openclaw
+        env:
+          OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
+          OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
+          OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for spec in ${{ steps.release.outputs.specs }}; do
+            output="$RUNNER_TEMP/openclaw-rtt-runs/$(printf '%s' "$spec" | tr -c 'A-Za-z0-9._-' '_')"
+            metrics_path="${output}/resource-metrics.env"
+            mkdir -p "$output"
+            set +e
+            /usr/bin/time \
+              -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+              -o "$metrics_path" \
+              timeout --kill-after=30s 10m \
+              pnpm rtt "$spec" \
+              --harness-root "$PWD" \
+              --output "$output" \
+              --samples 20 \
+              --timeout-ms 240000 \
+              --sample-timeout-ms 30000
+            status="$?"
+            set -e
+            echo "exit_status=${status}" >>"$metrics_path"
+            result_path="$(find "$output" -maxdepth 3 -name result.json -type f | sort | tail -1)"
+            if [[ -z "$result_path" ]]; then
+              echo "Skipping RSS backfill for $spec because the rerun did not produce a result." >&2
+              continue
+            fi
+            run_status="$(node -e 'const fs = require("node:fs"); const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); process.stdout.write(String(result.run?.status || ""));' "$result_path")"
+            if [[ "$run_status" != "pass" ]]; then
+              echo "Skipping RSS backfill for failed rerun ${result_path} (status=${run_status:-missing})." >&2
+              continue
+            fi
+            (
+              cd ../openclaw-rtt
+              git pull --rebase origin main
+              node scripts/backfill-release-rss.mjs \
+                --family telegram \
+                --result "$result_path" \
+                --resource-metrics "$metrics_path"
+              node scripts/update-readme.mjs
+              node scripts/validate.mjs
+              if git diff --quiet --exit-code; then
+                echo "No RSS changes to commit for $spec."
+                exit 0
+              fi
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add README.md data/rtt.jsonl runs/
+              git commit -m "data: record release rtt batch"
+              git push || {
+                git pull --rebase origin main
+                git push
+              }
+            )
+          done
+
       - name: Run RTT
-        if: steps.release.outputs.should_run == 'true'
+        if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill != 'true'
         id: rtt
         working-directory: openclaw
         env:
@@ -156,7 +218,7 @@ jobs:
           echo "result_paths=$result_paths" >>"$GITHUB_OUTPUT"
 
       - name: Import result
-        if: steps.release.outputs.should_run == 'true'
+        if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill != 'true'
         working-directory: openclaw-rtt
         shell: bash
         run: |
@@ -182,7 +244,7 @@ jobs:
           node scripts/summary.mjs
 
       - name: Commit result
-        if: steps.release.outputs.should_run == 'true'
+        if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill != 'true'
         working-directory: openclaw-rtt
         shell: bash
         run: |
