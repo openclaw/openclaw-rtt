@@ -94,6 +94,19 @@ function readPositiveIntegerEnv(name) {
   return Number(value);
 }
 
+function readVersionSetEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    return new Set();
+  }
+  return new Set(
+    value
+      .split(/[\s,]+/u)
+      .map((part) => part.trim())
+      .filter(Boolean),
+  );
+}
+
 function writeOutput(values) {
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) {
@@ -106,10 +119,12 @@ const rows = await readRows();
 const anchor = latestMeasuredStable(rows);
 const rssBackfill = process.env.INPUT_RSS_BACKFILL === "true";
 const rssBackfillLimit = readPositiveIntegerEnv("INPUT_RSS_BACKFILL_LIMIT");
+const rssBackfillSkipVersions = readVersionSetEnv("INPUT_RSS_BACKFILL_SKIP_VERSIONS");
 let queue;
 if (rssBackfill) {
   queue = releaseRows(rows)
     .filter((row) => row.resources?.maxRssKb?.max === undefined)
+    .filter((row) => !rssBackfillSkipVersions.has(row.package.version))
     .map((row) => ({ version: row.package.version, spec: row.package.spec }))
     .sort((left, right) => compareVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);

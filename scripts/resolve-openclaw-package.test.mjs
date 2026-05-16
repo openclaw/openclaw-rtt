@@ -82,3 +82,28 @@ test("queues Telegram release rows missing RSS for backfill", async () => {
   assert.equal(outputs.reason, "release-rss-backfill");
   assert.equal(outputs.versions, "2026.5.12");
 });
+
+test("skips selected Telegram release RSS backfill versions", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+    releaseRow("2026.5.12"),
+    releaseRow("2026.5.14-beta.1"),
+    releaseRow("2026.5.6"),
+    withResources(releaseRow("2026.5.16")),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_RSS_BACKFILL: "true",
+      INPUT_RSS_BACKFILL_LIMIT: "5",
+      INPUT_RSS_BACKFILL_SKIP_VERSIONS: "2026.5.14-beta.1, 2026.5.6",
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.count, "1");
+  assert.equal(outputs.versions, "2026.5.12");
+});

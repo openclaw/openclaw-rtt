@@ -18,6 +18,11 @@ on:
         required: false
         default: "4"
         type: string
+      rss_backfill_skip_versions:
+        description: Space or comma separated release versions to skip during RSS backfill
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: write
@@ -54,6 +59,7 @@ jobs:
         env:
           INPUT_RSS_BACKFILL: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill || 'false' }}
           INPUT_RSS_BACKFILL_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_limit || '' }}
+          INPUT_RSS_BACKFILL_SKIP_VERSIONS: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_skip_versions || '' }}
         shell: bash
         run: |
           set -euo pipefail
