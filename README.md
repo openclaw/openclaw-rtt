@@ -1,28 +1,18 @@
 # OpenClaw RTT
 
-**Channel round-trip timing data for OpenClaw.** `openclaw-rtt` stores normalized results from real OpenClaw channel QA runs and publishes the compact dashboard below.
+**Channel round-trip timing data for OpenClaw.** This repo stores normalized QA results and publishes the dashboard below; the harness itself lives in `openclaw/openclaw`.
 
-Practical answer: a Discord row measures how long it takes for an OpenClaw agent turn to produce a reply that is observable back in Discord. Telegram, Slack, WhatsApp, and future channel rows measure the same channel-observed reply loop for their own scenario.
+Each row measures how long a real channel takes to receive an OpenClaw agent reply after the test driver sends a controlled message. So yes: a Discord row is the agent-turn reply time observed back in Discord; Telegram, Slack, WhatsApp, and future channels measure the same loop in their own channel/scenario.
 
-The measurement harness lives in `openclaw/openclaw`; this repo is the data and reporting layer. It stays focused: import normalized run artifacts, keep append-only history, regenerate the README tables, and make regressions easy to spot.
-
-## What It Measures
-
-Each run sends a controlled message through a real channel credential, lets OpenClaw route it through the configured agent/provider path, then waits until the expected reply appears back in that channel.
-
-The RTT is the elapsed time for that observed reply loop:
+RTT covers the whole observed path, not just model time:
 
 ```text
 channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbound channel send -> reply observed by driver
 ```
 
-That means the numbers include more than model latency. They can include channel API latency, polling or webhook timing, gateway routing, mock-provider turn time, outbound send time, and test-driver observation delay. `p50` is the median successful sample; `p95` is the tail sample for the same run. RSS columns are only populated for newer generic channel lanes that collect process resource metrics.
+That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. RSS appears only for newer generic channel lanes that collect resource metrics.
 
-Do not read different scenarios as strict apples-to-apples transport benchmarks. Telegram release rows currently use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries, where QA-lab process overhead can inflate RSS.
-
-## Reporting Data
-
-`main` is the latest imported channel snapshot. Release tables compare published OpenClaw package versions where that channel has a compatible canary. Missing cells mean no imported compatible run exists; `Not supported` means the older OpenClaw release predates or fails that channel canary contract.
+Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries where QA-lab overhead can inflate RSS. Missing cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
 
 ## Dashboard
 
