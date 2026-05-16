@@ -202,7 +202,11 @@ jobs:
                 echo "attempts=${attempt}"
                 echo "exit_status=${status}"
               } >>"$metrics_path"
+              scenario_status=""
               if [[ -f "$summary_path" ]]; then
+                scenario_status="$(node -e 'const fs = require("node:fs"); const [summaryPath, scenarioId] = process.argv.slice(1); const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8")); const scenario = Array.isArray(summary.scenarios) ? summary.scenarios.find((item) => item && item.id === scenarioId) : undefined; process.stdout.write(typeof scenario?.status === "string" ? scenario.status : "missing");' "$summary_path" "${{ matrix.scenario }}")"
+              fi
+              if [[ "$scenario_status" == "pass" ]]; then
                 break
               fi
               if [[ "$attempt" -lt "$max_attempts" ]]; then
@@ -210,7 +214,7 @@ jobs:
                 if [[ "$delay" -gt "$retry_max_seconds" ]]; then
                   delay="$retry_max_seconds"
                 fi
-                echo "No ${{ matrix.label }} QA summary for sample ${sample} attempt ${attempt}; retrying in ${delay}s." >&2
+                echo "${{ matrix.label }} QA sample ${sample} attempt ${attempt} did not pass (status=${scenario_status:-no-summary}); retrying in ${delay}s." >&2
                 sleep "$delay"
               fi
             done
@@ -238,7 +242,8 @@ jobs:
             --spec openclaw@main \
             --version "${{ steps.openclaw_ref.outputs.version }}" \
             --provider-mode mock-openai \
-            --scenario "${{ matrix.scenario }}"
+            --scenario "${{ matrix.scenario }}" \
+            --require-pass
           node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/channel-rtt-summary.mjs
