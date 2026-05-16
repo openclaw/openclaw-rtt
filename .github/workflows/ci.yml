@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  NODE_COMPILE_CACHE: .cache/node-compile
+
 jobs:
   check:
     name: Check
@@ -23,6 +26,14 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
+
+      - name: Restore Node compile cache
+        uses: actions/cache@v5
+        with:
+          path: .cache/node-compile
+          key: openclaw-rtt-ci-node-compile-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/*.mjs') }}
+          restore-keys: |
+            openclaw-rtt-ci-node-compile-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Syntax
         run: node --check scripts/*.mjs

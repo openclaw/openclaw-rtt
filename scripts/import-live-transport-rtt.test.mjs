@@ -31,6 +31,7 @@ async function readJsonl(pathname) {
 test("imports live transport summary RTT samples", async () => {
   const workspace = await makeWorkspace();
   const summaryPath = path.join(workspace, "sample-1", "slack-qa-summary.json");
+  const resourceMetricsPath = path.join(workspace, "sample-1", "resource-metrics.env");
   await writeJson(summaryPath, {
     credentials: { kind: "slack", role: "ci", source: "convex" },
     startedAt: "2026-05-16T00:00:00.000Z",
@@ -46,8 +47,9 @@ test("imports live transport summary RTT samples", async () => {
       },
     ],
   });
+  await fs.writeFile(resourceMetricsPath, "max_rss_kb=204800\nelapsed_seconds=2.5\n");
   const samplesPath = path.join(workspace, "samples.tsv");
-  await fs.writeFile(samplesPath, `${summaryPath}\n`);
+  await fs.writeFile(samplesPath, `${summaryPath}\t\t${resourceMetricsPath}\n`);
 
   await execFileAsync(
     process.execPath,
@@ -72,6 +74,9 @@ test("imports live transport summary RTT samples", async () => {
   assert.equal(row.run.status, "pass");
   assert.deepEqual(row.rtt.warmSamples, [321]);
   assert.equal(row.rtt.p50Ms, 321);
+  assert.deepEqual(row.resources.maxRssKbSamples, [204800]);
+  assert.equal(row.resources.maxRssKb.p50, 204800);
+  assert.deepEqual(row.resources.elapsedSecondsSamples, [2.5]);
 });
 
 test("falls back to observed message timestamps when summaries do not carry RTT", async () => {

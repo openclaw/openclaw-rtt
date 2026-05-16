@@ -4,6 +4,10 @@ function formatMs(value) {
   return typeof value === "number" ? `${Math.round(value)}ms` : "-";
 }
 
+function formatRss(value) {
+  return typeof value === "number" ? `${Math.round(value / 1024)}MB` : "-";
+}
+
 const rows = await readChannelRttRows();
 if (rows.length === 0) {
   process.stdout.write("No channel RTT rows yet.\n");
@@ -26,8 +30,10 @@ for (const row of rows.slice(-10)) {
       row.package.version,
       row.run.status,
       `samples=${row.rtt.warmSamples?.length ?? 0}`,
-      `p50=${formatMs(row.rtt.p50Ms)}`,
-      `p95=${formatMs(row.rtt.p95Ms)}`,
+      `rtt_p50=${formatMs(row.rtt.p50Ms)}`,
+      `rtt_p95=${formatMs(row.rtt.p95Ms)}`,
+      `rss_p50=${formatRss(row.resources?.maxRssKb?.p50)}`,
+      `rss_p95=${formatRss(row.resources?.maxRssKb?.p95)}`,
     ].join("  "),
   );
   process.stdout.write("\n");

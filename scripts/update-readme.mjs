@@ -20,6 +20,12 @@ function formatMs(value) {
   return typeof value === "number" ? `\`${Math.round(value).toLocaleString("en-US")}ms\`` : "-";
 }
 
+function formatRssKb(value) {
+  return typeof value === "number"
+    ? `\`${Math.round(value / 1024).toLocaleString("en-US")}MB\``
+    : "-";
+}
+
 function formatVersion(value) {
   return /^[0-9a-f]{40}$/u.test(value) ? value.slice(0, 10) : value;
 }
@@ -133,11 +139,11 @@ function channelRttTableFor(rows) {
   return [
     CHANNEL_RTT_START,
     "",
-    "| Channel | Scenario | Version/ref | Result | Samples | p50 | p95 | Updated |",
-    "|---|---|---:|---:|---:|---:|---:|---:|",
+    "| Channel | Scenario | Version/ref | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |",
+    "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| ${row.channel.label} | \`${row.channel.scenario}\` | \`${formatVersion(row.package.version)}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | \`${row.run.startedAt}\` |`,
+        `| ${row.channel.label} | \`${row.channel.scenario}\` | \`${formatVersion(row.package.version)}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.max)} | \`${row.run.startedAt}\` |`,
     ),
     "",
     CHANNEL_RTT_END,

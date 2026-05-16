@@ -81,6 +81,37 @@ function assertChannelRttRun(row, index) {
   if (row.rtt.warmSamples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample))) {
     throw new Error(`Channel RTT row ${index} has invalid rtt.warmSamples`);
   }
+  if (row.resources !== undefined) {
+    if (typeof row.resources !== "object" || row.resources === null || Array.isArray(row.resources)) {
+      throw new Error(`Channel RTT row ${index} has invalid resources`);
+    }
+    if (
+      row.resources.maxRssKbSamples !== undefined &&
+      (!Array.isArray(row.resources.maxRssKbSamples) ||
+        row.resources.maxRssKbSamples.some(
+          (sample) => typeof sample !== "number" || !Number.isFinite(sample),
+        ))
+    ) {
+      throw new Error(`Channel RTT row ${index} has invalid resources.maxRssKbSamples`);
+    }
+    for (const [metricName, stats] of Object.entries({
+      maxRssKb: row.resources.maxRssKb,
+      elapsedSeconds: row.resources.elapsedSeconds,
+    })) {
+      if (stats === undefined) {
+        continue;
+      }
+      if (typeof stats !== "object" || stats === null || Array.isArray(stats)) {
+        throw new Error(`Channel RTT row ${index} has invalid resources.${metricName}`);
+      }
+      for (const statName of ["avg", "p50", "p95", "max"]) {
+        const value = stats[statName];
+        if (value !== undefined && (typeof value !== "number" || !Number.isFinite(value))) {
+          throw new Error(`Channel RTT row ${index} has invalid resources.${metricName}.${statName}`);
+        }
+      }
+    }
+  }
 }
 
 async function validateJsonl(pathname, label, assertRow) {
