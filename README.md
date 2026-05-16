@@ -109,7 +109,7 @@ Design notes: [Channel expansion](docs/channel-expansion.md).
 
 | Channel | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Slack | `slack-canary` | `2026.5.17+9b560b8a41` | Pass | 20 | 0 | `4,598ms` | `5,863ms` | `672MB` | `7,137MB` | `2026-05-16T11:50:14.124Z` |
+| Slack | `slack-canary` | `2026.5.17+b9921e21b9` | Pass | 20 | 0 | `4,536ms` | `5,893ms` | `672MB` | `7,362MB` | `2026-05-16T13:38:09.440Z` |
 | WhatsApp | `whatsapp-canary` | `2026.5.17+c438dadc5c` | Pass | 20 | 0 | `8,131ms` | `8,803ms` | `1,058MB` | `7,005MB` | `2026-05-16T12:00:28.473Z` |
 
 <!-- channel-rtt:end -->
