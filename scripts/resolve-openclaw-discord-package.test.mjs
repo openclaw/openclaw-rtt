@@ -85,7 +85,11 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
 
   const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
     cwd: workspace,
-    env: { ...process.env, PATH: `${binDir}${path.delimiter}${process.env.PATH}` },
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    },
   });
 
   const outputs = parseOutputs(stdout);
