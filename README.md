@@ -38,12 +38,12 @@ Current `openclaw@main` snapshot. Telegram and Discord run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported main run: `2026-05-16T06:56:44.998Z`
+Latest imported main run: `2026-05-16T07:18:04.544Z`
 
 | Transport | Version/ref | Result | Samples | p50 | p95 | Updated |
 |---|---:|---:|---:|---:|---:|---:|
 | Telegram | `2026.5.16+df0d061c7a` | Pass | 20 | `1,126ms` | `2,089ms` | `2026-05-16T06:56:44.998Z` |
-| Discord | `2026.5.16+c320da79ed` | Pass | 20 | `5,179ms` | `5,381ms` | `2026-05-16T01:15:22.930Z` |
+| Discord | `2026.5.16+e975c3b212` | Pass | 20 | `6,590ms` | `6,952ms` | `2026-05-16T07:18:04.544Z` |
 
 <!-- latest-main:end -->
 
