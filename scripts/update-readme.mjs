@@ -21,6 +21,15 @@ const MAIN_DASHBOARD_ORDER = new Map([
   ["Slack", 2],
   ["WhatsApp", 3],
 ]);
+const RELEASE_COVERAGE_CHANNELS = [
+  { label: "Telegram", missingLabel: () => "Missing" },
+  {
+    label: "Discord",
+    missingLabel: (version) => (isDiscordReleaseSupportedVersion(version) ? "Missing" : "Not supported"),
+  },
+  { label: "Slack", missingLabel: () => "Missing" },
+  { label: "WhatsApp", missingLabel: () => "Missing" },
+];
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
@@ -234,12 +243,30 @@ function releaseMetricCell(row, missingLabel = "Missing") {
   return row.run.status === "pass" ? metric : `${resultLabel(row)} · ${metric}`;
 }
 
-function releaseCoverageTableFor(telegramRows, discordRows) {
-  const telegramByVersion = releaseRowByVersion(telegramRows);
-  const discordByVersion = releaseRowByVersion(discordRows);
-  const versions = [...new Set([...telegramByVersion.keys(), ...discordByVersion.keys()])].sort((left, right) =>
-    compareVersions(right, left),
-  );
+function releaseP50StdDev(rows) {
+  const p50s = rows
+    .map((row) => row?.rtt.p50Ms)
+    .filter((value) => typeof value === "number");
+  if (p50s.length < 2) {
+    return "-";
+  }
+  const mean = p50s.reduce((sum, value) => sum + value, 0) / p50s.length;
+  const variance = p50s.reduce((sum, value) => sum + (value - mean) ** 2, 0) / p50s.length;
+  return formatMs(Math.sqrt(variance));
+}
+
+function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
+  const rowsByChannel = new Map([
+    ["Telegram", releaseRowByVersion(telegramRows)],
+    ["Discord", releaseRowByVersion(discordRows)],
+    ...["Slack", "WhatsApp"].map((label) => [
+      label,
+      releaseRowByVersion(channelRows.filter((row) => row.channel.label === label)),
+    ]),
+  ]);
+  const versions = [
+    ...new Set([...rowsByChannel.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
+  ].sort((left, right) => compareVersions(right, left));
   if (versions.length === 0) {
     return [
       RELEASE_COVERAGE_START,
@@ -253,16 +280,23 @@ function releaseCoverageTableFor(telegramRows, discordRows) {
     RELEASE_COVERAGE_START,
     "",
     `Latest imported channel run: \`${latestStartedAt(
-      versions.flatMap((version) => [telegramByVersion.get(version), discordByVersion.get(version)]).filter(Boolean),
+      versions
+        .flatMap((version) =>
+          RELEASE_COVERAGE_CHANNELS.map((channel) => rowsByChannel.get(channel.label)?.get(version)),
+        )
+        .filter(Boolean),
     )}\``,
     "",
-    "| Version | Telegram | Discord |",
-    "|---|---:|---:|",
+    "| Version | Telegram | Discord | Slack | WhatsApp | p50 σ |",
+    "|---|---:|---:|---:|---:|---:|",
     ...versions.map((version) => {
-      const telegramRow = telegramByVersion.get(version);
-      const discordRow = discordByVersion.get(version);
-      const discordMissingLabel = isDiscordReleaseSupportedVersion(version) ? "Missing" : "Not supported";
-      return `| \`${version}\` | ${releaseMetricCell(telegramRow)} | ${releaseMetricCell(discordRow, discordMissingLabel)} |`;
+      const channelRowsForVersion = RELEASE_COVERAGE_CHANNELS.map((channel) =>
+        rowsByChannel.get(channel.label)?.get(version),
+      );
+      const cells = RELEASE_COVERAGE_CHANNELS.map((channel, index) =>
+        releaseMetricCell(channelRowsForVersion[index], channel.missingLabel(version)),
+      );
+      return `| \`${version}\` | ${cells.join(" | ")} | ${releaseP50StdDev(channelRowsForVersion)} |`;
     }),
     "",
     RELEASE_COVERAGE_END,
@@ -324,7 +358,7 @@ async function main() {
               withLatestMain,
               RELEASE_COVERAGE_START,
               RELEASE_COVERAGE_END,
-              releaseCoverageTableFor(rows, discordRows),
+              releaseCoverageTableFor(rows, discordRows, channelRows),
             ),
             RELEASE_START,
             RELEASE_END,

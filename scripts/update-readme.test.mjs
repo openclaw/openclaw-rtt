@@ -206,6 +206,16 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
       rtt: { warmSamples: [6000, 7000], p50Ms: 6000, p95Ms: 7000 },
     }),
   ]);
+  await writeJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"), [
+    {
+      channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
+      ...rttRow({
+        package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+        run: { id: "slack-2026.5.16-beta.1", startedAt: "2026-05-16T00:04:00.000Z", status: "pass" },
+        rtt: { warmSamples: [3000, 4000], p50Ms: 3000, p95Ms: 4000 },
+      }),
+    },
+  ]);
 
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
@@ -215,24 +225,24 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
     readme.indexOf("<!-- release-coverage:end -->"),
   );
   assert.doesNotMatch(coverageSection, /Discord release gap:/u);
-  assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:03:00\.000Z`/u);
-  assert.match(coverageSection, /\| Version \| Telegram \| Discord \|/u);
+  assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:04:00\.000Z`/u);
+  assert.match(coverageSection, /\| Version \| Telegram \| Discord \| Slack \| WhatsApp \| p50 σ \|/u);
   assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.1` \| `1,100ms` \/ `2,100ms` \| `6,000ms` \/ `7,000ms` \|/u,
+    /\| `2026\.5\.16-beta\.1` \| `1,100ms` \/ `2,100ms` \| `6,000ms` \/ `7,000ms` \| `3,000ms` \/ `4,000ms` \| Missing \| `2,017ms` \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.12` \| `1,000ms` \/ `2,000ms` \| Missing \|/u,
+    /\| `2026\.5\.12` \| `1,000ms` \/ `2,000ms` \| Missing \| Missing \| Missing \| - \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.4\.15` \| `900ms` \/ `1,900ms` \| Not supported \|/u,
+    /\| `2026\.4\.15` \| `900ms` \/ `1,900ms` \| Not supported \| Missing \| Missing \| - \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| `950ms` \/ `1,950ms` \| Not supported \|/u,
+    /\| `2026\.5\.3` \| `950ms` \/ `1,950ms` \| Not supported \| Missing \| Missing \| - \|/u,
   );
 
   const telegramSection = readme.slice(

@@ -35,37 +35,37 @@ Operator notes: [Data imports and layout](docs/data-imports.md).
 
 ## Release Coverage Matrix
 
-Version-by-version RTT coverage for release canaries. The matrix shows the latest imported Telegram and Discord release rows side by side.
+Version-by-version RTT coverage for release canaries. The matrix shows the latest imported row for each channel family side by side.
 
-Use this as release coverage and regression signal, not a channel speed ranking. Each cell is `p50 / p95` for that channel's release scenario; `Missing` means no compatible import exists, and `Not supported` means that release predates or fails the Discord canary contract.
+Use this as release coverage and regression signal, not a channel speed ranking. Each channel cell is `p50 / p95` for that channel's release scenario; `p50 σ` is the standard deviation across available channel p50 values for that release. `Missing` means no compatible import exists, and `Not supported` means that release predates or fails the channel canary contract.
 
 <!-- release-coverage:start -->
 
 Latest imported channel run: `2026-05-16T16:22:30.074Z`
 
-| Version | Telegram | Discord |
-|---|---:|---:|
-| `2026.5.16-beta.2` | `1,050ms` / `2,002ms` | `26,639ms` / `27,767ms` |
-| `2026.5.16-beta.1` | `1,196ms` / `1,969ms` | `21,140ms` / `22,665ms` |
-| `2026.5.14-beta.2` | `990ms` / `1,745ms` | `21,273ms` / `21,924ms` |
-| `2026.5.14-beta.1` | `1,004ms` / `3,915ms` | `22,035ms` / `22,796ms` |
-| `2026.5.12` | `2,858ms` / `23,061ms` | `20,640ms` / `22,622ms` |
-| `2026.5.9-beta.1` | `2,517ms` / `14,692ms` | `16,759ms` / `18,006ms` |
-| `2026.5.7` | `3,499ms` / `21,847ms` | `18,948ms` / `22,954ms` |
-| `2026.5.6` | `3,497ms` / `16,762ms` | `18,001ms` / `18,832ms` |
-| `2026.5.4` | `3,504ms` / `16,673ms` | `18,937ms` / `19,896ms` |
-| `2026.5.3` | `3,505ms` / `16,741ms` | Not supported |
-| `2026.5.2` | `3,501ms` / `16,759ms` | `20,146ms` / `21,604ms` |
-| `2026.4.29` | `17,936ms` / `24,517ms` | Not supported |
-| `2026.4.27` | `4,639ms` / `13,664ms` | `36,858ms` / `38,863ms` |
-| `2026.4.26` | `5,880ms` / `18,610ms` | `32,689ms` / `34,092ms` |
-| `2026.4.25` | `7,508ms` / `27,982ms` | `49,357ms` / `52,963ms` |
-| `2026.4.24` | `2,679ms` / `13,451ms` | `33,328ms` / `34,734ms` |
-| `2026.4.23` | `2,507ms` / `14,671ms` | Not supported |
-| `2026.4.22` | `2,497ms` / `14,847ms` | Not supported |
-| `2026.4.21` | `3,502ms` / `16,828ms` | Not supported |
-| `2026.4.20` | `3,504ms` / `16,796ms` | Not supported |
-| `2026.4.15` | `3,503ms` / `16,809ms` | Not supported |
+| Version | Telegram | Discord | Slack | WhatsApp | p50 σ |
+|---|---:|---:|---:|---:|---:|
+| `2026.5.16-beta.2` | `1,050ms` / `2,002ms` | `26,639ms` / `27,767ms` | Missing | Missing | `12,795ms` |
+| `2026.5.16-beta.1` | `1,196ms` / `1,969ms` | `21,140ms` / `22,665ms` | Missing | Missing | `9,972ms` |
+| `2026.5.14-beta.2` | `990ms` / `1,745ms` | `21,273ms` / `21,924ms` | Missing | Missing | `10,142ms` |
+| `2026.5.14-beta.1` | `1,004ms` / `3,915ms` | `22,035ms` / `22,796ms` | Missing | Missing | `10,516ms` |
+| `2026.5.12` | `2,858ms` / `23,061ms` | `20,640ms` / `22,622ms` | Missing | Missing | `8,891ms` |
+| `2026.5.9-beta.1` | `2,517ms` / `14,692ms` | `16,759ms` / `18,006ms` | Missing | Missing | `7,121ms` |
+| `2026.5.7` | `3,499ms` / `21,847ms` | `18,948ms` / `22,954ms` | Missing | Missing | `7,725ms` |
+| `2026.5.6` | `3,497ms` / `16,762ms` | `18,001ms` / `18,832ms` | Missing | Missing | `7,252ms` |
+| `2026.5.4` | `3,504ms` / `16,673ms` | `18,937ms` / `19,896ms` | Missing | Missing | `7,717ms` |
+| `2026.5.3` | `3,505ms` / `16,741ms` | Not supported | Missing | Missing | - |
+| `2026.5.2` | `3,501ms` / `16,759ms` | `20,146ms` / `21,604ms` | Missing | Missing | `8,323ms` |
+| `2026.4.29` | `17,936ms` / `24,517ms` | Not supported | Missing | Missing | - |
+| `2026.4.27` | `4,639ms` / `13,664ms` | `36,858ms` / `38,863ms` | Missing | Missing | `16,110ms` |
+| `2026.4.26` | `5,880ms` / `18,610ms` | `32,689ms` / `34,092ms` | Missing | Missing | `13,405ms` |
+| `2026.4.25` | `7,508ms` / `27,982ms` | `49,357ms` / `52,963ms` | Missing | Missing | `20,925ms` |
+| `2026.4.24` | `2,679ms` / `13,451ms` | `33,328ms` / `34,734ms` | Missing | Missing | `15,325ms` |
+| `2026.4.23` | `2,507ms` / `14,671ms` | Not supported | Missing | Missing | - |
+| `2026.4.22` | `2,497ms` / `14,847ms` | Not supported | Missing | Missing | - |
+| `2026.4.21` | `3,502ms` / `16,828ms` | Not supported | Missing | Missing | - |
+| `2026.4.20` | `3,504ms` / `16,796ms` | Not supported | Missing | Missing | - |
+| `2026.4.15` | `3,503ms` / `16,809ms` | Not supported | Missing | Missing | - |
 
 <!-- release-coverage:end -->
 
