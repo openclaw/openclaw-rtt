@@ -91,7 +91,9 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 
 <!-- discord-release-sweep:start -->
 
-No release RTT runs have been imported yet.
+| npm version | Result | Samples | p50 | p95 | Updated |
+|---|---:|---:|---:|---:|---:|
+| `2026.5.14-beta.1` | Fail | 0 | - | - | `2026-05-16T12:31:17.042Z` |
 
 <!-- discord-release-sweep:end -->
 
