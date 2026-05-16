@@ -30,6 +30,7 @@ for (const row of rows.slice(-10)) {
       row.package.version,
       row.run.status,
       `samples=${row.rtt.warmSamples?.length ?? 0}`,
+      `retries=${row.polling?.retryCount ?? 0}`,
       `rtt_p50=${formatMs(row.rtt.p50Ms)}`,
       `rtt_p95=${formatMs(row.rtt.p95Ms)}`,
       `rss_p50=${formatRss(row.resources?.maxRssKb?.p50)}`,

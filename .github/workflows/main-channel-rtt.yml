@@ -22,6 +22,9 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "24.x"
   PNPM_VERSION: "10.33.0"
+  CHANNEL_RTT_MAX_ATTEMPTS: "3"
+  CHANNEL_RTT_RETRY_BASE_SECONDS: "15"
+  CHANNEL_RTT_RETRY_MAX_SECONDS: "60"
 
 jobs:
   measure:
@@ -133,6 +136,16 @@ jobs:
             echo "samples must be a positive integer, got: $samples" >&2
             exit 1
           fi
+          max_attempts="${CHANNEL_RTT_MAX_ATTEMPTS:-3}"
+          retry_base_seconds="${CHANNEL_RTT_RETRY_BASE_SECONDS:-15}"
+          retry_max_seconds="${CHANNEL_RTT_RETRY_MAX_SECONDS:-60}"
+          for value_name in max_attempts retry_base_seconds retry_max_seconds; do
+            value="${!value_name}"
+            if ! [[ "$value" =~ ^[1-9][0-9]*$ ]]; then
+              echo "${value_name} must be a positive integer, got: ${value}" >&2
+              exit 1
+            fi
+          done
 
           output_root=".artifacts/qa-e2e/${{ matrix.channel }}-rtt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           sample_paths="$RUNNER_TEMP/openclaw-${{ matrix.channel }}-rtt-samples.tsv"
@@ -146,9 +159,10 @@ jobs:
             observed_path="${output_dir}/${{ matrix.observed }}"
             metrics_path="${output_dir}/resource-metrics.env"
             status=1
-            for attempt in 1 2 3; do
+            for attempt in $(seq 1 "$max_attempts"); do
               rm -rf "$output_dir"
               mkdir -p "$output_dir"
+              echo "CHANNEL_RTT_PHASE:${{ matrix.channel }} sample=${sample}/${samples} attempt=${attempt}/${max_attempts}"
               set +e
               /usr/bin/time \
                 -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
@@ -166,11 +180,21 @@ jobs:
                 --allow-failures
               status="$?"
               set -e
+              {
+                echo "sample=${sample}"
+                echo "attempts=${attempt}"
+                echo "exit_status=${status}"
+              } >>"$metrics_path"
               if [[ -f "$summary_path" ]]; then
                 break
               fi
-              if [[ "$attempt" -lt 3 ]]; then
-                sleep $((attempt * 15))
+              if [[ "$attempt" -lt "$max_attempts" ]]; then
+                delay=$((retry_base_seconds * (2 ** (attempt - 1))))
+                if [[ "$delay" -gt "$retry_max_seconds" ]]; then
+                  delay="$retry_max_seconds"
+                fi
+                echo "No ${{ matrix.label }} QA summary for sample ${sample} attempt ${attempt}; retrying in ${delay}s." >&2
+                sleep "$delay"
               fi
             done
             if [[ ! -f "$summary_path" ]]; then

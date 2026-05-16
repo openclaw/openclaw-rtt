@@ -200,6 +200,16 @@ async function readResourceMetrics(pathname) {
   return metrics;
 }
 
+function readAttemptCount(value) {
+  if (value === undefined) {
+    return 1;
+  }
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error("resource metrics attempts must be a positive integer.");
+  }
+  return value;
+}
+
 function selectScenario(summary, scenarioId) {
   const scenario = summary.scenarios.find((item) => item?.id === scenarioId);
   if (!scenario) {
@@ -217,9 +227,11 @@ async function readSample(entry, index, scenarioId) {
     rttMs = extractObservedRtt(await readJson(path.resolve(entry.observedMessagesPath)), scenarioId);
   }
   const resourceMetrics = await readResourceMetrics(entry.resourceMetricsPath);
+  const attempts = readAttemptCount(resourceMetrics.attempts);
   return {
     index,
     summary,
+    attempts,
     resources: {
       ...(resourceMetrics.max_rss_kb === undefined
         ? {}
@@ -286,6 +298,8 @@ async function main() {
   const elapsedSecondsSamples = samples.flatMap((sample) =>
     typeof sample.resources.elapsedSeconds === "number" ? [sample.resources.elapsedSeconds] : [],
   );
+  const attemptSamples = samples.map((sample) => sample.attempts);
+  const retryCount = attemptSamples.reduce((total, attempts) => total + Math.max(0, attempts - 1), 0);
   const failedSamples = samples.length - warmSamples.length;
   const runDir = path.join(channelRttRunsDir(channel.id), runId);
   const resultPath = path.join(runDir, "result.json");
@@ -306,6 +320,11 @@ async function main() {
       durationMs: finishedAtMs - startedAtMs,
       status: failedSamples === 0 ? "pass" : "fail",
     },
+    polling: {
+      attemptSamples,
+      retryCount,
+      maxAttempts: Math.max(...attemptSamples),
+    },
     mode: {
       providerMode: args.providerMode,
       credentialSource: samples[0].summary.credentials?.source,
@@ -325,6 +344,7 @@ async function main() {
     samples: samples.map((sample) => ({
       index: sample.index,
       status: sample.scenario.status,
+      attempts: sample.attempts,
       ...(sample.scenario.rttMs === undefined ? {} : { rttMs: sample.scenario.rttMs }),
       ...(sample.resources.maxRssKb === undefined ? {} : { maxRssKb: sample.resources.maxRssKb }),
       ...(sample.resources.elapsedSeconds === undefined

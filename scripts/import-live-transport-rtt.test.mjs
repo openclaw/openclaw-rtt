@@ -47,7 +47,7 @@ test("imports live transport summary RTT samples", async () => {
       },
     ],
   });
-  await fs.writeFile(resourceMetricsPath, "max_rss_kb=204800\nelapsed_seconds=2.5\n");
+  await fs.writeFile(resourceMetricsPath, "max_rss_kb=204800\nelapsed_seconds=2.5\nattempts=2\n");
   const samplesPath = path.join(workspace, "samples.tsv");
   await fs.writeFile(samplesPath, `${summaryPath}\t\t${resourceMetricsPath}\n`);
 
@@ -77,6 +77,10 @@ test("imports live transport summary RTT samples", async () => {
   assert.deepEqual(row.resources.maxRssKbSamples, [204800]);
   assert.equal(row.resources.maxRssKb.p50, 204800);
   assert.deepEqual(row.resources.elapsedSecondsSamples, [2.5]);
+  assert.deepEqual(row.polling.attemptSamples, [2]);
+  assert.equal(row.polling.retryCount, 1);
+  assert.equal(row.polling.maxAttempts, 2);
+  assert.equal(row.samples[0].attempts, 2);
 });
 
 test("falls back to observed message timestamps when summaries do not carry RTT", async () => {
