@@ -35,6 +35,9 @@ jobs:
           restore-keys: |
             openclaw-rtt-ci-node-compile-${{ runner.os }}-${{ runner.arch }}-
 
+      - name: Lint workflows
+        uses: rhysd/actionlint@v1
+
       - name: Syntax
         run: node --check scripts/*.mjs
 
