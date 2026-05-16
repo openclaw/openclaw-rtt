@@ -12,11 +12,8 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: write
-
-concurrency:
-  group: rtt-report-writer-${{ github.ref }}
-  cancel-in-progress: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -62,9 +59,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     environment: qa-live-shared
+    concurrency:
+      group: release-discord-rtt-measure-${{ matrix.package.version }}-${{ github.ref }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 4
       matrix:
         package: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
@@ -199,20 +199,27 @@ jobs:
             printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
           done
 
-      - name: Import Discord RTT result
-        working-directory: openclaw-rtt
+      - name: Prepare Discord release import artifact
+        working-directory: openclaw
         shell: bash
         run: |
           set -euo pipefail
-          git pull --rebase origin main
-          node scripts/import-discord-rtt.mjs "${{ steps.discord_rtt.outputs.sample_paths }}" \
-            --spec "${{ matrix.package.spec }}" \
-            --version "${{ matrix.package.version }}" \
-            --provider-mode mock-openai \
-            --require-pass
-          node scripts/update-readme.mjs
-          node scripts/validate.mjs
-          node scripts/discord-rtt-summary.mjs
+          import_dir="$RUNNER_TEMP/release-discord-rtt-import-${{ matrix.package.version }}"
+          rm -rf "$import_dir"
+          mkdir -p "$import_dir"
+          cp -R "${{ steps.discord_rtt.outputs.output_root }}" "$import_dir/artifacts"
+          {
+            echo "spec=${{ matrix.package.spec }}"
+            echo "version=${{ matrix.package.version }}"
+          } >"$import_dir/metadata.env"
+
+      - name: Upload Discord release import artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: release-discord-rtt-import-${{ matrix.package.version }}
+          path: ${{ runner.temp }}/release-discord-rtt-import-${{ matrix.package.version }}
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Upload Discord RTT artifacts
         if: always()
@@ -223,8 +230,77 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+  report:
+    name: Import Discord release RTT reports
+    needs:
+      - resolve
+      - measure
+    if: needs.resolve.outputs.should_run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: rtt-report-writer-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download Discord release import artifacts
+        uses: actions/download-artifact@v7.0.1
+        with:
+          pattern: release-discord-rtt-import-*
+          path: ${{ runner.temp }}/release-discord-rtt-imports
+
+      - name: Import Discord release RTT results
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          import_root="$RUNNER_TEMP/release-discord-rtt-imports"
+          shopt -s nullglob
+          import_dirs=("$import_root"/release-discord-rtt-import-*)
+          if [[ "${#import_dirs[@]}" -eq 0 ]]; then
+            echo "No Discord release RTT import artifacts downloaded." >&2
+            exit 1
+          fi
+          get_metadata() {
+            local metadata_path="$1"
+            local key="$2"
+            grep -m 1 "^${key}=" "$metadata_path" | cut -d= -f2-
+          }
+          for import_dir in "${import_dirs[@]}"; do
+            metadata_path="${import_dir}/metadata.env"
+            spec="$(get_metadata "$metadata_path" spec)"
+            version="$(get_metadata "$metadata_path" version)"
+            sample_paths="$RUNNER_TEMP/openclaw-discord-release-${version}-rtt-samples.tsv"
+            : >"$sample_paths"
+            while IFS= read -r sample_dir; do
+              summary_path="${sample_dir}/discord-qa-summary.json"
+              observed_path="${sample_dir}/discord-qa-observed-messages.json"
+              if [[ ! -f "$summary_path" || ! -f "$observed_path" ]]; then
+                echo "Missing Discord release artifacts under ${sample_dir}." >&2
+                exit 1
+              fi
+              printf '%s\t%s\n' "$summary_path" "$observed_path" >>"$sample_paths"
+            done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
+            node scripts/import-discord-rtt.mjs "$sample_paths" \
+              --spec "$spec" \
+              --version "$version" \
+              --provider-mode mock-openai \
+              --require-pass
+          done
+          node scripts/update-readme.mjs
+          node scripts/validate.mjs
+          node scripts/discord-rtt-summary.mjs
+
       - name: Commit result
-        working-directory: openclaw-rtt
         shell: bash
         run: |
           set -euo pipefail

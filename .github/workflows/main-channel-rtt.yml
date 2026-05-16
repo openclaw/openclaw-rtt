@@ -24,11 +24,8 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: write
-
-concurrency:
-  group: rtt-report-writer-${{ github.event_name == 'pull_request' && github.run_id || github.ref }}
-  cancel-in-progress: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -45,9 +42,12 @@ jobs:
     runs-on: blacksmith-32vcpu-ubuntu-2404
     timeout-minutes: 120
     environment: qa-live-shared
+    concurrency:
+      group: main-channel-rtt-measure-${{ matrix.channel }}-${{ github.ref }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2
       matrix:
         include:
           - channel: slack
@@ -229,24 +229,30 @@ jobs:
             fi
           done
 
-      - name: Import ${{ matrix.label }} RTT result
-        working-directory: openclaw-rtt
+      - name: Prepare ${{ matrix.label }} import artifact
+        working-directory: openclaw
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${GITHUB_EVENT_NAME}" != "pull_request" ]]; then
-            git pull --rebase origin main
-          fi
-          node scripts/import-live-transport-rtt.mjs "${{ steps.channel_rtt.outputs.sample_paths }}" \
-            --channel "${{ matrix.channel }}" \
-            --spec openclaw@main \
-            --version "${{ steps.openclaw_ref.outputs.version }}" \
-            --provider-mode mock-openai \
-            --scenario "${{ matrix.scenario }}" \
-            --require-pass
-          node scripts/update-readme.mjs
-          node scripts/validate.mjs
-          node scripts/channel-rtt-summary.mjs
+          import_dir="$RUNNER_TEMP/main-channel-rtt-import-${{ matrix.channel }}"
+          rm -rf "$import_dir"
+          mkdir -p "$import_dir"
+          cp -R "${{ steps.channel_rtt.outputs.output_root }}" "$import_dir/artifacts"
+          {
+            echo "channel=${{ matrix.channel }}"
+            echo "scenario=${{ matrix.scenario }}"
+            echo "summary=${{ matrix.summary }}"
+            echo "observed=${{ matrix.observed }}"
+            echo "version=${{ steps.openclaw_ref.outputs.version }}"
+          } >"$import_dir/metadata.env"
+
+      - name: Upload ${{ matrix.label }} import artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: main-channel-rtt-import-${{ matrix.channel }}
+          path: ${{ runner.temp }}/main-channel-rtt-import-${{ matrix.channel }}
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Upload ${{ matrix.label }} RTT artifacts
         if: always()
@@ -257,18 +263,96 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+  report:
+    name: Import channel RTT reports
+    needs: measure
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: rtt-report-writer-${{ github.event_name == 'pull_request' && github.run_id || github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download channel RTT import artifacts
+        uses: actions/download-artifact@v7.0.1
+        with:
+          pattern: main-channel-rtt-import-*
+          path: ${{ runner.temp }}/channel-rtt-imports
+
+      - name: Import channel RTT results
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" != "pull_request" ]]; then
+            git pull --rebase origin main
+          fi
+          import_root="$RUNNER_TEMP/channel-rtt-imports"
+          shopt -s nullglob
+          import_dirs=("$import_root"/main-channel-rtt-import-*)
+          if [[ "${#import_dirs[@]}" -eq 0 ]]; then
+            echo "No channel RTT import artifacts downloaded." >&2
+            exit 1
+          fi
+          get_metadata() {
+            local metadata_path="$1"
+            local key="$2"
+            grep -m 1 "^${key}=" "$metadata_path" | cut -d= -f2-
+          }
+          for import_dir in "${import_dirs[@]}"; do
+            metadata_path="${import_dir}/metadata.env"
+            channel="$(get_metadata "$metadata_path" channel)"
+            scenario="$(get_metadata "$metadata_path" scenario)"
+            summary="$(get_metadata "$metadata_path" summary)"
+            observed="$(get_metadata "$metadata_path" observed)"
+            version="$(get_metadata "$metadata_path" version)"
+            sample_paths="$RUNNER_TEMP/openclaw-${channel}-rtt-samples.tsv"
+            : >"$sample_paths"
+            while IFS= read -r sample_dir; do
+              summary_path="${sample_dir}/${summary}"
+              observed_path="${sample_dir}/${observed}"
+              metrics_path="${sample_dir}/resource-metrics.env"
+              if [[ ! -f "$summary_path" ]]; then
+                echo "Missing ${channel} summary at ${summary_path}." >&2
+                exit 1
+              fi
+              if [[ -f "$observed_path" ]]; then
+                printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
+              else
+                printf '%s\t\t%s\n' "$summary_path" "$metrics_path" >>"$sample_paths"
+              fi
+            done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
+            node scripts/import-live-transport-rtt.mjs "$sample_paths" \
+              --channel "$channel" \
+              --spec openclaw@main \
+              --version "$version" \
+              --provider-mode mock-openai \
+              --scenario "$scenario" \
+              --require-pass
+          done
+          node scripts/update-readme.mjs
+          node scripts/validate.mjs
+          node scripts/channel-rtt-summary.mjs
+
       - name: Commit result
         if: github.event_name != 'pull_request'
-        working-directory: openclaw-rtt
         shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet --exit-code; then
-            echo "No ${{ matrix.label }} RTT changes to commit."
+            echo "No channel RTT changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/channel-rtt/${{ matrix.channel }}.jsonl channel-runs/${{ matrix.channel }}/
-          git commit -m "data: record main ${{ matrix.channel }} rtt"
+          git add README.md data/channel-rtt/*.jsonl channel-runs/
+          git commit -m "data: record main channel rtt"
           git push

@@ -14,8 +14,19 @@ env:
   NODE_COMPILE_CACHE: .cache/node-compile
 
 jobs:
-  check:
-    name: Check
+  actionlint:
+    name: Actionlint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Lint workflows
+        uses: rhysd/actionlint@v1.7.12
+
+  scripts:
+    name: Scripts
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -34,9 +45,6 @@ jobs:
           key: openclaw-rtt-ci-node-compile-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/*.mjs') }}
           restore-keys: |
             openclaw-rtt-ci-node-compile-${{ runner.os }}-${{ runner.arch }}-
-
-      - name: Lint workflows
-        uses: rhysd/actionlint@v1.7.12
 
       - name: Syntax
         run: node --check scripts/*.mjs
