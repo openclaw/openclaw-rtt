@@ -160,6 +160,11 @@ jobs:
           git pull --rebase origin main
           while IFS=$'\t' read -r result_path metrics_path; do
             if [[ "${{ steps.release.outputs.rss_backfill }}" == "true" ]]; then
+              run_status="$(node -e 'const fs = require("node:fs"); const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); process.stdout.write(String(result.run?.status || ""));' "$result_path")"
+              if [[ "$run_status" != "pass" ]]; then
+                echo "Skipping RSS backfill for failed rerun ${result_path} (status=${run_status:-missing})." >&2
+                continue
+              fi
               node scripts/backfill-release-rss.mjs \
                 --family telegram \
                 --result "$result_path" \

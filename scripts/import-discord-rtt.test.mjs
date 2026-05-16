@@ -80,7 +80,10 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
       },
     ])}\n`,
   );
-  await fs.writeFile(path.join(sampleDir, "resource-metrics.env"), "max_rss_kb=204800\nelapsed_seconds=12.5\n");
+  await fs.writeFile(
+    path.join(sampleDir, "resource-metrics.env"),
+    "Command exited with non-zero status 1\nmax_rss_kb=204800\nelapsed_seconds=12.5\n",
+  );
   await fs.writeFile(
     path.join(workspace, "samples.tsv"),
     `${path.join(sampleDir, "discord-qa-summary.json")}\t${path.join(

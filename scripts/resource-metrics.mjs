@@ -36,11 +36,9 @@ export async function readResourceMetrics(pathname) {
     text
       .split("\n")
       .filter(Boolean)
+      .filter((line) => line.includes("="))
       .map((line) => {
         const separator = line.indexOf("=");
-        if (separator === -1) {
-          throw new Error(`Invalid resource metrics line in ${pathname}: ${line}`);
-        }
         return [line.slice(0, separator), line.slice(separator + 1)];
       }),
   );
