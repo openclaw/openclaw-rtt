@@ -12,6 +12,13 @@ const DISCORD_RELEASE_START = "<!-- discord-release-sweep:start -->";
 const DISCORD_RELEASE_END = "<!-- discord-release-sweep:end -->";
 const CHANNEL_RTT_START = "<!-- channel-rtt:start -->";
 const CHANNEL_RTT_END = "<!-- channel-rtt:end -->";
+const MAIN_SPEC = "openclaw@main";
+const MAIN_DASHBOARD_ORDER = new Map([
+  ["Telegram", 0],
+  ["Discord", 1],
+  ["Slack", 2],
+  ["WhatsApp", 3],
+]);
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
@@ -42,17 +49,26 @@ function retryCount(row) {
   return row.polling?.retryCount ?? 0;
 }
 
-function latestMainRow(label, row) {
+function scenarioLabel(value) {
+  return value ? `\`${value}\`` : "-";
+}
+
+function latestMainRow({ label, row, scenario, retries = "-", rssP50 = "-", rssMax = "-" }) {
   if (!row) {
-    return `| ${label} | - | - | - | - | - | - |`;
+    return `| ${label} | Main | ${scenarioLabel(scenario)} | - | - | - | - | - | - | - | - | - |`;
   }
   return [
     `| ${label}`,
+    "Main",
+    scenarioLabel(scenario),
     `\`${formatVersion(row.package.version)}\``,
     resultLabel(row),
     sampleCount(row),
+    retries,
     formatMs(row.rtt.p50Ms),
     formatMs(row.rtt.p95Ms),
+    rssP50,
+    rssMax,
     `\`${row.run.startedAt}\` |`,
   ].join(" | ");
 }
@@ -64,8 +80,47 @@ function latestStartedAt(rows) {
     .at(-1);
 }
 
-function mainTableFor(telegramRow, discordRow) {
-  const rows = [telegramRow, discordRow].filter(Boolean);
+function mainChannelRttRows(rows) {
+  return channelRttRows(rows).filter((row) => row.package.spec === MAIN_SPEC);
+}
+
+function mainDashboardRows(telegramRow, discordRow, channelRows) {
+  return [
+    {
+      label: "Telegram",
+      scenario: "telegram-mentioned-message-reply",
+      row: telegramRow,
+    },
+    {
+      label: "Discord",
+      scenario: "discord-canary",
+      row: discordRow,
+    },
+    ...mainChannelRttRows(channelRows).map((row) => ({
+      label: row.channel.label,
+      scenario: row.channel.scenario,
+      row,
+      retries: retryCount(row),
+      rssP50: formatRssKb(row.resources?.maxRssKb?.p50),
+      rssMax: formatRssKb(row.resources?.maxRssKb?.max),
+    })),
+  ].sort((left, right) => {
+    const leftOrder = MAIN_DASHBOARD_ORDER.get(left.label) ?? Number.MAX_SAFE_INTEGER;
+    const rightOrder = MAIN_DASHBOARD_ORDER.get(right.label) ?? Number.MAX_SAFE_INTEGER;
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+    const labelDiff = String(left.label).localeCompare(String(right.label));
+    if (labelDiff !== 0) {
+      return labelDiff;
+    }
+    return String(left.scenario).localeCompare(String(right.scenario));
+  });
+}
+
+function mainTableFor(telegramRow, discordRow, channelRows) {
+  const tableRows = mainDashboardRows(telegramRow, discordRow, channelRows);
+  const rows = tableRows.map((entry) => entry.row).filter(Boolean);
   if (rows.length === 0) {
     return [
       LATEST_MAIN_START,
@@ -78,12 +133,11 @@ function mainTableFor(telegramRow, discordRow) {
   return [
     LATEST_MAIN_START,
     "",
-    `Latest imported main run: \`${latestStartedAt(rows)}\``,
+    `Latest imported channel run: \`${latestStartedAt(rows)}\``,
     "",
-    "| Transport | Version/ref | Result | Samples | p50 | p95 | Updated |",
-    "|---|---:|---:|---:|---:|---:|---:|",
-    latestMainRow("Telegram", telegramRow),
-    latestMainRow("Discord", discordRow),
+    "| Channel | Scope | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |",
+    "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ...tableRows.map((row) => latestMainRow(row)),
     "",
     LATEST_MAIN_END,
   ].join("\n");
@@ -167,16 +221,16 @@ async function main() {
   const rows = await readRows();
   const discordRows = await readDiscordRttRows();
   const channelRows = await readChannelRttRows();
-  const latestMain = rows.filter((row) => row.package.spec === "openclaw@main").at(-1);
+  const latestMain = rows.filter((row) => row.package.spec === MAIN_SPEC).at(-1);
   const latestDiscordMain = discordRows
-    .filter((row) => row.package.spec === "openclaw@main")
+    .filter((row) => row.package.spec === MAIN_SPEC)
     .at(-1);
   const readme = await fs.readFile(README_PATH, "utf8");
   const withLatestMain = replaceMarked(
     readme,
     LATEST_MAIN_START,
     LATEST_MAIN_END,
-    mainTableFor(latestMain, latestDiscordMain),
+    mainTableFor(latestMain, latestDiscordMain, channelRows),
   );
   const next = UPDATE_LATEST_MAIN_ONLY
     ? withLatestMain

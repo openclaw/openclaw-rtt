@@ -1,6 +1,6 @@
 # OpenClaw RTT
 
-Time-series store for OpenClaw Telegram and Discord RTT measurements.
+Time-series store for OpenClaw Telegram, Discord, Slack, WhatsApp, and other channel RTT measurements.
 
 The measurement harness lives in `openclaw/openclaw`. This repo stores normalized results and the README dashboard.
 
@@ -36,16 +36,18 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 ## Dashboard
 
-Current `openclaw@main` snapshot. Telegram and Discord run on separate schedules, so each row keeps its own update time.
+Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules, so each row keeps its own update time.
 
 <!-- latest-main:start -->
 
-Latest imported main run: `2026-05-16T07:18:04.544Z`
+Latest imported channel run: `2026-05-16T13:47:20.951Z`
 
-| Transport | Version/ref | Result | Samples | p50 | p95 | Updated |
-|---|---:|---:|---:|---:|---:|---:|
-| Telegram | `2026.5.16+df0d061c7a` | Pass | 20 | `1,126ms` | `2,089ms` | `2026-05-16T06:56:44.998Z` |
-| Discord | `2026.5.16+e975c3b212` | Pass | 20 | `6,590ms` | `6,952ms` | `2026-05-16T07:18:04.544Z` |
+| Channel | Scope | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Telegram | Main | `telegram-mentioned-message-reply` | `2026.5.16+df0d061c7a` | Pass | 20 | - | `1,126ms` | `2,089ms` | - | - | `2026-05-16T06:56:44.998Z` |
+| Discord | Main | `discord-canary` | `2026.5.16+e975c3b212` | Pass | 20 | - | `6,590ms` | `6,952ms` | - | - | `2026-05-16T07:18:04.544Z` |
+| Slack | Main | `slack-canary` | `2026.5.17+b9921e21b9` | Pass | 20 | 0 | `4,536ms` | `5,893ms` | `672MB` | `7,362MB` | `2026-05-16T13:38:09.440Z` |
+| WhatsApp | Main | `whatsapp-canary` | `2026.5.17+b9921e21b9` | Pass | 20 | 0 | `8,184ms` | `9,018ms` | `831MB` | `7,353MB` | `2026-05-16T13:47:20.951Z` |
 
 <!-- latest-main:end -->
 
