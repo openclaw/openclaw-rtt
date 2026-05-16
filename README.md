@@ -43,12 +43,12 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 Latest imported channel run: `2026-05-16T13:47:20.951Z`
 Version/ref: Telegram `2026.5.16+df0d061c7a`; Discord `2026.5.16+e975c3b212`; Slack/WhatsApp `2026.5.17+b9921e21b9`
 
-| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max | Scenario |
-|---|---:|---:|---:|---:|---:|---:|
-| Telegram | Pass | `1,126ms` | `2,089ms` | - | - | `telegram-mentioned-message-reply` |
-| Discord | Pass | `6,590ms` | `6,952ms` | - | - | `discord-canary` |
-| Slack | Pass | `4,536ms` | `5,893ms` | `672MB` | `7,362MB` | `slack-canary` |
-| WhatsApp | Pass | `8,184ms` | `9,018ms` | `831MB` | `7,353MB` | `whatsapp-canary` |
+| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max |
+|---|---:|---:|---:|---:|---:|
+| Telegram | Pass | `1,126ms` | `2,089ms` | - | - |
+| Discord | Pass | `6,590ms` | `6,952ms` | - | - |
+| Slack | Pass | `4,536ms` | `5,893ms` | `672MB` | `7,362MB` |
+| WhatsApp | Pass | `8,184ms` | `9,018ms` | `831MB` | `7,353MB` |
 
 <!-- latest-main:end -->
 

@@ -87,9 +87,9 @@ function sampleCount(row) {
   return row.rtt.warmSamples?.length ?? 0;
 }
 
-function latestMainRow({ label, row, scenario, rssP50 = "-", rssMax = "-" }) {
+function latestMainRow({ label, row, rssP50 = "-", rssMax = "-" }) {
   if (!row) {
-    return `| ${label} | - | - | - | - | - |`;
+    return `| ${label} | - | - | - | - |`;
   }
   return [
     `| ${label}`,
@@ -97,8 +97,7 @@ function latestMainRow({ label, row, scenario, rssP50 = "-", rssMax = "-" }) {
     formatMs(row.rtt.p50Ms),
     formatMs(row.rtt.p95Ms),
     rssP50,
-    rssMax,
-    `\`${scenario}\` |`,
+    `${rssMax} |`,
   ].join(" | ");
 }
 
@@ -181,8 +180,8 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
         .map((entry) => ({ ...entry.row, channel: { label: entry.label } })),
     )}`,
     "",
-    "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max | Scenario |",
-    "|---|---:|---:|---:|---:|---:|---:|",
+    "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max |",
+    "|---|---:|---:|---:|---:|---:|",
     ...tableRows.map((row) => latestMainRow(row)),
     "",
     LATEST_MAIN_END,

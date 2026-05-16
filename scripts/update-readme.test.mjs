@@ -106,7 +106,7 @@ test("merges channel RTT details into the dashboard", async () => {
   assert.match(dashboardSection, /Version\/ref: Slack `2026\.5\.16\+abcdef1234`/u);
   assert.match(
     dashboardSection,
-    /\| Slack \| Pass \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `slack-canary` \|/u,
+    /\| Slack \| Pass \| `300ms` \| `400ms` \| `200MB` \| `300MB` \|/u,
   );
 });
 
@@ -160,16 +160,17 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
     readme,
     /Version\/ref: Telegram `2026\.5\.16\+telegram1234`; Discord `2026\.5\.16\+discord1234`; Slack `2026\.5\.16\+slack1234`; WhatsApp `2026\.5\.16\+whatsapp1234`/u,
   );
-  assert.match(readme, /\| Channel \| Result \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Scenario \|/u);
+  assert.match(readme, /\| Channel \| Result \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \|/u);
   assert.doesNotMatch(readme, /\| Channel \| Scope \|/u);
+  assert.doesNotMatch(readme, /\| Channel \|.*\| Scenario \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Version\/ref \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Samples \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Retries \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Updated \|/u);
-  assert.match(readme, /\| Telegram \| Pass \| `1,000ms` \| `2,000ms` \| - \| - \| `telegram-mentioned-message-reply` \|/u);
-  assert.match(readme, /\| Discord \| Pass \| `6,000ms` \| `7,000ms` \| - \| - \| `discord-canary` \|/u);
-  assert.match(readme, /\| Slack \| Pass \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \| `slack-canary` \|/u);
-  assert.match(readme, /\| WhatsApp \| Pass \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \| `whatsapp-canary` \|/u);
+  assert.match(readme, /\| Telegram \| Pass \| `1,000ms` \| `2,000ms` \| - \| - \|/u);
+  assert.match(readme, /\| Discord \| Pass \| `6,000ms` \| `7,000ms` \| - \| - \|/u);
+  assert.match(readme, /\| Slack \| Pass \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \|/u);
+  assert.match(readme, /\| WhatsApp \| Pass \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });
 
 test("renders release coverage gaps across Telegram and Discord", async () => {
