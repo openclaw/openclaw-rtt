@@ -87,16 +87,16 @@ End-to-end latency measured over Telegram using `mock-openai`.
 
 ## Discord Release Sweep
 
-Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials.
+Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials. Older release tags that do not emit observed-message timestamps use sample duration.
 
 <!-- discord-release-sweep:start -->
 
 | npm version | Result | Samples | p50 | p95 | Updated |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.2` | Fail | 0 | - | - | `2026-05-16T13:20:58.769Z` |
-| `2026.5.16-beta.1` | Fail | 0 | - | - | `2026-05-16T13:04:27.192Z` |
-| `2026.5.14-beta.2` | Fail | 0 | - | - | `2026-05-16T12:48:02.968Z` |
-| `2026.5.14-beta.1` | Fail | 0 | - | - | `2026-05-16T12:31:17.042Z` |
+| `2026.5.16-beta.2` | Pass | 20 | `26,639ms` | `27,767ms` | `2026-05-16T13:20:58.769Z` |
+| `2026.5.16-beta.1` | Pass | 20 | `21,140ms` | `22,665ms` | `2026-05-16T13:04:27.192Z` |
+| `2026.5.14-beta.2` | Pass | 20 | `21,273ms` | `21,924ms` | `2026-05-16T12:48:02.968Z` |
+| `2026.5.14-beta.1` | Pass | 20 | `22,035ms` | `22,796ms` | `2026-05-16T12:31:17.042Z` |
 
 <!-- discord-release-sweep:end -->
 
