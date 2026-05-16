@@ -1,38 +1,28 @@
 # OpenClaw RTT
 
-Time-series store for OpenClaw Telegram, Discord, Slack, WhatsApp, and other channel RTT measurements.
+**Channel round-trip timing data for OpenClaw.** `openclaw-rtt` stores normalized results from real OpenClaw channel QA runs and publishes the compact dashboard below.
 
-The measurement harness lives in `openclaw/openclaw`. This repo stores normalized results and the README dashboard.
+Practical answer: a Discord row measures how long it takes for an OpenClaw agent turn to produce a reply that is observable back in Discord. Telegram, Slack, WhatsApp, and future channel rows measure the same channel-observed reply loop for their own scenario.
 
-## Import A Run
+The measurement harness lives in `openclaw/openclaw`; this repo is the data and reporting layer. It stays focused: import normalized run artifacts, keep append-only history, regenerate the README tables, and make regressions easy to spot.
 
-From this repo:
+## What It Measures
 
-```sh
-node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
-node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
-node scripts/summary.mjs
+Each run sends a controlled message through a real channel credential, lets OpenClaw route it through the configured agent/provider path, then waits until the expected reply appears back in that channel.
+
+The RTT is the elapsed time for that observed reply loop:
+
+```text
+channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbound channel send -> reply observed by driver
 ```
 
-Expected source shape is the `result.json` emitted by:
+That means the numbers include more than model latency. They can include channel API latency, polling or webhook timing, gateway routing, mock-provider turn time, outbound send time, and test-driver observation delay. `p50` is the median successful sample; `p95` is the tail sample for the same run. RSS columns are only populated for newer generic channel lanes that collect process resource metrics.
 
-```sh
-pnpm rtt openclaw@beta
-pnpm rtt openclaw@beta --samples 20
-pnpm rtt openclaw@latest
-pnpm rtt openclaw@2026.4.30 --provider live-frontier
-```
+Do not read different scenarios as strict apples-to-apples transport benchmarks. Telegram release rows currently use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries, where QA-lab process overhead can inflate RSS.
 
-## Data
+## Reporting Data
 
-- `data/rtt.jsonl`: append-only graph source, one normalized run per line.
-- `runs/<run-id>/result.json`: copied per-run result record for audit/debug.
-- `data/discord-rtt.jsonl`: append-only Discord RTT graph source.
-- `discord-runs/<run-id>/result.json`: copied per-run Discord RTT record.
-- `data/channel-rtt/<channel>.jsonl`: append-only graph source for new live-transport channel RTT runs.
-- `channel-runs/<channel>/<run-id>/result.json`: copied per-run channel result record.
-
-Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
+`main` is the latest imported channel snapshot. Release tables compare published OpenClaw package versions where that channel has a compatible canary. Missing cells mean no imported compatible run exists; `Not supported` means the older OpenClaw release predates or fails that channel canary contract.
 
 ## Dashboard
 
@@ -52,11 +42,41 @@ Version/ref: Telegram `2026.5.16+df0d061c7a`; Discord `2026.5.16+e975c3b212`; Sl
 
 <!-- latest-main:end -->
 
-## Release Coverage
+## Quick Start
+
+From this repo:
+
+```sh
+node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
+node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
+node scripts/summary.mjs
+```
+
+Expected source shape is the `result.json` emitted by:
+
+```sh
+pnpm rtt openclaw@beta
+pnpm rtt openclaw@beta --samples 20
+pnpm rtt openclaw@latest
+pnpm rtt openclaw@2026.4.30 --provider live-frontier
+```
+
+## Data Layout
+
+- `data/rtt.jsonl`: append-only graph source, one normalized run per line.
+- `runs/<run-id>/result.json`: copied per-run result record for audit/debug.
+- `data/discord-rtt.jsonl`: append-only Discord RTT graph source.
+- `discord-runs/<run-id>/result.json`: copied per-run Discord RTT record.
+- `data/channel-rtt/<channel>.jsonl`: append-only graph source for new live-transport channel RTT runs.
+- `channel-runs/<channel>/<run-id>/result.json`: copied per-run channel result record.
+
+Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
+
+## Release Coverage Matrix
 
 Version-by-version release coverage across channel families. The Discord release workflow queues missing versions from the Telegram release baseline before future versions.
 
-These cells are useful for coverage, not cross-channel latency ranking: Telegram uses `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`, and canary scenarios are not strict apples-to-apples with Telegram mention replies.
+These cells are useful for coverage, not cross-channel latency ranking. The value shown is `p50 / p95` for that channel's release scenario.
 
 <!-- release-coverage:start -->
 
@@ -90,13 +110,11 @@ Discord release gap: none; 7 Telegram versions are not supported by the Discord 
 
 <!-- release-coverage:end -->
 
-## Telegram Release Sweep
+## Telegram Release Runs
 
-Measured with the OpenClaw repo black-box harness on Blacksmith using `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, 240s canary timeout, and 30s per-sample timeout.
+Telegram release runs use the OpenClaw repo black-box harness on Blacksmith with `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, a 240s canary timeout, and a 30s per-sample timeout.
 
-The SUT is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
-
-End-to-end latency measured over Telegram using `mock-openai`. 
+The system under test is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
 
 <!-- release-sweep:start -->
 
@@ -126,9 +144,9 @@ End-to-end latency measured over Telegram using `mock-openai`.
 
 <!-- release-sweep:end -->
 
-## Discord Release Sweep
+## Discord Release Runs
 
-Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials. Older release tags that do not emit observed-message timestamps use sample duration.
+Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials. Older release tags that do not emit observed-message timestamps use sample duration.
 
 <!-- discord-release-sweep:start -->
 
@@ -151,9 +169,9 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 
 <!-- discord-release-sweep:end -->
 
-## Channel Expansion
+## Adding Channels
 
-Generic live-transport RTT imports for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
+Generic live-transport RTT imports are for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
 Slack and WhatsApp rows come from `openclaw qa <channel>` canaries, so their RSS columns include the QA-lab sample process and should not be read as pure channel transport memory.
 Design notes: [Channel expansion](docs/channel-expansion.md).
 
