@@ -88,11 +88,17 @@ test("renders channel RTT and RSS metrics in the README channel table", async ()
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
   const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
-  assert.match(readme, /\| Channel \| Scenario \| Version\/ref \| Result \| Samples \| Retries \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Updated \|/u);
-  assert.match(
-    readme,
-    /\| Slack \| `slack-canary` \| `2026\.5\.16\+abcdef1234` \| Pass \| 2 \| 1 \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `2026-05-16T00:00:00\.000Z` \|/u,
+  const channelSection = readme.slice(
+    readme.indexOf("<!-- channel-rtt:start -->"),
+    readme.indexOf("<!-- channel-rtt:end -->"),
   );
+  assert.match(channelSection, /\| Channel \| Version\/ref \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS max \| Updated \|/u);
+  assert.match(
+    channelSection,
+    /\| Slack \| `2026\.5\.16\+abcdef1234` \| Pass \| 2 \| `300ms` \| `400ms` \| `200MB` \| `300MB` \| `2026-05-16T00:00:00\.000Z` \|/u,
+  );
+  assert.doesNotMatch(channelSection, /\| Channel \| Scenario \|/u);
+  assert.doesNotMatch(channelSection, /\| Channel \|.*\| Retries \|/u);
 });
 
 test("renders latest main dashboard rows for Telegram, Discord, and live channels", async () => {

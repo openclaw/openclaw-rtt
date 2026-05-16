@@ -197,11 +197,11 @@ function channelRttTableFor(rows) {
   return [
     CHANNEL_RTT_START,
     "",
-    "| Channel | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |",
-    "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+    "| Channel | Version/ref | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |",
+    "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| ${row.channel.label} | \`${row.channel.scenario}\` | \`${formatVersion(row.package.version)}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${retryCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.max)} | \`${row.run.startedAt}\` |`,
+        `| ${row.channel.label} | \`${formatVersion(row.package.version)}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.max)} | \`${row.run.startedAt}\` |`,
     ),
     "",
     CHANNEL_RTT_END,

@@ -109,9 +109,9 @@ Design notes: [Channel expansion](docs/channel-expansion.md).
 
 <!-- channel-rtt:start -->
 
-| Channel | Scenario | Version/ref | Result | Samples | Retries | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Slack | `slack-canary` | `2026.5.17+b9921e21b9` | Pass | 20 | 0 | `4,536ms` | `5,893ms` | `672MB` | `7,362MB` | `2026-05-16T13:38:09.440Z` |
-| WhatsApp | `whatsapp-canary` | `2026.5.17+b9921e21b9` | Pass | 20 | 0 | `8,184ms` | `9,018ms` | `831MB` | `7,353MB` | `2026-05-16T13:47:20.951Z` |
+| Channel | Version/ref | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max | Updated |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Slack | `2026.5.17+b9921e21b9` | Pass | 20 | `4,536ms` | `5,893ms` | `672MB` | `7,362MB` | `2026-05-16T13:38:09.440Z` |
+| WhatsApp | `2026.5.17+b9921e21b9` | Pass | 20 | `8,184ms` | `9,018ms` | `831MB` | `7,353MB` | `2026-05-16T13:47:20.951Z` |
 
 <!-- channel-rtt:end -->
