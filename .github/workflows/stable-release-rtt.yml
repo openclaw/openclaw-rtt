@@ -4,6 +4,20 @@ on:
   schedule:
     - cron: "15 */6 * * *"
   workflow_dispatch:
+    inputs:
+      rss_backfill:
+        description: Backfill RSS onto existing release rows without changing RTT values
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      rss_backfill_limit:
+        description: Maximum existing release versions to backfill in this run
+        required: false
+        default: "4"
+        type: string
 
 permissions:
   contents: write
@@ -37,6 +51,9 @@ jobs:
       - name: Resolve OpenClaw packages
         id: release
         working-directory: openclaw-rtt
+        env:
+          INPUT_RSS_BACKFILL: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill || 'false' }}
+          INPUT_RSS_BACKFILL_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_limit || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -107,9 +124,13 @@ jobs:
           : >"$result_paths"
           for spec in ${{ steps.release.outputs.specs }}; do
             output="$RUNNER_TEMP/openclaw-rtt-runs/$(printf '%s' "$spec" | tr -c 'A-Za-z0-9._-' '_')"
+            metrics_path="${output}/resource-metrics.env"
             mkdir -p "$output"
             set +e
-            pnpm rtt "$spec" \
+            /usr/bin/time \
+              -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+              -o "$metrics_path" \
+              pnpm rtt "$spec" \
               --harness-root "$PWD" \
               --output "$output" \
               --samples 20 \
@@ -117,6 +138,7 @@ jobs:
               --sample-timeout-ms 30000
             status="$?"
             set -e
+            echo "exit_status=${status}" >>"$metrics_path"
             result_path="$(find "$output" -maxdepth 3 -name result.json -type f | sort | tail -1)"
             if [[ -z "$result_path" ]]; then
               echo "No RTT result.json produced for $spec." >&2
@@ -125,7 +147,7 @@ jobs:
               fi
               exit "$status"
             fi
-            echo "$result_path" >>"$result_paths"
+            printf '%s\t%s\n' "$result_path" "$metrics_path" >>"$result_paths"
           done
           echo "result_paths=$result_paths" >>"$GITHUB_OUTPUT"
 
@@ -136,8 +158,15 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          while IFS= read -r result_path; do
-            node scripts/import-result.mjs "$result_path"
+          while IFS=$'\t' read -r result_path metrics_path; do
+            if [[ "${{ steps.release.outputs.rss_backfill }}" == "true" ]]; then
+              node scripts/backfill-release-rss.mjs \
+                --family telegram \
+                --result "$result_path" \
+                --resource-metrics "$metrics_path"
+            else
+              node scripts/import-result.mjs "$result_path" --resource-metrics "$metrics_path"
+            fi
           done <"${{ steps.rtt.outputs.result_paths }}"
           node scripts/update-readme.mjs
           node scripts/validate.mjs

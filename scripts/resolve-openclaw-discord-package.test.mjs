@@ -33,6 +33,18 @@ function releaseRow(version, source) {
   };
 }
 
+function withResources(row) {
+  return {
+    ...row,
+    resources: {
+      maxRssKbSamples: [204800],
+      elapsedSecondsSamples: [10],
+      maxRssKb: { avg: 204800, p50: 204800, p95: 204800, max: 204800 },
+      elapsedSeconds: { avg: 10, p50: 10, p95: 10, max: 10 },
+    },
+  };
+}
+
 async function writeFakeNpm(workspace, versions) {
   const binDir = path.join(workspace, "bin");
   await fs.mkdir(binDir, { recursive: true });
@@ -99,6 +111,35 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
   assert.equal(outputs.missing_baseline_count, "1");
   assert.equal(outputs.unsupported_baseline_count, "2");
   assert.equal(outputs.reason, "missing-discord-release-versions");
+  assert.equal(outputs.versions, "2026.5.12");
+  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.12"]);
+});
+
+test("queues Discord release rows missing RSS for backfill", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+    releaseRow("2026.5.12", "telegram"),
+    releaseRow("2026.5.16", "telegram"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/discord-rtt.jsonl"), [
+    releaseRow("2026.5.12", "discord"),
+    withResources(releaseRow("2026.5.16", "discord")),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_RSS_BACKFILL: "true",
+      INPUT_RSS_BACKFILL_LIMIT: "1",
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.count, "1");
+  assert.equal(outputs.rss_backfill, "true");
+  assert.equal(outputs.reason, "discord-release-rss-backfill");
   assert.equal(outputs.versions, "2026.5.12");
   assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.12"]);
 });

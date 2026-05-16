@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs";
 
 const DATA_PATH = path.resolve("data/discord-rtt.jsonl");
 const RUNS_DIR = path.resolve("discord-runs");
@@ -114,11 +115,11 @@ async function readSampleEntries(samplesPath) {
     .split("\n")
     .filter(Boolean)
     .map((line, index) => {
-      const [summaryPath, observedMessagesPath] = line.split("\t");
+      const [summaryPath, observedMessagesPath, resourceMetricsPath] = line.split("\t");
       if (!summaryPath || !observedMessagesPath) {
         throw new Error(`Invalid sample-paths line ${index + 1}: expected summary and observed paths.`);
       }
-      return { summaryPath, observedMessagesPath };
+      return { summaryPath, observedMessagesPath, resourceMetricsPath };
     });
 }
 
@@ -176,6 +177,9 @@ function extractSummaryDurationRtt(summary) {
 async function readSample(entry, index) {
   const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
   const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
+  const resources = entry.resourceMetricsPath
+    ? await readResourceMetrics(path.resolve(entry.resourceMetricsPath))
+    : undefined;
   const scenario = summary.scenarios.find((item) => item?.id === "discord-canary");
   const observedRttMs = extractCanaryRtt(observedMessages);
   const rttMs =
@@ -187,6 +191,7 @@ async function readSample(entry, index) {
     rttMs,
     rttSource: observedRttMs === undefined && rttMs !== undefined ? "summary-duration" : "observed-message",
     details: scenario?.details,
+    resources,
   };
 }
 
@@ -221,6 +226,7 @@ async function main() {
 
   const warmSamples = samples.flatMap((sample) => (sample.status === "pass" ? [sample.rttMs] : []));
   const failedSamples = samples.length - warmSamples.length;
+  const resources = aggregateResources(samples.flatMap((sample) => sample.resources ?? []));
   const runDir = path.join(RUNS_DIR, runId);
   const resultPath = path.join("discord-runs", runId, "result.json");
   const result = {
@@ -247,6 +253,7 @@ async function main() {
       sources: [...new Set(samples.filter((sample) => sample.status === "pass").map((sample) => sample.rttSource))],
       ...stats(warmSamples),
     },
+    ...(resources ? { resources } : {}),
     discord: {
       samples: samples.map((sample) => ({
         index: sample.index,
@@ -254,6 +261,7 @@ async function main() {
         ...(sample.rttMs === undefined ? {} : { rttMs: sample.rttMs }),
         ...(sample.rttSource ? { rttSource: sample.rttSource } : {}),
         ...(sample.details ? { details: sample.details } : {}),
+        ...(sample.resources ? { resources: sample.resources } : {}),
       })),
     },
     artifacts: {

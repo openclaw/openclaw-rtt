@@ -10,6 +10,19 @@ on:
         required: false
         default: "20"
         type: string
+      rss_backfill:
+        description: Backfill RSS onto existing Discord release rows without changing RTT values
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      rss_backfill_limit:
+        description: Maximum existing release versions to backfill in this run
+        required: false
+        default: "14"
+        type: string
 
 permissions:
   actions: read
@@ -28,6 +41,7 @@ jobs:
       anchor: ${{ steps.release.outputs.anchor }}
       matrix: ${{ steps.release.outputs.matrix }}
       reason: ${{ steps.release.outputs.reason }}
+      rss_backfill: ${{ steps.release.outputs.rss_backfill }}
       should_run: ${{ steps.release.outputs.should_run }}
     steps:
       - name: Checkout RTT tracker
@@ -42,6 +56,9 @@ jobs:
 
       - name: Resolve OpenClaw Discord packages
         id: release
+        env:
+          INPUT_RSS_BACKFILL: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill || 'false' }}
+          INPUT_RSS_BACKFILL_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_limit || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -168,12 +185,16 @@ jobs:
             output_dir="${output_root}/sample-${sample}"
             summary_path="${output_dir}/discord-qa-summary.json"
             observed_path="${output_dir}/discord-qa-observed-messages.json"
+            metrics_path="${output_dir}/resource-metrics.env"
             status=1
             for attempt in 1 2 3; do
               rm -rf "$output_dir"
               mkdir -p "$output_dir"
               set +e
-              pnpm openclaw qa discord \
+              /usr/bin/time \
+                -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+                -o "$metrics_path" \
+                pnpm openclaw qa discord \
                 --repo-root . \
                 --output-dir "${output_dir}" \
                 --provider-mode mock-openai \
@@ -185,6 +206,11 @@ jobs:
                 --scenario discord-canary
               status="$?"
               set -e
+              {
+                echo "sample=${sample}"
+                echo "attempts=${attempt}"
+                echo "exit_status=${status}"
+              } >>"$metrics_path"
               if [[ -f "$summary_path" && -f "$observed_path" ]]; then
                 break
               fi
@@ -196,7 +222,7 @@ jobs:
               echo "No Discord QA artifacts produced for sample ${sample}." >&2
               exit "$status"
             fi
-            printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
+            printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
           done
 
       - name: Prepare Discord release import artifact
@@ -284,17 +310,26 @@ jobs:
             while IFS= read -r sample_dir; do
               summary_path="${sample_dir}/discord-qa-summary.json"
               observed_path="${sample_dir}/discord-qa-observed-messages.json"
-              if [[ ! -f "$summary_path" || ! -f "$observed_path" ]]; then
+              metrics_path="${sample_dir}/resource-metrics.env"
+              if [[ ! -f "$summary_path" || ! -f "$observed_path" || ! -f "$metrics_path" ]]; then
                 echo "Missing Discord release artifacts under ${sample_dir}." >&2
                 exit 1
               fi
-              printf '%s\t%s\n' "$summary_path" "$observed_path" >>"$sample_paths"
+              printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
             done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
-            node scripts/import-discord-rtt.mjs "$sample_paths" \
-              --spec "$spec" \
-              --version "$version" \
-              --provider-mode mock-openai \
-              --require-pass
+            if [[ "${{ needs.resolve.outputs.rss_backfill }}" == "true" ]]; then
+              node scripts/backfill-release-rss.mjs \
+                --family discord \
+                --spec "$spec" \
+                --version "$version" \
+                --sample-paths "$sample_paths"
+            else
+              node scripts/import-discord-rtt.mjs "$sample_paths" \
+                --spec "$spec" \
+                --version "$version" \
+                --provider-mode mock-openai \
+                --require-pass
+            fi
           done
           node scripts/update-readme.mjs
           node scripts/validate.mjs

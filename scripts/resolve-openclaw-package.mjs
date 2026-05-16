@@ -68,6 +68,32 @@ function latestMeasuredStable(rows) {
   return latestStable;
 }
 
+function releaseRows(rows) {
+  const byVersion = new Map();
+  for (const row of rows) {
+    if (
+      typeof row.package?.spec === "string" &&
+      typeof row.package?.version === "string" &&
+      row.package.spec === `openclaw@${row.package.version}` &&
+      parseVersion(row.package.version)
+    ) {
+      byVersion.set(row.package.version, row);
+    }
+  }
+  return [...byVersion.values()];
+}
+
+function readPositiveIntegerEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    return undefined;
+  }
+  if (!/^[1-9][0-9]*$/u.test(value)) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+  return Number(value);
+}
+
 function writeOutput(values) {
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) {
@@ -78,13 +104,24 @@ function writeOutput(values) {
 
 const rows = await readRows();
 const anchor = latestMeasuredStable(rows);
-const measured = new Set(rows.map((row) => `${row.package.spec}\0${row.package.version}`));
-const queue = (await npmVersions())
-  .filter((version) => typeof version === "string" && parseVersion(version))
-  .filter((version) => compareVersions(version, anchor) > 0)
-  .map((version) => ({ version, spec: `openclaw@${version}` }))
-  .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
-  .sort((left, right) => compareVersions(left.version, right.version));
+const rssBackfill = process.env.INPUT_RSS_BACKFILL === "true";
+const rssBackfillLimit = readPositiveIntegerEnv("INPUT_RSS_BACKFILL_LIMIT");
+let queue;
+if (rssBackfill) {
+  queue = releaseRows(rows)
+    .filter((row) => row.resources?.maxRssKb?.max === undefined)
+    .map((row) => ({ version: row.package.version, spec: row.package.spec }))
+    .sort((left, right) => compareVersions(left.version, right.version))
+    .slice(0, rssBackfillLimit);
+} else {
+  const measured = new Set(rows.map((row) => `${row.package.spec}\0${row.package.version}`));
+  queue = (await npmVersions())
+    .filter((version) => typeof version === "string" && parseVersion(version))
+    .filter((version) => compareVersions(version, anchor) > 0)
+    .map((version) => ({ version, spec: `openclaw@${version}` }))
+    .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
+    .sort((left, right) => compareVersions(left.version, right.version));
+}
 
 await writeOutput({
   anchor,
@@ -92,5 +129,13 @@ await writeOutput({
   specs: queue.map((pkg) => pkg.spec).join(" "),
   versions: queue.map((pkg) => pkg.version).join(" "),
   should_run: queue.length > 0 ? "true" : "false",
-  reason: queue.length > 0 ? "new-release-versions" : "no-new-release-versions",
+  rss_backfill: rssBackfill ? "true" : "false",
+  reason:
+    queue.length > 0
+      ? rssBackfill
+        ? "release-rss-backfill"
+        : "new-release-versions"
+      : rssBackfill
+        ? "no-release-rss-backfill-needed"
+        : "no-new-release-versions",
 });

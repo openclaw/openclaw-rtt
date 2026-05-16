@@ -1,11 +1,35 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs";
 
 const DATA_PATH = path.resolve("data/rtt.jsonl");
 const RUNS_DIR = path.resolve("runs");
 
 function usage() {
-  return "Usage: node scripts/import-result.mjs <path-to-openclaw-result.json>";
+  return [
+    "Usage: node scripts/import-result.mjs <path-to-openclaw-result.json>",
+    "  [--resource-metrics <resource-metrics.env>]",
+  ].join("\n");
+}
+
+function parseArgs(argv) {
+  const args = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (!args.sourcePath && !arg.startsWith("--")) {
+      args.sourcePath = arg;
+      continue;
+    }
+    if (arg === "--resource-metrics") {
+      args.resourceMetricsPath = argv[(index += 1)];
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}\n${usage()}`);
+  }
+  if (!args.sourcePath) {
+    throw new Error(usage());
+  }
+  return args;
 }
 
 function requireObject(value, label) {
@@ -96,15 +120,16 @@ async function existingRunIds() {
 }
 
 async function main() {
-  const sourcePath = process.argv[2];
-  if (!sourcePath) {
-    throw new Error(usage());
-  }
+  const args = parseArgs(process.argv.slice(2));
 
-  const result = validateResult(await readJson(path.resolve(sourcePath)));
+  const result = validateResult(await readJson(path.resolve(args.sourcePath)));
   const seen = await existingRunIds();
   if (seen.has(result.run.id)) {
     throw new Error(`Run already imported: ${result.run.id}`);
+  }
+  if (args.resourceMetricsPath) {
+    const resourceMetrics = await readResourceMetrics(path.resolve(args.resourceMetricsPath));
+    result.resources = aggregateResources([resourceMetrics]);
   }
 
   const runDir = path.join(RUNS_DIR, result.run.id);

@@ -8,7 +8,9 @@ Run importers from the repo root:
 
 ```sh
 node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
+node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json --resource-metrics resource-metrics.env
 node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
+node scripts/backfill-release-rss.mjs --family discord --spec openclaw@2026.5.16 --version 2026.5.16 --sample-paths samples.tsv
 node scripts/summary.mjs
 ```
 
@@ -31,3 +33,5 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 - `channel-runs/<channel>/<run-id>/result.json`: copied generic channel run record.
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied here later.
+
+Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it writes the JSONL file.

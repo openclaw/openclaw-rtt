@@ -10,7 +10,7 @@ RTT covers the whole observed path, not just model time:
 channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbound channel send -> reply observed by driver
 ```
 
-That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. RSS appears only for newer generic channel lanes that collect resource metrics.
+That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. RSS appears when the importing workflow collected resource metrics; older release rows stay blank until an RSS backfill run updates only the resource fields.
 
 Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries where QA-lab overhead can inflate RSS. Missing cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
 
