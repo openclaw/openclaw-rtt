@@ -27,7 +27,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: main-channel-rtt
+  group: rtt-report-writer-${{ github.event_name == 'pull_request' && github.run_id || github.ref }}
   cancel-in-progress: false
 
 env:

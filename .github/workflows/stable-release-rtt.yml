@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-rtt
+  group: rtt-report-writer-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -135,6 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git pull --rebase origin main
           while IFS= read -r result_path; do
             node scripts/import-result.mjs "$result_path"
           done <"${{ steps.rtt.outputs.result_paths }}"

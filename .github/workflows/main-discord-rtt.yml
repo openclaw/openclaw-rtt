@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: main-discord-rtt
+  group: rtt-report-writer-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -165,6 +165,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git pull --rebase origin main
           node scripts/import-discord-rtt.mjs "${{ steps.discord_rtt.outputs.sample_paths }}" \
             --spec openclaw@main \
             --version "${{ steps.openclaw_ref.outputs.version }}" \
