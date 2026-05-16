@@ -111,7 +111,7 @@ if (rssBackfill) {
   queue = releaseRows(rows)
     .filter((row) => row.resources?.maxRssKb?.max === undefined)
     .map((row) => ({ version: row.package.version, spec: row.package.spec }))
-    .sort((left, right) => compareVersions(left.version, right.version))
+    .sort((left, right) => compareVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
 } else {
   const measured = new Set(rows.map((row) => `${row.package.spec}\0${row.package.version}`));

@@ -131,7 +131,7 @@ if (rssBackfill) {
       spec: row.package.spec,
       tag: `v${row.package.version}`,
     }))
-    .sort((left, right) => compareVersions(left.version, right.version))
+    .sort((left, right) => compareVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
 } else {
   const measured = new Set(discordRows.map((row) => `${row.package.spec}\0${row.package.version}`));
