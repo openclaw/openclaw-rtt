@@ -31,35 +31,7 @@ Latest imported channel run: `2026-05-16T13:47:20.951Z` · latest `2026.5.17` / 
 
 <!-- latest-main:end -->
 
-## Quick Start
-
-From this repo:
-
-```sh
-node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
-node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
-node scripts/summary.mjs
-```
-
-Expected source shape is the `result.json` emitted by:
-
-```sh
-pnpm rtt openclaw@beta
-pnpm rtt openclaw@beta --samples 20
-pnpm rtt openclaw@latest
-pnpm rtt openclaw@2026.4.30 --provider live-frontier
-```
-
-## Data Layout
-
-- `data/rtt.jsonl`: append-only graph source, one normalized run per line.
-- `runs/<run-id>/result.json`: copied per-run result record for audit/debug.
-- `data/discord-rtt.jsonl`: append-only Discord RTT graph source.
-- `discord-runs/<run-id>/result.json`: copied per-run Discord RTT record.
-- `data/channel-rtt/<channel>.jsonl`: append-only graph source for new live-transport channel RTT runs.
-- `channel-runs/<channel>/<run-id>/result.json`: copied per-run channel result record.
-
-Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied in later.
+Operator notes: [Data imports and layout](docs/data-imports.md).
 
 ## Release Coverage Matrix
 
