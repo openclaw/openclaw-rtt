@@ -61,6 +61,7 @@ End-to-end latency measured over Telegram using `mock-openai`.
 
 | npm version | Result | Samples | p50 | p95 | Updated |
 |---|---:|---:|---:|---:|---:|
+| `2026.5.16-beta.2` | Pass | 20 | `1,050ms` | `2,002ms` | `2026-05-16T11:52:22.056Z` |
 | `2026.5.16-beta.1` | Pass | 20 | `1,196ms` | `1,969ms` | `2026-05-16T07:03:30.628Z` |
 | `2026.5.14-beta.2` | Pass | 20 | `990ms` | `1,745ms` | `2026-05-15T11:25:24.501Z` |
 | `2026.5.14-beta.1` | Pass | 20 | `1,004ms` | `3,915ms` | `2026-05-15T12:12:25.166Z` |
