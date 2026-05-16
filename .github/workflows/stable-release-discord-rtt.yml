@@ -208,7 +208,8 @@ jobs:
           node scripts/import-discord-rtt.mjs "${{ steps.discord_rtt.outputs.sample_paths }}" \
             --spec "${{ matrix.package.spec }}" \
             --version "${{ matrix.package.version }}" \
-            --provider-mode mock-openai
+            --provider-mode mock-openai \
+            --require-pass
           node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/discord-rtt-summary.mjs

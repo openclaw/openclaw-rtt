@@ -10,6 +10,7 @@ function usage() {
     "  --spec <openclaw@spec>",
     "  --version <version-or-ref>",
     "  [--provider-mode <mock-openai|live-frontier>]",
+    "  [--require-pass]",
   ].join("\n");
 }
 
@@ -31,6 +32,10 @@ function parseArgs(argv) {
     }
     if (arg === "--provider-mode") {
       args.providerMode = argv[(index += 1)];
+      continue;
+    }
+    if (arg === "--require-pass") {
+      args.requirePass = true;
       continue;
     }
     throw new Error(`Unknown argument: ${arg}\n${usage()}`);
@@ -158,16 +163,29 @@ function extractCanaryRtt(observedMessages) {
   return Number.isFinite(rttMs) ? rttMs : undefined;
 }
 
+function extractSummaryDurationRtt(summary) {
+  const startedAtMs = Date.parse(summary.startedAt);
+  const finishedAtMs = Date.parse(summary.finishedAt);
+  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs)) {
+    return undefined;
+  }
+  const rttMs = Math.max(0, Math.round(finishedAtMs - startedAtMs));
+  return Number.isFinite(rttMs) ? rttMs : undefined;
+}
+
 async function readSample(entry, index) {
   const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
   const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
   const scenario = summary.scenarios.find((item) => item?.id === "discord-canary");
-  const rttMs = extractCanaryRtt(observedMessages);
+  const observedRttMs = extractCanaryRtt(observedMessages);
+  const rttMs =
+    observedRttMs ?? (scenario?.status === "pass" ? extractSummaryDurationRtt(summary) : undefined);
   return {
     index,
     summary,
     status: scenario?.status === "pass" && rttMs !== undefined ? "pass" : "fail",
     rttMs,
+    rttSource: observedRttMs === undefined && rttMs !== undefined ? "summary-duration" : "observed-message",
     details: scenario?.details,
   };
 }
@@ -226,6 +244,7 @@ async function main() {
     rtt: {
       warmSamples,
       failedSamples,
+      sources: [...new Set(samples.filter((sample) => sample.status === "pass").map((sample) => sample.rttSource))],
       ...stats(warmSamples),
     },
     discord: {
@@ -233,6 +252,7 @@ async function main() {
         index: sample.index,
         status: sample.status,
         ...(sample.rttMs === undefined ? {} : { rttMs: sample.rttMs }),
+        ...(sample.rttSource ? { rttSource: sample.rttSource } : {}),
         ...(sample.details ? { details: sample.details } : {}),
       })),
     },
@@ -246,6 +266,9 @@ async function main() {
   await fs.mkdir(path.dirname(DATA_PATH), { recursive: true });
   await fs.appendFile(DATA_PATH, `${JSON.stringify(result)}\n`);
   process.stdout.write(`imported ${runId}\n`);
+  if (args.requirePass && result.run.status !== "pass") {
+    throw new Error(`Discord RTT run failed: ${runId}`);
+  }
 }
 
 main().catch((error) => {
