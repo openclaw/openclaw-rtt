@@ -93,6 +93,7 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 
 | npm version | Result | Samples | p50 | p95 | Updated |
 |---|---:|---:|---:|---:|---:|
+| `2026.5.16-beta.1` | Fail | 0 | - | - | `2026-05-16T13:04:27.192Z` |
 | `2026.5.14-beta.2` | Fail | 0 | - | - | `2026-05-16T12:48:02.968Z` |
 | `2026.5.14-beta.1` | Fail | 0 | - | - | `2026-05-16T12:31:17.042Z` |
 
