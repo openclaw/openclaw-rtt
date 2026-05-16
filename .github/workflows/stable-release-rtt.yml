@@ -142,6 +142,10 @@ jobs:
             result_path="$(find "$output" -maxdepth 3 -name result.json -type f | sort | tail -1)"
             if [[ -z "$result_path" ]]; then
               echo "No RTT result.json produced for $spec." >&2
+              if [[ "${{ steps.release.outputs.rss_backfill }}" == "true" ]]; then
+                echo "Skipping RSS backfill for $spec because the rerun did not produce a result." >&2
+                continue
+              fi
               if [[ "$status" -eq 0 ]]; then
                 status=1
               fi
