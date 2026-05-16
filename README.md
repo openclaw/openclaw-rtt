@@ -59,7 +59,7 @@ These cells are useful for coverage, not cross-channel latency ranking: Telegram
 
 <!-- release-coverage:start -->
 
-Discord release gap: 1 version missing; 7 Telegram versions are not supported by the Discord release canary.
+Discord release gap: none; 7 Telegram versions are not supported by the Discord release canary.
 
 | Version | Telegram | Discord | Updated |
 |---|---:|---:|---:|
@@ -77,7 +77,7 @@ Discord release gap: 1 version missing; 7 Telegram versions are not supported by
 | `2026.4.29` | Pass · 20 samples · `17,936ms` / `24,517ms` | Not supported | `2026-05-02T06:17:26.914Z` |
 | `2026.4.27` | Pass · 20 samples · `4,639ms` / `13,664ms` | Pass · 20 samples · `36,858ms` / `38,863ms` | `2026-05-16T15:02:01.552Z` |
 | `2026.4.26` | Pass · 20 samples · `5,880ms` / `18,610ms` | Pass · 20 samples · `32,689ms` / `34,092ms` | `2026-05-16T15:02:15.436Z` |
-| `2026.4.25` | Pass · 20 samples · `7,508ms` / `27,982ms` | Missing | `2026-05-02T05:59:20.038Z` |
+| `2026.4.25` | Pass · 20 samples · `7,508ms` / `27,982ms` | Pass · 20 samples · `49,357ms` / `52,963ms` | `2026-05-16T16:22:30.074Z` |
 | `2026.4.24` | Pass · 20 samples · `2,679ms` / `13,451ms` | Pass · 20 samples · `33,328ms` / `34,734ms` | `2026-05-16T15:01:50.408Z` |
 | `2026.4.23` | Pass · 20 samples · `2,507ms` / `14,671ms` | Not supported | `2026-05-02T05:49:14.713Z` |
 | `2026.4.22` | Pass · 20 samples · `2,497ms` / `14,847ms` | Not supported | `2026-05-02T05:34:51.113Z` |
@@ -143,6 +143,7 @@ Measured with the OpenClaw Discord QA harness using `mock-openai`, scenario `dis
 | `2026.5.2` | Pass | 20 | `20,146ms` | `21,604ms` | `2026-05-16T15:19:33.576Z` |
 | `2026.4.27` | Pass | 20 | `36,858ms` | `38,863ms` | `2026-05-16T15:02:01.552Z` |
 | `2026.4.26` | Pass | 20 | `32,689ms` | `34,092ms` | `2026-05-16T15:02:15.436Z` |
+| `2026.4.25` | Pass | 20 | `49,357ms` | `52,963ms` | `2026-05-16T16:22:30.074Z` |
 | `2026.4.24` | Pass | 20 | `33,328ms` | `34,734ms` | `2026-05-16T15:01:50.408Z` |
 
 <!-- discord-release-sweep:end -->
