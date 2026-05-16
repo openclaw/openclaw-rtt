@@ -249,35 +249,12 @@ function releaseCoverageTableFor(telegramRows, discordRows) {
       RELEASE_COVERAGE_END,
     ].join("\n");
   }
-  const missingDiscord = versions.filter(
-    (version) =>
-      telegramByVersion.has(version) &&
-      !discordByVersion.has(version) &&
-      isDiscordReleaseSupportedVersion(version),
-  );
-  const unsupportedDiscord = versions.filter(
-    (version) =>
-      telegramByVersion.has(version) &&
-      !discordByVersion.has(version) &&
-      !isDiscordReleaseSupportedVersion(version),
-  );
-  const missingSummary =
-    missingDiscord.length === 0
-      ? "none"
-      : `${missingDiscord.length} version${missingDiscord.length === 1 ? "" : "s"} missing`;
-  const unsupportedSummary =
-    unsupportedDiscord.length === 0
-      ? ""
-      : `; ${unsupportedDiscord.length} Telegram version${unsupportedDiscord.length === 1 ? " is" : "s are"} not supported by the Discord release canary`;
-  const discordGapSummary = `Discord release gap: ${missingSummary}${unsupportedSummary}.`;
   return [
     RELEASE_COVERAGE_START,
     "",
     `Latest imported channel run: \`${latestStartedAt(
       versions.flatMap((version) => [telegramByVersion.get(version), discordByVersion.get(version)]).filter(Boolean),
     )}\``,
-    "",
-    discordGapSummary,
     "",
     "| Version | Telegram | Discord |",
     "|---|---:|---:|",

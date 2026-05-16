@@ -214,10 +214,7 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
     readme.indexOf("<!-- release-coverage:start -->"),
     readme.indexOf("<!-- release-coverage:end -->"),
   );
-  assert.match(
-    coverageSection,
-    /Discord release gap: 1 version missing; 2 Telegram versions are not supported by the Discord release canary\./u,
-  );
+  assert.doesNotMatch(coverageSection, /Discord release gap:/u);
   assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:03:00\.000Z`/u);
   assert.match(coverageSection, /\| Version \| Telegram \| Discord \|/u);
   assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);

@@ -35,15 +35,13 @@ Operator notes: [Data imports and layout](docs/data-imports.md).
 
 ## Release Coverage Matrix
 
-Version-by-version release coverage across channel families. The Discord release workflow queues missing versions from the Telegram release baseline before future versions.
+Version-by-version RTT coverage for release canaries. The matrix shows the latest imported Telegram and Discord release rows side by side.
 
-These cells are useful for coverage, not cross-channel latency ranking. The value shown is `p50 / p95` for that channel's release scenario.
+Use this as release coverage and regression signal, not a channel speed ranking. Each cell is `p50 / p95` for that channel's release scenario; `Missing` means no compatible import exists, and `Not supported` means that release predates or fails the Discord canary contract.
 
 <!-- release-coverage:start -->
 
 Latest imported channel run: `2026-05-16T16:22:30.074Z`
-
-Discord release gap: none; 7 Telegram versions are not supported by the Discord release canary.
 
 | Version | Telegram | Discord |
 |---|---:|---:|
