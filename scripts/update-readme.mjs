@@ -23,12 +23,7 @@ const MAIN_DASHBOARD_ORDER = new Map([
   ["Slack", 2],
   ["WhatsApp", 3],
 ]);
-const RELEASE_COVERAGE_CHANNELS = [
-  { label: "Telegram", missingLabel: () => "-" },
-  { label: "Discord", missingLabel: () => "-" },
-  { label: "Slack", missingLabel: () => "-" },
-  { label: "WhatsApp", missingLabel: () => "-" },
-];
+const RELEASE_COVERAGE_CHANNELS = ["Telegram", "Discord", "Slack", "WhatsApp"];
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const RELEASE_COVERAGE_MIN_VERSION = "2026.4.24";
@@ -287,6 +282,7 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
     ...new Set([...rowsByChannel.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
   ]
     .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
+    .filter((version) => RELEASE_COVERAGE_CHANNELS.every((label) => rowsByChannel.get(label)?.has(version)))
     .sort((left, right) => compareVersions(right, left));
   if (versions.length === 0) {
     return [
@@ -301,22 +297,14 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
     RELEASE_COVERAGE_START,
     "",
     `Latest imported channel run: \`${latestStartedAt(
-      versions
-        .flatMap((version) =>
-          RELEASE_COVERAGE_CHANNELS.map((channel) => rowsByChannel.get(channel.label)?.get(version)),
-        )
-        .filter(Boolean),
+      versions.flatMap((version) => RELEASE_COVERAGE_CHANNELS.map((label) => rowsByChannel.get(label)?.get(version))),
     )}\``,
     "",
     "| Version | p50 σ | Telegram | Discord | Slack | WhatsApp |",
     "|---|---:|---:|---:|---:|---:|",
     ...versions.map((version) => {
-      const channelRowsForVersion = RELEASE_COVERAGE_CHANNELS.map((channel) =>
-        rowsByChannel.get(channel.label)?.get(version),
-      );
-      const cells = RELEASE_COVERAGE_CHANNELS.map((channel, index) =>
-        releaseMetricCell(channelRowsForVersion[index], channel.missingLabel(version)),
-      );
+      const channelRowsForVersion = RELEASE_COVERAGE_CHANNELS.map((label) => rowsByChannel.get(label)?.get(version));
+      const cells = channelRowsForVersion.map((row) => releaseMetricCell(row, "-"));
       return `| \`${version}\` | ${releaseP50StdDev(channelRowsForVersion)} | ${cells.join(" | ")} |`;
     }),
     "",
