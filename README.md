@@ -50,11 +50,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-17T01:17:20.809Z`
+Latest imported channel run: `2026-05-17T02:00:29.509Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.3` | - | `1,112ms` | - | - | - |
+| `2026.5.16-beta.3` | `3,076ms` | `1,112ms` | - | `4,690ms` | `8,644ms` |
 | `2026.5.16-beta.2` | `12,795ms` | `1,050ms` | `26,639ms` | - | - |
 | `2026.5.16-beta.1` | `9,972ms` | `1,196ms` | `21,140ms` | - | - |
 | `2026.5.14-beta.2` | `10,142ms` | `990ms` | `21,273ms` | - | - |
@@ -145,7 +145,9 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 <!-- slack-release-sweep:start -->
 
-No release RTT runs have been imported yet.
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
+|---|---:|---:|---:|---:|---:|---:|
+| `2026.5.16-beta.3` | Pass | 20 | `4,690ms` | `5,929ms` | `673MB` | `9,021MB` |
 
 <!-- slack-release-sweep:end -->
 
@@ -155,6 +157,8 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 <!-- whatsapp-release-sweep:start -->
 
-No release RTT runs have been imported yet.
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
+|---|---:|---:|---:|---:|---:|---:|
+| `2026.5.16-beta.3` | Pass | 20 | `8,644ms` | `9,572ms` | `894MB` | `7,111MB` |
 
 <!-- whatsapp-release-sweep:end -->
