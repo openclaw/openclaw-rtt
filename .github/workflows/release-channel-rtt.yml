@@ -165,9 +165,9 @@ jobs:
             exit 1
           fi
           mkdir -p openclaw/node_modules/@openclaw
-          ln -sfn "../../../extensions/${{ matrix.package.channel }}" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
+          ln -sfn "../../extensions/${{ matrix.package.channel }}" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
           mkdir -p openclaw-qa/node_modules/@openclaw
-          ln -sfn "../../../extensions/${{ matrix.package.channel }}" "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
+          ln -sfn "../../extensions/${{ matrix.package.channel }}" "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
 
       - name: Verify OpenClaw release ref
         working-directory: openclaw
