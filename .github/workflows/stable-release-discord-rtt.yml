@@ -36,7 +36,7 @@ env:
 jobs:
   resolve:
     name: Resolve OpenClaw Discord release packages
-    runs-on: ubuntu-24.04
+    runs-on: blacksmith-32vcpu-ubuntu-2404
     outputs:
       anchor: ${{ steps.release.outputs.anchor }}
       matrix: ${{ steps.release.outputs.matrix }}
@@ -81,7 +81,7 @@ jobs:
       cancel-in-progress: false
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 8
       matrix:
         package: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
