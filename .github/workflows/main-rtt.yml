@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "0 */6 * * *"
   workflow_dispatch:
+    inputs:
+      samples:
+        description: Number of Telegram RTT samples
+        required: false
+        default: "20"
+        type: string
 
 permissions:
   contents: write
@@ -101,8 +107,14 @@ jobs:
           OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
           OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
           OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
         shell: bash
         run: |
+          samples="${INPUT_SAMPLES:-20}"
+          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
+            echo "samples must be a positive integer, got: $samples" >&2
+            exit 1
+          fi
           metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
           set +e
           /usr/bin/time \
@@ -112,7 +124,7 @@ jobs:
             --package-tgz "${{ steps.pack.outputs.package_tgz }}" \
             --harness-root "$PWD" \
             --output "$RUNNER_TEMP/openclaw-rtt-runs" \
-            --samples 20 \
+            --samples "$samples" \
             --timeout-ms 240000 \
             --sample-timeout-ms 30000
           status="$?"
