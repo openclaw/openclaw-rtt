@@ -286,7 +286,7 @@ jobs:
     needs:
       - resolve
       - measure
-    if: needs.resolve.outputs.should_run == 'true'
+    if: always() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
