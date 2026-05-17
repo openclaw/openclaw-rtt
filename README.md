@@ -50,12 +50,12 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-17T07:52:26.065Z`
+Latest imported channel run: `2026-05-17T07:58:22.570Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.4` | `11,659ms` | `1,221ms` | `24,538ms` | - | - |
-| `2026.5.16-beta.3` | `9,627ms` | `1,112ms` | `26,180ms` | `4,690ms` | `8,644ms` |
+| `2026.5.16-beta.4` | `12,521ms` | `1,221ms` | `26,263ms` | - | - |
+| `2026.5.16-beta.3` | `9,873ms` | `1,112ms` | `26,771ms` | `4,690ms` | `8,644ms` |
 | `2026.5.16-beta.2` | `9,836ms` | `1,050ms` | `26,639ms` | `4,751ms` | `8,377ms` |
 | `2026.5.16-beta.1` | `7,659ms` | `1,196ms` | `21,140ms` | `4,205ms` | `6,714ms` |
 | `2026.5.14-beta.2` | `10,142ms` | `990ms` | `21,273ms` | - | - |
@@ -124,8 +124,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.4` | Pass | 20 | `24,538ms` | `26,332ms` | `772MB` | `808MB` |
-| `2026.5.16-beta.3` | Pass | 20 | `26,180ms` | `27,086ms` | `812MB` | `824MB` |
+| `2026.5.16-beta.4` | Pass | 20 | `26,263ms` | `28,304ms` | `779MB` | `815MB` |
+| `2026.5.16-beta.3` | Pass | 20 | `26,771ms` | `28,550ms` | `812MB` | `825MB` |
 | `2026.5.16-beta.2` | Pass | 20 | `26,639ms` | `27,767ms` | `808MB` | `820MB` |
 | `2026.5.16-beta.1` | Pass | 20 | `21,140ms` | `22,665ms` | `804MB` | `816MB` |
 | `2026.5.14-beta.2` | Pass | 20 | `21,273ms` | `21,924ms` | `793MB` | `816MB` |
