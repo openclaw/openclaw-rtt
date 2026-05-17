@@ -17,6 +17,11 @@ on:
       - "scripts/validate.mjs"
   workflow_dispatch:
     inputs:
+      channels:
+        description: Space or comma separated channel ids
+        required: false
+        default: "slack whatsapp"
+        type: string
       samples:
         description: Number of RTT samples
         required: false
@@ -38,8 +43,56 @@ env:
   CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS: "120"
 
 jobs:
+  resolve:
+    name: Resolve main channel RTT matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.channels.outputs.matrix }}
+      should_run: ${{ steps.channels.outputs.should_run }}
+    steps:
+      - name: Resolve channels
+        id: channels
+        env:
+          INPUT_CHANNELS: ${{ github.event_name == 'workflow_dispatch' && inputs.channels || 'slack whatsapp' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE' >>"$GITHUB_OUTPUT"
+          const requested = new Set(
+            (process.env.INPUT_CHANNELS || "slack whatsapp")
+              .split(/[\s,]+/)
+              .map((value) => value.trim().toLowerCase())
+              .filter(Boolean),
+          );
+          const channels = [
+            {
+              channel: "slack",
+              label: "Slack",
+              scenario: "slack-canary",
+              summary: "slack-qa-summary.json",
+              observed: "slack-qa-observed-messages.json",
+            },
+            {
+              channel: "whatsapp",
+              label: "WhatsApp",
+              scenario: "whatsapp-canary",
+              summary: "whatsapp-qa-summary.json",
+              observed: "whatsapp-qa-observed-messages.json",
+            },
+          ].filter((entry) => requested.has(entry.channel));
+          if (channels.length === 0) {
+            console.log("should_run=false");
+            console.log("matrix={\"include\":[]}");
+          } else {
+            console.log("should_run=true");
+            console.log(`matrix=${JSON.stringify({ include: channels })}`);
+          }
+          NODE
+
   measure:
     name: Measure OpenClaw main ${{ matrix.label }} RTT
+    needs: resolve
+    if: needs.resolve.outputs.should_run == 'true'
     runs-on: blacksmith-32vcpu-ubuntu-2404
     timeout-minutes: 120
     environment: qa-live-shared
@@ -49,18 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 2
-      matrix:
-        include:
-          - channel: slack
-            label: Slack
-            scenario: slack-canary
-            summary: slack-qa-summary.json
-            observed: slack-qa-observed-messages.json
-          - channel: whatsapp
-            label: WhatsApp
-            scenario: whatsapp-canary
-            summary: whatsapp-qa-summary.json
-            observed: whatsapp-qa-observed-messages.json
+      matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
       - name: Checkout RTT tracker
         uses: actions/checkout@v6
@@ -268,7 +310,10 @@ jobs:
 
   report:
     name: Import channel RTT reports
-    needs: measure
+    needs:
+      - resolve
+      - measure
+    if: always() && !cancelled() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
