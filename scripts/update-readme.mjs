@@ -205,7 +205,7 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
     "",
     latestRunSummary(rows),
     "",
-    "| Channel | Result | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |",
+    "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
     "|---|---:|---:|---:|---:|---:|",
     ...tableRows.map((row) => latestMainRow(row)),
     "",
@@ -232,7 +232,7 @@ function releaseTableFor(rows, start, end) {
   return [
     start,
     "",
-    "| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |",
+    "| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
     "|---|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>

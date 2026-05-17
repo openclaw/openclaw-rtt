@@ -33,7 +33,7 @@ Required pieces:
 
 `main-channel-rtt.yml` starts with Slack and WhatsApp because both are built-in OpenClaw live transports and their summaries already carry scenario-level RTT fields. The workflow measures channels in parallel, uploads per-channel import artifacts, and then uses one serialized report job to avoid competing README/data commits.
 
-Each sample is wrapped with `/usr/bin/time` and imports process max RSS in kilobytes alongside the scenario RTT. The workflow uses bounded exponential retry for transient missing-summary failures and writes the final attempt count into the imported row. The README keeps the public channel table compact with RTT p50/p95 and command RSS p50/p95; retry and scenario details stay in the JSON rows and summaries.
+Each sample is wrapped with `/usr/bin/time` and imports process max RSS in kilobytes alongside the scenario RTT. The workflow uses bounded exponential retry for transient missing-summary failures and writes the final attempt count into the imported row. The README keeps the public channel table compact with RTT p50/p95 and RSS p50/p95; retry and scenario details stay in the JSON rows and summaries.
 
 Discord is intentionally not migrated to the generic live-transport importer yet. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
 

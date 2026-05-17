@@ -161,7 +161,7 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
   assert.match(readme, /Latest imported channel run: `2026-05-16T00:03:00\.000Z` · latest `2026\.5\.16` \/ `whatsapp1234`/u);
   assert.doesNotMatch(readme, /Version\/ref:/u);
-  assert.match(readme, /\| Channel \| Result \| RTT p50 \| RTT p95 \| Command RSS p50 \| Command RSS p95 \|/u);
+  assert.match(readme, /\| Channel \| Result \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
   assert.doesNotMatch(readme, /\| Channel \| Scope \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Scenario \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Version\/ref \|/u);
@@ -260,27 +260,27 @@ test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsAp
     readme.indexOf("<!-- release-sweep:start -->"),
     readme.indexOf("<!-- release-sweep:end -->"),
   );
-  assert.match(telegramSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| Command RSS p50 \| Command RSS p95 \|/u);
+  assert.match(telegramSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Updated \|/u);
 
   const discordSection = readme.slice(
     readme.indexOf("<!-- discord-release-sweep:start -->"),
     readme.indexOf("<!-- discord-release-sweep:end -->"),
   );
-  assert.match(discordSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| Command RSS p50 \| Command RSS p95 \|/u);
+  assert.match(discordSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Updated \|/u);
 
   const slackSection = readme.slice(
     readme.indexOf("<!-- slack-release-sweep:start -->"),
     readme.indexOf("<!-- slack-release-sweep:end -->"),
   );
-  assert.match(slackSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| Command RSS p50 \| Command RSS p95 \|/u);
+  assert.match(slackSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
   assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| Pass \| 2 \| `3,000ms` \| `4,000ms` \| - \| - \|/u);
 
   const whatsappSection = readme.slice(
     readme.indexOf("<!-- whatsapp-release-sweep:start -->"),
     readme.indexOf("<!-- whatsapp-release-sweep:end -->"),
   );
-  assert.match(whatsappSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| Command RSS p50 \| Command RSS p95 \|/u);
+  assert.match(whatsappSection, /\| npm version \| Result \| Samples \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
   assert.match(whatsappSection, /\| `2026\.5\.16-beta\.1` \| Pass \| 2 \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });

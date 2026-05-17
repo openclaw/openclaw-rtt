@@ -31,7 +31,7 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 Latest imported channel run: `2026-05-17T07:08:06.904Z` · latest `2026.5.17` / `76da34760c`
 
-| Channel | Result | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
+| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|---:|
 | Telegram | Fail | - | - | - | - |
 | Discord | Pass | `26,486ms` | `27,607ms` | - | - |
@@ -88,7 +88,7 @@ The system under test is the published package running its own Telegram bot. The
 
 <!-- release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.4` | Pass | 20 | `1,221ms` | `2,077ms` | `145MB` | `145MB` |
 | `2026.5.16-beta.3` | Pass | 20 | `1,112ms` | `2,172ms` | `145MB` | `145MB` |
@@ -122,7 +122,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 <!-- discord-release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.4` | Pass | 20 | `26,263ms` | `28,304ms` | `779MB` | `815MB` |
 | `2026.5.16-beta.3` | Pass | 20 | `26,771ms` | `28,550ms` | `812MB` | `825MB` |
@@ -149,7 +149,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 <!-- slack-release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.3` | Pass | 20 | `4,690ms` | `5,929ms` | `673MB` | `723MB` |
 | `2026.5.16-beta.2` | Pass | 20 | `4,751ms` | `5,868ms` | `672MB` | `696MB` |
@@ -163,7 +163,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 <!-- whatsapp-release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.3` | Pass | 20 | `8,644ms` | `9,572ms` | `894MB` | `1,593MB` |
 | `2026.5.16-beta.2` | Pass | 20 | `8,377ms` | `10,642ms` | `1,006MB` | `1,495MB` |
