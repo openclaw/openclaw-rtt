@@ -50,7 +50,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-17T09:29:21.891Z`
+Latest imported channel run: `2026-05-17T13:46:24.578Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
@@ -63,9 +63,9 @@ Latest imported channel run: `2026-05-17T09:29:21.891Z`
 | `2026.5.12` | `7,071ms` | `2,858ms` | `20,640ms` | `4,170ms` | `7,035ms` |
 | `2026.5.9-beta.1` | `5,604ms` | `2,517ms` | `16,759ms` | `4,488ms` | `4,971ms` |
 | `2026.5.7` | `6,981ms` | `3,499ms` | `18,948ms` | `4,877ms` | - |
-| `2026.5.6` | `7,252ms` | `3,497ms` | `18,001ms` | - | - |
+| `2026.5.6` | `6,537ms` | `3,497ms` | `18,001ms` | `4,876ms` | - |
 | `2026.5.4` | `6,926ms` | `3,504ms` | `18,937ms` | `5,121ms` | - |
-| `2026.5.3` | - | `3,505ms` | - | - | - |
+| `2026.5.3` | `738ms` | `3,505ms` | - | `4,980ms` | - |
 | `2026.5.2` | `8,323ms` | `3,501ms` | `20,146ms` | - | - |
 | `2026.4.29` | - | `17,936ms` | - | - | - |
 | `2026.4.27` | `16,110ms` | `4,639ms` | `36,858ms` | - | - |
@@ -155,7 +155,9 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.12` | `4,170ms` | `4,381ms` | `708MB` | `717MB` |
 | `2026.5.9-beta.1` | `4,488ms` | `4,708ms` | `621MB` | `626MB` |
 | `2026.5.7` | `4,877ms` | `4,928ms` | `643MB` | `681MB` |
+| `2026.5.6` | `4,876ms` | `5,564ms` | `649MB` | `671MB` |
 | `2026.5.4` | `5,121ms` | `5,482ms` | `651MB` | `659MB` |
+| `2026.5.3` | `4,980ms` | `5,146ms` | `628MB` | `631MB` |
 
 <!-- slack-release-sweep:end -->
 
