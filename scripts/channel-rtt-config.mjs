@@ -10,6 +10,16 @@ export const CHANNEL_RTT_CHANNELS = {
     command: "slack",
     defaultScenario: "slack-canary",
     label: "Slack",
+    releaseSkipVersions: {
+      "2026.4.24": "current QA harness writes a newer messages.groupChat.visibleReplies key",
+      "2026.4.25": "current QA harness writes a newer messages.groupChat.visibleReplies key",
+      "2026.4.26": "current QA harness writes a newer messages.groupChat.visibleReplies key",
+      "2026.4.27": "current QA harness cannot speak the older gateway protocol",
+      "2026.4.29": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.2": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.3": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.6": "current QA harness cannot speak the older gateway protocol",
+    },
   },
   telegram: {
     command: "telegram",
@@ -20,6 +30,18 @@ export const CHANNEL_RTT_CHANNELS = {
     command: "whatsapp",
     defaultScenario: "whatsapp-canary",
     label: "WhatsApp",
+    releaseSkipVersions: {
+      "2026.4.24": "current QA harness cannot speak the older gateway protocol",
+      "2026.4.25": "current QA harness cannot speak the older gateway protocol",
+      "2026.4.26": "current QA harness cannot speak the older gateway protocol",
+      "2026.4.27": "current QA harness cannot speak the older gateway protocol",
+      "2026.4.29": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.2": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.3": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.4": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.6": "current QA harness cannot speak the older gateway protocol",
+      "2026.5.7": "current QA harness cannot speak the older gateway protocol",
+    },
   },
 };
 

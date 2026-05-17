@@ -91,3 +91,35 @@ test("skips channel release versions already measured", async () => {
     "whatsapp:2026.5.16-beta.3",
   ]);
 });
+
+test("skips proven historical channel release gaps", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.7.jsonl"), [
+    row("2026.5.7"),
+  ]);
+
+  const { stderr, stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.7 2026.5.16-beta.3",
+      INPUT_CHANNELS: "slack whatsapp",
+      INPUT_VERSIONS: "2026.5.7 2026.5.16-beta.3",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  const matrix = JSON.parse(outputs.matrix);
+  assert.match(stderr, /Skipping whatsapp openclaw@2026\.5\.7/u);
+  assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
+    "slack:2026.5.7",
+    "slack:2026.5.16-beta.3",
+    "whatsapp:2026.5.16-beta.3",
+  ]);
+});

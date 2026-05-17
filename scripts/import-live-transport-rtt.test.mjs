@@ -181,8 +181,12 @@ test("can require imported channel samples to pass", async () => {
     /Channel RTT run failed/u,
   );
 
-  const [row] = await readJsonl(path.join(workspace, "data/channels/slack/2026.5.16+abcdef1234.jsonl"));
-  assert.equal(row.run.status, "fail");
-  assert.deepEqual(row.rtt.warmSamples, []);
-  assert.equal(row.rtt.failedSamples, 1);
+  await assert.rejects(
+    fs.stat(path.join(workspace, "data/channels/slack/2026.5.16+abcdef1234.jsonl")),
+    { code: "ENOENT" },
+  );
+  await assert.rejects(
+    fs.stat(path.join(workspace, "runs/slack")),
+    { code: "ENOENT" },
+  );
 });

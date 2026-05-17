@@ -99,6 +99,10 @@ function writeOutput(values) {
   process.stdout.write(`${lines.join("\n")}\n`);
 }
 
+function releaseSkipReason(channel, version) {
+  return channel.releaseSkipVersions?.[version];
+}
+
 const channelConfig = new Map(listChannelRttChannels().map((channel) => [channel.id, channel]));
 const requestedChannels = readListEnv("INPUT_CHANNELS");
 const channelIds = requestedChannels.length === 0 ? DEFAULT_CHANNELS : requestedChannels;
@@ -141,6 +145,11 @@ for (const channelId of channelIds) {
     }
     const spec = `openclaw@${version}`;
     if (measured.has(`${channelId}\0${spec}\0${version}`)) {
+      continue;
+    }
+    const skipReason = releaseSkipReason(channel, version);
+    if (skipReason) {
+      process.stderr.write(`Skipping ${channelId} ${spec}: ${skipReason}.\n`);
       continue;
     }
     queue.push({

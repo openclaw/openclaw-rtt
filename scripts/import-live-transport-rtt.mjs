@@ -352,13 +352,14 @@ async function main() {
     },
   };
 
+  if (args.requirePass && result.run.status !== "pass") {
+    throw new Error(`Channel RTT run failed: ${runId}`);
+  }
+
   await fs.mkdir(runDir, { recursive: true });
   await fs.writeFile(resultPath, `${JSON.stringify(result, null, 2)}\n`);
   await appendChannelRow(channel.id, result);
   process.stdout.write(`imported ${runId}\n`);
-  if (args.requirePass && result.run.status !== "pass") {
-    throw new Error(`Channel RTT run failed: ${runId}`);
-  }
 }
 
 main().catch((error) => {
