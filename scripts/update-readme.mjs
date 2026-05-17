@@ -12,8 +12,6 @@ const RELEASE_COVERAGE_START = "<!-- release-coverage:start -->";
 const RELEASE_COVERAGE_END = "<!-- release-coverage:end -->";
 const DISCORD_RELEASE_START = "<!-- discord-release-sweep:start -->";
 const DISCORD_RELEASE_END = "<!-- discord-release-sweep:end -->";
-const CHANNEL_RTT_START = "<!-- channel-rtt:start -->";
-const CHANNEL_RTT_END = "<!-- channel-rtt:end -->";
 const MAIN_SPEC = "openclaw@main";
 const MAIN_DASHBOARD_ORDER = new Map([
   ["Telegram", 0],
@@ -133,6 +131,20 @@ function versionAndRef(value) {
 function latestRunSummary(rows) {
   const row = latestRow(rows);
   return `Latest imported channel run: \`${row.run.startedAt}\` · latest ${versionAndRef(row.package.version)}`;
+}
+
+function channelRttRows(rows) {
+  const byKey = new Map();
+  for (const row of rows) {
+    byKey.set(`${row.channel.id}\0${row.channel.scenario}\0${row.package.spec}`, row);
+  }
+  return [...byKey.values()].sort((left, right) => {
+    const channelDiff = String(left.channel.label).localeCompare(String(right.channel.label));
+    if (channelDiff !== 0) {
+      return channelDiff;
+    }
+    return String(right.run.startedAt).localeCompare(String(left.run.startedAt));
+  });
 }
 
 function mainChannelRttRows(rows) {
@@ -303,28 +315,6 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
   ].join("\n");
 }
 
-function channelRttRows(rows) {
-  const byKey = new Map();
-  for (const row of rows) {
-    byKey.set(`${row.channel.id}\0${row.channel.scenario}\0${row.package.spec}`, row);
-  }
-  return [...byKey.values()].sort((left, right) => {
-    const channelDiff = String(left.channel.label).localeCompare(String(right.channel.label));
-    if (channelDiff !== 0) {
-      return channelDiff;
-    }
-    return String(right.run.startedAt).localeCompare(String(left.run.startedAt));
-  });
-}
-
-function channelRttTableFor(rows) {
-  const tableRows = channelRttRows(rows);
-  if (tableRows.length === 0) {
-    return [CHANNEL_RTT_START, "", "No channel RTT runs have been imported yet.", "", CHANNEL_RTT_END].join("\n");
-  }
-  return [CHANNEL_RTT_START, "", "Merged into the Dashboard table above.", "", CHANNEL_RTT_END].join("\n");
-}
-
 function replaceMarked(readme, start, end, replacement) {
   const startIndex = readme.indexOf(start);
   const endIndex = readme.indexOf(end);
@@ -354,23 +344,18 @@ async function main() {
     : replaceMarked(
         replaceMarked(
           replaceMarked(
-            replaceMarked(
-              withLatestMain,
-              RELEASE_COVERAGE_START,
-              RELEASE_COVERAGE_END,
-              releaseCoverageTableFor(rows, discordRows, channelRows),
-            ),
-            RELEASE_START,
-            RELEASE_END,
-            releaseTableFor(rows, RELEASE_START, RELEASE_END),
+            withLatestMain,
+            RELEASE_COVERAGE_START,
+            RELEASE_COVERAGE_END,
+            releaseCoverageTableFor(rows, discordRows, channelRows),
           ),
-          DISCORD_RELEASE_START,
-          DISCORD_RELEASE_END,
-          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
+          RELEASE_START,
+          RELEASE_END,
+          releaseTableFor(rows, RELEASE_START, RELEASE_END),
         ),
-        CHANNEL_RTT_START,
-        CHANNEL_RTT_END,
-        channelRttTableFor(channelRows),
+        DISCORD_RELEASE_START,
+        DISCORD_RELEASE_END,
+        releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
       );
   await fs.writeFile(README_PATH, next);
 }

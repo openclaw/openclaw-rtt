@@ -42,10 +42,6 @@ async function writeReadme(workspace) {
       "old discord release",
       "<!-- discord-release-sweep:end -->",
       "",
-      "<!-- channel-rtt:start -->",
-      "old channel",
-      "<!-- channel-rtt:end -->",
-      "",
     ].join("\n"),
   );
 }
@@ -92,12 +88,8 @@ test("merges channel RTT details into the dashboard", async () => {
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
   const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
-  const channelSection = readme.slice(
-    readme.indexOf("<!-- channel-rtt:start -->"),
-    readme.indexOf("<!-- channel-rtt:end -->"),
-  );
-  assert.match(channelSection, /Merged into the Dashboard table above\./u);
-  assert.doesNotMatch(channelSection, /\| Channel \| Version\/ref \|/u);
+  assert.doesNotMatch(readme, /<!-- channel-rtt:start -->/u);
+  assert.doesNotMatch(readme, /Merged into the Dashboard table above\./u);
 
   const dashboardSection = readme.slice(
     readme.indexOf("<!-- latest-main:start -->"),

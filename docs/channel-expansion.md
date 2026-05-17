@@ -12,9 +12,11 @@
 - CI only measured live scheduled data. It did not protect PRs that change importers, README generation, or workflows.
 - Scheduled workflows needed `contents: write` to commit results, but secondary OpenClaw checkouts did not need persisted credentials.
 
-## New Channel Contract
+## Adding Channels
 
 New live transport channels should use the channel RTT lane when the OpenClaw CLI exposes `pnpm openclaw qa <channel>` and the lane emits a QA summary artifact.
+
+Generic live-transport RTT imports are for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
 
 Required pieces:
 
@@ -37,6 +39,8 @@ Discord is intentionally not migrated to `data/channel-rtt` yet. Its summary cur
 Telegram is listed in the channel config for the future live-transport path, but the current production graph remains on the older `pnpm rtt` package-result path because that is what release sweeps already use.
 
 Do not read cross-channel values as pure transport rankings. Telegram release rows use `telegram-mentioned-message-reply`; Discord, Slack, and WhatsApp rows use canary scenarios. The live-transport lane also includes QA-lab process overhead in RSS because the measured process is `pnpm openclaw qa <channel>`, not only the channel adapter.
+
+Slack and WhatsApp rows come from `openclaw qa <channel>` canaries, so their RSS columns include the QA-lab sample process and should not be read as pure channel transport memory.
 
 ## CI And Security
 

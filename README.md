@@ -31,7 +31,7 @@ Latest imported channel run: `2026-05-16T19:11:32.157Z` · latest `2026.5.17` / 
 
 <!-- latest-main:end -->
 
-Operator notes: [Data imports and layout](docs/data-imports.md).
+Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expansion](docs/channel-expansion.md).
 
 ## Release Coverage Matrix
 
@@ -127,15 +127,3 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.4.24` | Pass | 20 | `33,328ms` | `34,734ms` | `767MB` | `1,574MB` |
 
 <!-- discord-release-sweep:end -->
-
-## Adding Channels
-
-Generic live-transport RTT imports are for channels backed by `pnpm openclaw qa <channel>`. New channels should land one at a time with their workflow, credential contract, scenario id, and importer proof.
-Slack and WhatsApp rows come from `openclaw qa <channel>` canaries, so their RSS columns include the QA-lab sample process and should not be read as pure channel transport memory.
-Design notes: [Channel expansion](docs/channel-expansion.md).
-
-<!-- channel-rtt:start -->
-
-Merged into the Dashboard table above.
-
-<!-- channel-rtt:end -->
