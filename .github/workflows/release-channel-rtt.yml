@@ -35,6 +35,7 @@ env:
   CHANNEL_RTT_MAX_ATTEMPTS: "3"
   CHANNEL_RTT_RETRY_BASE_SECONDS: "15"
   CHANNEL_RTT_RETRY_MAX_SECONDS: "60"
+  CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS: "120"
 
 jobs:
   resolve:
@@ -220,6 +221,14 @@ jobs:
           max_attempts="${CHANNEL_RTT_MAX_ATTEMPTS:-3}"
           retry_base_seconds="${CHANNEL_RTT_RETRY_BASE_SECONDS:-15}"
           retry_max_seconds="${CHANNEL_RTT_RETRY_MAX_SECONDS:-60}"
+          sample_timeout_seconds="${CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS:-120}"
+          for value_name in max_attempts retry_base_seconds retry_max_seconds sample_timeout_seconds; do
+            value="${!value_name}"
+            if ! [[ "$value" =~ ^[1-9][0-9]*$ ]]; then
+              echo "${value_name} must be a positive integer, got: ${value}" >&2
+              exit 1
+            fi
+          done
 
           workspace_root="${GITHUB_WORKSPACE:?}"
           output_root=".artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
@@ -241,6 +250,7 @@ jobs:
               /usr/bin/time \
                 -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
                 -o "$metrics_path" \
+                timeout "${sample_timeout_seconds}s" \
                 pnpm --dir "${workspace_root}/openclaw-qa" openclaw qa "${{ matrix.package.channel }}" \
                 --repo-root "${workspace_root}/openclaw" \
                 --output-dir "${output_dir}" \
