@@ -1,5 +1,4 @@
-export const CHANNEL_RTT_DATA_DIR = "data/channel-rtt";
-export const CHANNEL_RTT_RUNS_DIR = "channel-runs";
+import { channelDataPath, channelRunsDir } from "./channel-storage.mjs";
 
 export const CHANNEL_RTT_CHANNELS = {
   discord: {
@@ -38,9 +37,9 @@ export function resolveChannelRttChannel(id) {
 }
 
 export function channelRttDataPath(channelId) {
-  return `${CHANNEL_RTT_DATA_DIR}/${channelId}.jsonl`;
+  return channelDataPath(channelId);
 }
 
 export function channelRttRunsDir(channelId) {
-  return `${CHANNEL_RTT_RUNS_DIR}/${channelId}`;
+  return channelRunsDir(channelId);
 }

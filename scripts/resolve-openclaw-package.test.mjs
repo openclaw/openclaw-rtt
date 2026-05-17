@@ -61,7 +61,7 @@ function parseOutputs(stdout) {
 
 test("queues Telegram release rows missing RSS for backfill", async () => {
   const workspace = await makeWorkspace();
-  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.5.12"),
     withResources(releaseRow("2026.5.16")),
   ]);
@@ -85,7 +85,7 @@ test("queues Telegram release rows missing RSS for backfill", async () => {
 
 test("skips selected Telegram release RSS backfill versions", async () => {
   const workspace = await makeWorkspace();
-  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.5.12"),
     releaseRow("2026.5.14-beta.1"),
     releaseRow("2026.5.6"),

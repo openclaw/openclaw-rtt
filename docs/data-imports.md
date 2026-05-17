@@ -25,12 +25,10 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 
 ## Data Layout
 
-- `data/rtt.jsonl`: append-only Telegram graph source, one normalized run per line.
-- `runs/<run-id>/result.json`: copied Telegram run record for audit/debug.
-- `data/discord-rtt.jsonl`: append-only Discord RTT graph source.
-- `discord-runs/<run-id>/result.json`: copied Discord run record.
-- `data/channel-rtt/<channel>.jsonl`: append-only graph source for generic live-transport channel RTT runs.
-- `channel-runs/<channel>/<run-id>/result.json`: copied generic channel run record.
+- `data/channels/<channel>.jsonl`: append-only graph source, one normalized run per line per channel.
+- `runs/<channel>/<run-id>/result.json`: copied per-run record for audit/debug.
+
+Current channel files are `telegram`, `discord`, `slack`, and `whatsapp`. Telegram and Discord still have specialized importers because their source artifact shapes differ; they now share the same storage contract as generic live-transport channels.
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied here later.
 

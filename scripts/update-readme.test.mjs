@@ -77,7 +77,7 @@ function rttRow(overrides) {
 test("merges channel RTT details into the dashboard", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
-  await writeJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/slack.jsonl"), [
     {
       channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
       ...rttRow({ run: { id: "slack-run", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" } }),
@@ -117,21 +117,21 @@ test("merges channel RTT details into the dashboard", async () => {
 test("renders latest main dashboard rows for Telegram, Discord, and live channels", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
-  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     rttRow({
       package: { spec: "openclaw@main", version: "2026.5.16+telegram1234" },
       run: { id: "telegram-run", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
       rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
     }),
   ]);
-  await writeJsonl(path.join(workspace, "data/discord-rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     rttRow({
       package: { spec: "openclaw@main", version: "2026.5.16+discord1234" },
       run: { id: "discord-run", startedAt: "2026-05-16T00:01:00.000Z", status: "pass" },
       rtt: { warmSamples: [6000, 7000], p50Ms: 6000, p95Ms: 7000 },
     }),
   ]);
-  await writeJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/slack.jsonl"), [
     {
       channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
       ...rttRow({
@@ -143,7 +143,7 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
       resources: { maxRssKb: { p50: 204800, max: 307200 } },
     },
   ]);
-  await writeJsonl(path.join(workspace, "data/channel-rtt/whatsapp.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/whatsapp.jsonl"), [
     {
       channel: { id: "whatsapp", label: "WhatsApp", scenario: "whatsapp-canary" },
       ...rttRow({
@@ -177,7 +177,7 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
 test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsApp", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
-  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     rttRow({
       package: { spec: "openclaw@2026.4.15", version: "2026.4.15" },
       run: { id: "telegram-2026.4.15", startedAt: "2026-05-15T00:00:00.000Z", status: "pass" },
@@ -199,14 +199,14 @@ test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsAp
       rtt: { warmSamples: [1100, 2100], p50Ms: 1100, p95Ms: 2100 },
     }),
   ]);
-  await writeJsonl(path.join(workspace, "data/discord-rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     rttRow({
       package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
       run: { id: "discord-2026.5.16-beta.1", startedAt: "2026-05-16T00:03:00.000Z", status: "pass" },
       rtt: { warmSamples: [6000, 7000], p50Ms: 6000, p95Ms: 7000 },
     }),
   ]);
-  await writeJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/slack.jsonl"), [
     {
       channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
       ...rttRow({
@@ -216,7 +216,7 @@ test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsAp
       }),
     },
   ]);
-  await writeJsonl(path.join(workspace, "data/channel-rtt/whatsapp.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/whatsapp.jsonl"), [
     {
       channel: { id: "whatsapp", label: "WhatsApp", scenario: "whatsapp-canary" },
       ...rttRow({

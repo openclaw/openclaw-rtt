@@ -1,9 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import {
+  appendJsonl,
+  channelDataPath,
+  channelResultPath,
+  channelRunsDir,
+  existingChannelRunIds,
+} from "./channel-storage.mjs";
 import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs";
 
-const DATA_PATH = path.resolve("data/discord-rtt.jsonl");
-const RUNS_DIR = path.resolve("discord-runs");
+const DISCORD_CHANNEL = {
+  id: "discord",
+  label: "Discord",
+  scenario: "discord-canary",
+};
 
 function usage() {
   return [
@@ -124,21 +134,7 @@ async function readSampleEntries(samplesPath) {
 }
 
 async function existingRunIds() {
-  try {
-    const text = await fs.readFile(DATA_PATH, "utf8");
-    return new Set(
-      text
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => JSON.parse(line).run?.id)
-        .filter(Boolean),
-    );
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return new Set();
-    }
-    throw error;
-  }
+  return await existingChannelRunIds(DISCORD_CHANNEL.id);
 }
 
 function extractCanaryRtt(observedMessages) {
@@ -227,9 +223,12 @@ async function main() {
   const warmSamples = samples.flatMap((sample) => (sample.status === "pass" ? [sample.rttMs] : []));
   const failedSamples = samples.length - warmSamples.length;
   const resources = aggregateResources(samples.flatMap((sample) => sample.resources ?? []));
-  const runDir = path.join(RUNS_DIR, runId);
-  const resultPath = path.join("discord-runs", runId, "result.json");
+  const runDir = path.join(channelRunsDir(DISCORD_CHANNEL.id), runId);
+  const resultPath = channelResultPath(DISCORD_CHANNEL.id, runId);
   const result = {
+    channel: {
+      ...DISCORD_CHANNEL,
+    },
     package: {
       spec: args.spec,
       version: args.version,
@@ -274,9 +273,8 @@ async function main() {
   }
 
   await fs.mkdir(runDir, { recursive: true });
-  await fs.writeFile(path.join(runDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
-  await fs.mkdir(path.dirname(DATA_PATH), { recursive: true });
-  await fs.appendFile(DATA_PATH, `${JSON.stringify(result)}\n`);
+  await fs.writeFile(resultPath, `${JSON.stringify(result, null, 2)}\n`);
+  await appendJsonl(channelDataPath(DISCORD_CHANNEL.id), result);
   process.stdout.write(`imported ${runId}\n`);
 }
 

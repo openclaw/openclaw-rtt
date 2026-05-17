@@ -4,10 +4,11 @@
 
 ## Current State
 
-- Telegram main/release RTT still uses the older `pnpm rtt` result shape and writes `data/rtt.jsonl`.
-- Discord main RTT uses the live QA lane but has its own importer and writes `data/discord-rtt.jsonl`.
-- Slack and WhatsApp main RTT use the reusable live-transport lane and write `data/channel-rtt/<channel>.jsonl`.
-- Release Discord uses its own importer today and writes `data/discord-rtt.jsonl`; the resolver backfills missing versions from the Telegram release baseline before measuring future versions. It skips releases that predate or fail the Discord canary contract instead of reporting them as runnable gaps.
+- All imported rows use `data/channels/<channel>.jsonl` and `runs/<channel>/<run-id>/result.json`.
+- Telegram main/release RTT still uses the older `pnpm rtt` source shape, but it now writes through the shared Telegram channel storage path.
+- Discord main/release RTT uses the live QA lane with a specialized importer because its summary currently needs observed-message timestamp fallback.
+- Slack and WhatsApp main RTT use the reusable live-transport importer.
+- The Discord release resolver backfills missing versions from the Telegram release baseline before measuring future versions. It skips releases that predate or fail the Discord canary contract instead of reporting them as runnable gaps.
 - Matrix, iMessage, Microsoft Teams, and future channels have no reusable data lane here yet.
 - CI only measured live scheduled data. It did not protect PRs that change importers, README generation, or workflows.
 - Scheduled workflows needed `contents: write` to commit results, but secondary OpenClaw checkouts did not need persisted credentials.
@@ -25,7 +26,7 @@ Required pieces:
 - Import with `scripts/import-live-transport-rtt.mjs`, passing the summary TSV, channel id, `openclaw@main` or release spec, version/ref, provider mode, and scenario id.
 - Capture per-sample resource metrics with `/usr/bin/time` and include the metrics path in the importer TSV so RSS appears beside RTT in the dashboard.
 - Record the attempt count in the resource metrics file. The importer stores per-sample attempts and aggregate retry count so the dashboard can show when a green sample needed transient recovery.
-- Commit only `README.md`, `data/channel-rtt/<channel>.jsonl`, and `channel-runs/<channel>/`.
+- Commit only `README.md`, `data/channels/<channel>.jsonl`, and `runs/<channel>/`.
 - Add importer proof with `node --test` when the new channel has a new artifact shape.
 
 ## First Wave
@@ -34,7 +35,7 @@ Required pieces:
 
 Each sample is wrapped with `/usr/bin/time` and imports max RSS in kilobytes alongside the scenario RTT. The workflow uses bounded exponential retry for transient missing-summary failures and writes the final attempt count into the imported row. The README keeps the public channel table compact with RTT p50/p95 and RSS p50/max; retry and scenario details stay in the JSON rows and summaries.
 
-Discord is intentionally not migrated to `data/channel-rtt` yet. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
+Discord is intentionally not migrated to the generic live-transport importer yet. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
 
 Telegram is listed in the channel config for the future live-transport path, but the current production graph remains on the older `pnpm rtt` package-result path because that is what release sweeps already use.
 

@@ -68,7 +68,7 @@ test("imports live transport summary RTT samples", async () => {
     { cwd: workspace },
   );
 
-  const [row] = await readJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"));
+  const [row] = await readJsonl(path.join(workspace, "data/channels/slack.jsonl"));
   assert.equal(row.channel.id, "slack");
   assert.equal(row.channel.scenario, "slack-canary");
   assert.equal(row.run.status, "pass");
@@ -129,7 +129,7 @@ test("falls back to observed message timestamps when summaries do not carry RTT"
     { cwd: workspace },
   );
 
-  const [row] = await readJsonl(path.join(workspace, "data/channel-rtt/discord.jsonl"));
+  const [row] = await readJsonl(path.join(workspace, "data/channels/discord.jsonl"));
   assert.equal(row.channel.id, "discord");
   assert.equal(row.run.status, "pass");
   assert.deepEqual(row.rtt.warmSamples, [456]);
@@ -176,7 +176,7 @@ test("can require imported channel samples to pass", async () => {
     /Channel RTT run failed/u,
   );
 
-  const [row] = await readJsonl(path.join(workspace, "data/channel-rtt/slack.jsonl"));
+  const [row] = await readJsonl(path.join(workspace, "data/channels/slack.jsonl"));
   assert.equal(row.run.status, "fail");
   assert.deepEqual(row.rtt.warmSamples, []);
   assert.equal(row.rtt.failedSamples, 1);

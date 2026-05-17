@@ -1,9 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { channelDataPath } from "./channel-storage.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 
-const DATA_PATH = path.resolve("data/rtt.jsonl");
-const DISCORD_RTT_DATA_PATH = path.resolve("data/discord-rtt.jsonl");
+const TELEGRAM_DATA_PATH = channelDataPath("telegram");
+const DISCORD_RTT_DATA_PATH = channelDataPath("discord");
 
 function assertRun(row, index) {
   if (typeof row !== "object" || row === null) {
@@ -191,7 +192,7 @@ async function validateChannelRttRows() {
 }
 
 async function main() {
-  await validateJsonl(DATA_PATH, "RTT", assertRun);
+  await validateJsonl(TELEGRAM_DATA_PATH, "RTT", assertRun);
   await validateJsonl(DISCORD_RTT_DATA_PATH, "Discord RTT", assertDiscordRttRun);
   await validateChannelRttRows();
 }

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { channelResultPath } from "./channel-storage.mjs";
 import {
   channelRttDataPath,
   channelRttRunsDir,
@@ -307,7 +308,7 @@ async function main() {
   const retryCount = attemptSamples.reduce((total, attempts) => total + Math.max(0, attempts - 1), 0);
   const failedSamples = samples.length - warmSamples.length;
   const runDir = path.join(channelRttRunsDir(channel.id), runId);
-  const resultPath = path.join(runDir, "result.json");
+  const resultPath = channelResultPath(channel.id, runId);
   const result = {
     channel: {
       id: channel.id,

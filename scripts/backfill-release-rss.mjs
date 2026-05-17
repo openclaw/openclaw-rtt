@@ -1,15 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { channelDataPath, channelResultPath } from "./channel-storage.mjs";
 import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs";
 
 const FAMILIES = {
   telegram: {
-    dataPath: path.resolve("data/rtt.jsonl"),
-    runsDir: path.resolve("runs"),
+    channelId: "telegram",
   },
   discord: {
-    dataPath: path.resolve("data/discord-rtt.jsonl"),
-    runsDir: path.resolve("discord-runs"),
+    channelId: "discord",
   },
 };
 
@@ -133,6 +132,12 @@ function latestMatch(matches) {
   ).at(-1);
 }
 
+function canonicalizeArtifacts(result, channelId) {
+  result.artifacts = {
+    resultPath: channelResultPath(channelId, result.run.id),
+  };
+}
+
 async function resolveTarget(args) {
   if (!args.resultPath) {
     return { spec: args.spec, version: args.version };
@@ -157,7 +162,7 @@ async function main() {
     throw new Error("Backfill resource metrics did not include max_rss_kb.");
   }
 
-  const rows = await readJsonl(family.dataPath);
+  const rows = await readJsonl(channelDataPath(family.channelId));
   const before = rttFingerprint(rows);
   const matches = rows
     .map((row, index) => ({ row, index }))
@@ -176,11 +181,12 @@ async function main() {
     resources,
   };
   assertRttUnchanged(before, rows);
-  await writeJsonl(family.dataPath, rows);
+  await writeJsonl(channelDataPath(family.channelId), rows);
 
-  const resultPath = path.join(family.runsDir, row.run.id, "result.json");
+  const resultPath = channelResultPath(family.channelId, row.run.id);
   const result = await readJson(resultPath);
   result.resources = resources;
+  canonicalizeArtifacts(result, family.channelId);
   await fs.writeFile(resultPath, `${JSON.stringify(result, null, 2)}\n`);
 
   process.stdout.write(

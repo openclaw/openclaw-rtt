@@ -1,9 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import {
+  appendJsonl,
+  channelDataPath,
+  channelResultPath,
+  channelRunsDir,
+  existingChannelRunIds,
+} from "./channel-storage.mjs";
 import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs";
 
-const DATA_PATH = path.resolve("data/rtt.jsonl");
-const RUNS_DIR = path.resolve("runs");
+const TELEGRAM_CHANNEL = {
+  id: "telegram",
+  label: "Telegram",
+  scenario: "telegram-mentioned-message-reply",
+};
 
 function usage() {
   return [
@@ -103,20 +113,8 @@ async function readJson(pathname) {
 }
 
 async function existingRunIds() {
-  try {
-    const text = await fs.readFile(DATA_PATH, "utf8");
-    return new Set(
-      text
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => validateResult(JSON.parse(line)).run.id),
-    );
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return new Set();
-    }
-    throw error;
-  }
+  const ids = await existingChannelRunIds(TELEGRAM_CHANNEL.id);
+  return new Set([...ids].filter(Boolean));
 }
 
 async function main() {
@@ -131,17 +129,19 @@ async function main() {
     const resourceMetrics = await readResourceMetrics(path.resolve(args.resourceMetricsPath));
     result.resources = aggregateResources([resourceMetrics]);
   }
+  result.channel = {
+    ...TELEGRAM_CHANNEL,
+  };
 
-  const runDir = path.join(RUNS_DIR, result.run.id);
+  const runDir = path.join(channelRunsDir(TELEGRAM_CHANNEL.id), result.run.id);
+  const resultPath = channelResultPath(TELEGRAM_CHANNEL.id, result.run.id);
   result.artifacts = {
-    ...result.artifacts,
-    resultPath: path.join(runDir, "result.json"),
+    resultPath,
   };
   await fs.mkdir(runDir, { recursive: true });
-  await fs.writeFile(path.join(runDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
+  await fs.writeFile(resultPath, `${JSON.stringify(result, null, 2)}\n`);
 
-  await fs.mkdir(path.dirname(DATA_PATH), { recursive: true });
-  await fs.appendFile(DATA_PATH, `${JSON.stringify(result)}\n`);
+  await appendJsonl(channelDataPath(TELEGRAM_CHANNEL.id), result);
   process.stdout.write(`imported ${result.run.id}\n`);
 }
 

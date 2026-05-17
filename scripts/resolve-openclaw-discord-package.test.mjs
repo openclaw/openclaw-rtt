@@ -80,13 +80,13 @@ function parseOutputs(stdout) {
 
 test("queues missing Discord releases from the Telegram baseline", async () => {
   const workspace = await makeWorkspace();
-  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.4.15", "telegram"),
     releaseRow("2026.5.3", "telegram"),
     releaseRow("2026.5.12", "telegram"),
     releaseRow("2026.5.16-beta.2", "telegram"),
   ]);
-  await writeJsonl(path.join(workspace, "data/discord-rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     releaseRow("2026.5.16-beta.2", "discord"),
   ]);
   const binDir = await writeFakeNpm(workspace, [
@@ -117,11 +117,11 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
 
 test("queues Discord release rows missing RSS for backfill", async () => {
   const workspace = await makeWorkspace();
-  await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.5.12", "telegram"),
     releaseRow("2026.5.16", "telegram"),
   ]);
-  await writeJsonl(path.join(workspace, "data/discord-rtt.jsonl"), [
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     releaseRow("2026.5.12", "discord"),
     withResources(releaseRow("2026.5.16", "discord")),
   ]);

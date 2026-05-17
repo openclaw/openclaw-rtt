@@ -30,12 +30,14 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
     mode: { providerMode: "mock-openai", scenarios: ["telegram-mentioned-message-reply"] },
     rtt: { warmSamples: [1000, 2000], failedSamples: 0, p50Ms: 1000, p95Ms: 2000 },
   };
-  await fs.mkdir(path.join(workspace, "data"), { recursive: true });
-  await fs.writeFile(path.join(workspace, "data/rtt.jsonl"), `${JSON.stringify(row)}\n`);
-  await fs.mkdir(path.join(workspace, "runs", runId), { recursive: true });
-  await fs.writeFile(path.join(workspace, "runs", runId, "result.json"), `${JSON.stringify(row, null, 2)}\n`);
+  await fs.mkdir(path.join(workspace, "data/channels"), { recursive: true });
+  await fs.writeFile(path.join(workspace, "data/channels/telegram.jsonl"), `${JSON.stringify(row)}\n`);
+  await fs.mkdir(path.join(workspace, "runs/telegram", runId), { recursive: true });
+  await fs.writeFile(
+    path.join(workspace, "runs/telegram", runId, "result.json"),
+    `${JSON.stringify(row, null, 2)}\n`,
+  );
   await fs.writeFile(path.join(workspace, "resource-metrics.env"), "max_rss_kb=409600\nelapsed_seconds=88.1\n");
-  await fs.mkdir(path.join(workspace, "data/channel-rtt"), { recursive: true });
 
   await execFileAsync(process.execPath, [
     BACKFILL_SCRIPT,
@@ -49,7 +51,7 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
     path.join(workspace, "resource-metrics.env"),
   ], { cwd: workspace });
 
-  const [updated] = (await fs.readFile(path.join(workspace, "data/rtt.jsonl"), "utf8"))
+  const [updated] = (await fs.readFile(path.join(workspace, "data/channels/telegram.jsonl"), "utf8"))
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line));
@@ -58,7 +60,9 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
   assert.deepEqual(updated.resources.maxRssKbSamples, [409600]);
   assert.equal(updated.resources.maxRssKb.max, 409600);
 
-  const copiedResult = JSON.parse(await fs.readFile(path.join(workspace, "runs", runId, "result.json"), "utf8"));
+  const copiedResult = JSON.parse(
+    await fs.readFile(path.join(workspace, "runs/telegram", runId, "result.json"), "utf8"),
+  );
   assert.equal(copiedResult.resources.maxRssKb.p50, 409600);
 });
 
@@ -77,11 +81,11 @@ test("backfills Discord RSS from per-sample metrics without touching RTT p50/p95
     mode: { providerMode: "mock-openai", scenarios: ["discord-canary"] },
     rtt: { warmSamples: [5000, 7000], failedSamples: 0, p50Ms: 5000, p95Ms: 7000 },
   };
-  await fs.mkdir(path.join(workspace, "data"), { recursive: true });
-  await fs.writeFile(path.join(workspace, "data/discord-rtt.jsonl"), `${JSON.stringify(row)}\n`);
-  await fs.mkdir(path.join(workspace, "discord-runs", runId), { recursive: true });
+  await fs.mkdir(path.join(workspace, "data/channels"), { recursive: true });
+  await fs.writeFile(path.join(workspace, "data/channels/discord.jsonl"), `${JSON.stringify(row)}\n`);
+  await fs.mkdir(path.join(workspace, "runs/discord", runId), { recursive: true });
   await fs.writeFile(
-    path.join(workspace, "discord-runs", runId, "result.json"),
+    path.join(workspace, "runs/discord", runId, "result.json"),
     `${JSON.stringify(row, null, 2)}\n`,
   );
   await fs.writeFile(path.join(workspace, "resource-1.env"), "max_rss_kb=204800\nelapsed_seconds=10\n");
@@ -93,7 +97,6 @@ test("backfills Discord RSS from per-sample metrics without touching RTT p50/p95
       "resource-2.env",
     )}\n`,
   );
-  await fs.mkdir(path.join(workspace, "data/channel-rtt"), { recursive: true });
 
   await execFileAsync(process.execPath, [
     BACKFILL_SCRIPT,
@@ -107,7 +110,7 @@ test("backfills Discord RSS from per-sample metrics without touching RTT p50/p95
     path.join(workspace, "samples.tsv"),
   ], { cwd: workspace });
 
-  const [updated] = (await fs.readFile(path.join(workspace, "data/discord-rtt.jsonl"), "utf8"))
+  const [updated] = (await fs.readFile(path.join(workspace, "data/channels/discord.jsonl"), "utf8"))
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line));
