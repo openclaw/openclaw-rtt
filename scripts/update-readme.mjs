@@ -12,6 +12,10 @@ const RELEASE_COVERAGE_START = "<!-- release-coverage:start -->";
 const RELEASE_COVERAGE_END = "<!-- release-coverage:end -->";
 const DISCORD_RELEASE_START = "<!-- discord-release-sweep:start -->";
 const DISCORD_RELEASE_END = "<!-- discord-release-sweep:end -->";
+const SLACK_RELEASE_START = "<!-- slack-release-sweep:start -->";
+const SLACK_RELEASE_END = "<!-- slack-release-sweep:end -->";
+const WHATSAPP_RELEASE_START = "<!-- whatsapp-release-sweep:start -->";
+const WHATSAPP_RELEASE_END = "<!-- whatsapp-release-sweep:end -->";
 const MAIN_SPEC = "openclaw@main";
 const MAIN_DASHBOARD_ORDER = new Map([
   ["Telegram", 0],
@@ -239,6 +243,14 @@ function releaseTableFor(rows, start, end) {
   ].join("\n");
 }
 
+function channelReleaseTableFor(channelRows, label, start, end) {
+  return releaseTableFor(
+    channelRows.filter((row) => row.channel.label === label),
+    start,
+    end,
+  );
+}
+
 function releaseRowByVersion(rows) {
   const byVersion = new Map();
   for (const row of releaseRows(rows)) {
@@ -344,20 +356,33 @@ async function main() {
     : replaceMarked(
         replaceMarked(
           replaceMarked(
-            withLatestMain,
-            RELEASE_COVERAGE_START,
-            RELEASE_COVERAGE_END,
-            releaseCoverageTableFor(rows, discordRows, channelRows),
+            replaceMarked(
+              withLatestMain,
+              RELEASE_COVERAGE_START,
+              RELEASE_COVERAGE_END,
+              releaseCoverageTableFor(rows, discordRows, channelRows),
+            ),
+            RELEASE_START,
+            RELEASE_END,
+            releaseTableFor(rows, RELEASE_START, RELEASE_END),
           ),
-          RELEASE_START,
-          RELEASE_END,
-          releaseTableFor(rows, RELEASE_START, RELEASE_END),
+          DISCORD_RELEASE_START,
+          DISCORD_RELEASE_END,
+          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
         ),
-        DISCORD_RELEASE_START,
-        DISCORD_RELEASE_END,
-        releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
+        SLACK_RELEASE_START,
+        SLACK_RELEASE_END,
+        channelReleaseTableFor(channelRows, "Slack", SLACK_RELEASE_START, SLACK_RELEASE_END),
       );
-  await fs.writeFile(README_PATH, next);
+  const nextWithWhatsAppRelease = UPDATE_LATEST_MAIN_ONLY
+    ? next
+    : replaceMarked(
+        next,
+        WHATSAPP_RELEASE_START,
+        WHATSAPP_RELEASE_END,
+        channelReleaseTableFor(channelRows, "WhatsApp", WHATSAPP_RELEASE_START, WHATSAPP_RELEASE_END),
+      );
+  await fs.writeFile(README_PATH, nextWithWhatsAppRelease);
 }
 
 main().catch((error) => {

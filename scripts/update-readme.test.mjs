@@ -42,6 +42,14 @@ async function writeReadme(workspace) {
       "old discord release",
       "<!-- discord-release-sweep:end -->",
       "",
+      "<!-- slack-release-sweep:start -->",
+      "old slack release",
+      "<!-- slack-release-sweep:end -->",
+      "",
+      "<!-- whatsapp-release-sweep:start -->",
+      "old whatsapp release",
+      "<!-- whatsapp-release-sweep:end -->",
+      "",
     ].join("\n"),
   );
 }
@@ -166,7 +174,7 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   assert.match(readme, /\| WhatsApp \| Pass \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });
 
-test("renders release coverage gaps across Telegram and Discord", async () => {
+test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsApp", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   await writeJsonl(path.join(workspace, "data/rtt.jsonl"), [
@@ -208,6 +216,17 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
       }),
     },
   ]);
+  await writeJsonl(path.join(workspace, "data/channel-rtt/whatsapp.jsonl"), [
+    {
+      channel: { id: "whatsapp", label: "WhatsApp", scenario: "whatsapp-canary" },
+      ...rttRow({
+        package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+        run: { id: "whatsapp-2026.5.16-beta.1", startedAt: "2026-05-16T00:05:00.000Z", status: "pass" },
+        rtt: { warmSamples: [8000, 9000], p50Ms: 8000, p95Ms: 9000 },
+      }),
+      resources: { maxRssKb: { p50: 409600, max: 512000 } },
+    },
+  ]);
 
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
@@ -217,12 +236,12 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
     readme.indexOf("<!-- release-coverage:end -->"),
   );
   assert.doesNotMatch(coverageSection, /Discord release gap:/u);
-  assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:04:00\.000Z`/u);
+  assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:05:00\.000Z`/u);
   assert.match(coverageSection, /\| Version \| Telegram \| Discord \| Slack \| WhatsApp \| p50 σ \|/u);
   assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.1` \| `1,100ms` \/ `2,100ms` \| `6,000ms` \/ `7,000ms` \| `3,000ms` \/ `4,000ms` \| Missing \| `2,017ms` \|/u,
+    /\| `2026\.5\.16-beta\.1` \| `1,100ms` \/ `2,100ms` \| `6,000ms` \/ `7,000ms` \| `3,000ms` \/ `4,000ms` \| `8,000ms` \/ `9,000ms` \| `2,660ms` \|/u,
   );
   assert.match(
     coverageSection,
@@ -250,4 +269,18 @@ test("renders release coverage gaps across Telegram and Discord", async () => {
   );
   assert.match(discordSection, /\| npm version \| Result \| Samples \| p50 \| p95 \| RSS p50 \| RSS max \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Updated \|/u);
+
+  const slackSection = readme.slice(
+    readme.indexOf("<!-- slack-release-sweep:start -->"),
+    readme.indexOf("<!-- slack-release-sweep:end -->"),
+  );
+  assert.match(slackSection, /\| npm version \| Result \| Samples \| p50 \| p95 \| RSS p50 \| RSS max \|/u);
+  assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| Pass \| 2 \| `3,000ms` \| `4,000ms` \| - \| - \|/u);
+
+  const whatsappSection = readme.slice(
+    readme.indexOf("<!-- whatsapp-release-sweep:start -->"),
+    readme.indexOf("<!-- whatsapp-release-sweep:end -->"),
+  );
+  assert.match(whatsappSection, /\| npm version \| Result \| Samples \| p50 \| p95 \| RSS p50 \| RSS max \|/u);
+  assert.match(whatsappSection, /\| `2026\.5\.16-beta\.1` \| Pass \| 2 \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });

@@ -14,6 +14,8 @@ That path can include channel API latency, polling/webhook timing, gateway routi
 
 Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries where QA-lab overhead can inflate RSS. Missing cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
 
+Reports: [Dashboard](#dashboard) · [Release Coverage Matrix](#release-coverage-matrix) · [Telegram Release Runs](#telegram-release-runs) · [Discord Release Runs](#discord-release-runs) · [Slack Release Runs](#slack-release-runs) · [WhatsApp Release Runs](#whatsapp-release-runs).
+
 ## Dashboard
 
 Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules, so the latest import time and latest version/ref sit above the compact table.
@@ -127,3 +129,23 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.4.24` | Pass | 20 | `33,328ms` | `34,734ms` | `767MB` | `1,574MB` |
 
 <!-- discord-release-sweep:end -->
+
+## Slack Release Runs
+
+Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenario `slack-canary`, and Convex-managed CI credentials. RSS includes the QA-lab sample process.
+
+<!-- slack-release-sweep:start -->
+
+No release RTT runs have been imported yet.
+
+<!-- slack-release-sweep:end -->
+
+## WhatsApp Release Runs
+
+WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, scenario `whatsapp-canary`, and Convex-managed CI credentials. RSS includes the QA-lab sample process.
+
+<!-- whatsapp-release-sweep:start -->
+
+No release RTT runs have been imported yet.
+
+<!-- whatsapp-release-sweep:end -->
