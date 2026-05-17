@@ -27,6 +27,11 @@ on:
         required: false
         default: "20"
         type: string
+      sample_timeout_seconds:
+        description: Per-sample timeout in seconds
+        required: false
+        default: ""
+        type: string
 
 permissions:
   actions: read
@@ -178,6 +183,7 @@ jobs:
         working-directory: openclaw
         env:
           INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
+          INPUT_SAMPLE_TIMEOUT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.sample_timeout_seconds || '' }}
           OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
           OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
           OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
@@ -199,7 +205,7 @@ jobs:
           max_attempts="${CHANNEL_RTT_MAX_ATTEMPTS:-3}"
           retry_base_seconds="${CHANNEL_RTT_RETRY_BASE_SECONDS:-15}"
           retry_max_seconds="${CHANNEL_RTT_RETRY_MAX_SECONDS:-60}"
-          sample_timeout_seconds="${CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS:-120}"
+          sample_timeout_seconds="${INPUT_SAMPLE_TIMEOUT_SECONDS:-${CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS:-120}}"
           for value_name in max_attempts retry_base_seconds retry_max_seconds sample_timeout_seconds; do
             value="${!value_name}"
             if ! [[ "$value" =~ ^[1-9][0-9]*$ ]]; then
@@ -347,8 +353,8 @@ jobs:
           shopt -s nullglob
           import_dirs=("$import_root"/main-channel-rtt-import-*)
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
-            echo "No channel RTT import artifacts downloaded." >&2
-            exit 1
+            echo "No channel RTT import artifacts downloaded; nothing to import."
+            exit 0
           fi
           get_metadata() {
             local metadata_path="$1"
