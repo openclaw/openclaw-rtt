@@ -10,6 +10,7 @@ const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
+const DISCORD_RELEASE_PROTOCOL_GAPS = new Set(["2026.4.29", "2026.5.3"]);
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
   if (stableMatch) {
@@ -132,6 +133,7 @@ if (rssBackfill) {
     .filter((version) => typeof version === "string" && parseVersion(version))
     .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))
     .filter((pkg) => compareVersions(pkg.version, DISCORD_RELEASE_MIN_VERSION) >= 0)
+    .filter((pkg) => !DISCORD_RELEASE_PROTOCOL_GAPS.has(pkg.version))
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
     .filter(
       (pkg) =>
