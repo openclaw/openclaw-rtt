@@ -73,6 +73,21 @@ function assertResources(row, index, label) {
   ) {
     throw new Error(`${label} ${index} has invalid resources.elapsedSecondsSamples`);
   }
+  if (row.resources.measurement !== undefined) {
+    if (
+      typeof row.resources.measurement !== "object" ||
+      row.resources.measurement === null ||
+      Array.isArray(row.resources.measurement)
+    ) {
+      throw new Error(`${label} ${index} has invalid resources.measurement`);
+    }
+    for (const fieldName of ["kind", "scope", "command"]) {
+      const value = row.resources.measurement[fieldName];
+      if (value !== undefined && typeof value !== "string") {
+        throw new Error(`${label} ${index} has invalid resources.measurement.${fieldName}`);
+      }
+    }
+  }
   for (const [metricName, stats] of Object.entries({
     maxRssKb: row.resources.maxRssKb,
     elapsedSeconds: row.resources.elapsedSeconds,

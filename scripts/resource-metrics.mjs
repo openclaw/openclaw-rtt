@@ -49,7 +49,7 @@ export async function readResourceMetrics(pathname) {
   };
 }
 
-export function aggregateResources(samples) {
+export function aggregateResources(samples, measurement) {
   const maxRssKbSamples = samples.flatMap((sample) =>
     typeof sample.maxRssKb === "number" ? [sample.maxRssKb] : [],
   );
@@ -60,6 +60,7 @@ export function aggregateResources(samples) {
     return undefined;
   }
   return {
+    ...(measurement ? { measurement } : {}),
     maxRssKbSamples,
     elapsedSecondsSamples,
     maxRssKb: numericStats(maxRssKbSamples),

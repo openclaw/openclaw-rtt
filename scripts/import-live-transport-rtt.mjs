@@ -326,6 +326,11 @@ async function main() {
       ...stats(warmSamples),
     },
     resources: {
+      measurement: {
+        kind: "process-max-rss",
+        scope: "qa-command",
+        command: `pnpm openclaw qa ${channel.command}`,
+      },
       maxRssKbSamples,
       elapsedSecondsSamples,
       maxRssKb: numericStats(maxRssKbSamples),

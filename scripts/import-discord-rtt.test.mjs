@@ -108,6 +108,11 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
     .map((line) => JSON.parse(line));
   assert.equal(row.rtt.p50Ms, 5250);
   assert.equal(row.rtt.p95Ms, 5250);
+  assert.deepEqual(row.resources.measurement, {
+    kind: "process-max-rss",
+    scope: "qa-command",
+    command: "pnpm openclaw qa discord",
+  });
   assert.deepEqual(row.resources.maxRssKbSamples, [204800]);
   assert.equal(row.resources.maxRssKb.p50, 204800);
   assert.equal(row.resources.elapsedSeconds.p50, 12.5);

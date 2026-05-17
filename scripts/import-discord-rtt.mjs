@@ -221,7 +221,11 @@ async function main() {
 
   const warmSamples = samples.flatMap((sample) => (sample.status === "pass" ? [sample.rttMs] : []));
   const failedSamples = samples.length - warmSamples.length;
-  const resources = aggregateResources(samples.flatMap((sample) => sample.resources ?? []));
+  const resources = aggregateResources(samples.flatMap((sample) => sample.resources ?? []), {
+    kind: "process-max-rss",
+    scope: "qa-command",
+    command: "pnpm openclaw qa discord",
+  });
   const runDir = path.join(channelRunsDir(DISCORD_CHANNEL.id), runId);
   const resultPath = channelResultPath(DISCORD_CHANNEL.id, runId);
   const result = {

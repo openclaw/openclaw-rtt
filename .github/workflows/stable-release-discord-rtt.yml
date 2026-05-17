@@ -292,6 +292,9 @@ jobs:
           import_root="$RUNNER_TEMP/release-discord-rtt-imports"
           shopt -s nullglob
           import_dirs=("$import_root"/release-discord-rtt-import-*)
+          if [[ -f "$import_root/metadata.env" ]]; then
+            import_dirs=("$import_root")
+          fi
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
             echo "No Discord release RTT import artifacts downloaded." >&2
             exit 1

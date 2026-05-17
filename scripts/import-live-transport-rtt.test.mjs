@@ -74,6 +74,11 @@ test("imports live transport summary RTT samples", async () => {
   assert.equal(row.run.status, "pass");
   assert.deepEqual(row.rtt.warmSamples, [321]);
   assert.equal(row.rtt.p50Ms, 321);
+  assert.deepEqual(row.resources.measurement, {
+    kind: "process-max-rss",
+    scope: "qa-command",
+    command: "pnpm openclaw qa slack",
+  });
   assert.deepEqual(row.resources.maxRssKbSamples, [204800]);
   assert.equal(row.resources.maxRssKb.p50, 204800);
   assert.deepEqual(row.resources.elapsedSecondsSamples, [2.5]);

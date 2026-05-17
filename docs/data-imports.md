@@ -32,4 +32,4 @@ Current channel folders are `telegram`, `discord`, `slack`, and `whatsapp`. Tele
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied here later.
 
-Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it rewrites that version's JSONL file.
+Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it rewrites that version's JSONL file. Command RSS is process-level data around the sampled command, not isolated channel transport memory.

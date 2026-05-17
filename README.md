@@ -10,9 +10,9 @@ RTT covers the whole observed path, not just model time:
 channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbound channel send -> reply observed by driver
 ```
 
-That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. RSS appears when the importing workflow collected resource metrics; older release rows stay blank until an RSS backfill run updates only the resource fields.
+That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. Command RSS appears when the importing workflow collected process resource metrics around the sampled command; older release rows stay blank until an RSS backfill run updates only the resource fields.
 
-Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries where QA-lab overhead can inflate RSS. `-` cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
+Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries. Command RSS is not pure channel transport memory: for Discord, Slack, and WhatsApp it includes the QA-lab command process and any cold-start overhead. `-` cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
 
 Reports:
 
@@ -31,12 +31,12 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 Latest imported channel run: `2026-05-17T07:08:06.904Z` · latest `2026.5.17` / `76da34760c`
 
-| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max |
+| Channel | Result | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
 |---|---:|---:|---:|---:|---:|
 | Telegram | Fail | - | - | - | - |
 | Discord | Pass | `26,486ms` | `27,607ms` | - | - |
-| Slack | Pass | `4,568ms` | `5,796ms` | `670MB` | `7,164MB` |
-| WhatsApp | Pass | `7,485ms` | `8,382ms` | `828MB` | `6,968MB` |
+| Slack | Pass | `4,568ms` | `5,796ms` | `670MB` | `681MB` |
+| WhatsApp | Pass | `7,485ms` | `8,382ms` | `828MB` | `1,597MB` |
 
 <!-- latest-main:end -->
 
@@ -88,7 +88,7 @@ The system under test is the published package running its own Telegram bot. The
 
 <!-- release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
+| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.4` | Pass | 20 | `1,221ms` | `2,077ms` | `145MB` | `145MB` |
 | `2026.5.16-beta.3` | Pass | 20 | `1,112ms` | `2,172ms` | `145MB` | `145MB` |
@@ -122,45 +122,45 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 <!-- discord-release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
+| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.2` | Pass | 20 | `26,639ms` | `27,767ms` | `808MB` | `6,662MB` |
-| `2026.5.16-beta.1` | Pass | 20 | `21,140ms` | `22,665ms` | `804MB` | `6,956MB` |
-| `2026.5.14-beta.2` | Pass | 20 | `21,273ms` | `21,924ms` | `793MB` | `6,471MB` |
-| `2026.5.14-beta.1` | Pass | 20 | `22,035ms` | `22,796ms` | `810MB` | `6,815MB` |
-| `2026.5.12` | Pass | 20 | `20,640ms` | `22,622ms` | `792MB` | `6,717MB` |
-| `2026.5.9-beta.1` | Pass | 20 | `16,759ms` | `18,006ms` | `775MB` | `2,302MB` |
-| `2026.5.7` | Pass | 20 | `18,948ms` | `22,954ms` | `792MB` | `2,248MB` |
-| `2026.5.6` | Pass | 20 | `18,001ms` | `18,832ms` | `797MB` | `2,270MB` |
-| `2026.5.4` | Pass | 20 | `18,937ms` | `19,896ms` | `794MB` | `2,275MB` |
-| `2026.5.2` | Pass | 20 | `20,146ms` | `21,604ms` | `719MB` | `2,301MB` |
-| `2026.4.27` | Pass | 20 | `36,858ms` | `38,863ms` | `842MB` | `1,787MB` |
-| `2026.4.26` | Pass | 20 | `32,689ms` | `34,092ms` | `762MB` | `1,496MB` |
-| `2026.4.25` | Pass | 20 | `49,357ms` | `52,963ms` | `869MB` | `1,467MB` |
-| `2026.4.24` | Pass | 20 | `33,328ms` | `34,734ms` | `767MB` | `1,574MB` |
+| `2026.5.16-beta.2` | Pass | 20 | `26,639ms` | `27,767ms` | `808MB` | `820MB` |
+| `2026.5.16-beta.1` | Pass | 20 | `21,140ms` | `22,665ms` | `804MB` | `816MB` |
+| `2026.5.14-beta.2` | Pass | 20 | `21,273ms` | `21,924ms` | `793MB` | `816MB` |
+| `2026.5.14-beta.1` | Pass | 20 | `22,035ms` | `22,796ms` | `810MB` | `848MB` |
+| `2026.5.12` | Pass | 20 | `20,640ms` | `22,622ms` | `792MB` | `810MB` |
+| `2026.5.9-beta.1` | Pass | 20 | `16,759ms` | `18,006ms` | `775MB` | `803MB` |
+| `2026.5.7` | Pass | 20 | `18,948ms` | `22,954ms` | `792MB` | `823MB` |
+| `2026.5.6` | Pass | 20 | `18,001ms` | `18,832ms` | `797MB` | `807MB` |
+| `2026.5.4` | Pass | 20 | `18,937ms` | `19,896ms` | `794MB` | `810MB` |
+| `2026.5.2` | Pass | 20 | `20,146ms` | `21,604ms` | `719MB` | `724MB` |
+| `2026.4.27` | Pass | 20 | `36,858ms` | `38,863ms` | `842MB` | `961MB` |
+| `2026.4.26` | Pass | 20 | `32,689ms` | `34,092ms` | `762MB` | `779MB` |
+| `2026.4.25` | Pass | 20 | `49,357ms` | `52,963ms` | `869MB` | `884MB` |
+| `2026.4.24` | Pass | 20 | `33,328ms` | `34,734ms` | `767MB` | `842MB` |
 
 <!-- discord-release-sweep:end -->
 
 ## Slack Release Runs
 
-Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenario `slack-canary`, and Convex-managed CI credentials. RSS includes the QA-lab sample process.
+Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenario `slack-canary`, and Convex-managed CI credentials. Command RSS includes the QA-lab sample process.
 
 <!-- slack-release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
+| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.3` | Pass | 20 | `4,690ms` | `5,929ms` | `673MB` | `9,021MB` |
+| `2026.5.16-beta.3` | Pass | 20 | `4,690ms` | `5,929ms` | `673MB` | `723MB` |
 
 <!-- slack-release-sweep:end -->
 
 ## WhatsApp Release Runs
 
-WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, scenario `whatsapp-canary`, and Convex-managed CI credentials. RSS includes the QA-lab sample process.
+WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, scenario `whatsapp-canary`, and Convex-managed CI credentials. Command RSS includes the QA-lab sample process.
 
 <!-- whatsapp-release-sweep:start -->
 
-| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
+| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |
 |---|---:|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.3` | Pass | 20 | `8,644ms` | `9,572ms` | `894MB` | `7,111MB` |
+| `2026.5.16-beta.3` | Pass | 20 | `8,644ms` | `9,572ms` | `894MB` | `1,593MB` |
 
 <!-- whatsapp-release-sweep:end -->

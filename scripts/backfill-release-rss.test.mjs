@@ -57,6 +57,11 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
     .map((line) => JSON.parse(line));
   assert.equal(updated.rtt.p50Ms, 1000);
   assert.equal(updated.rtt.p95Ms, 2000);
+  assert.deepEqual(updated.resources.measurement, {
+    kind: "process-max-rss",
+    scope: "release-harness-command",
+    command: "pnpm rtt",
+  });
   assert.deepEqual(updated.resources.maxRssKbSamples, [409600]);
   assert.equal(updated.resources.maxRssKb.max, 409600);
 
@@ -116,6 +121,11 @@ test("backfills Discord RSS from per-sample metrics without touching RTT p50/p95
     .map((line) => JSON.parse(line));
   assert.equal(updated.rtt.p50Ms, 5000);
   assert.equal(updated.rtt.p95Ms, 7000);
+  assert.deepEqual(updated.resources.measurement, {
+    kind: "process-max-rss",
+    scope: "qa-command",
+    command: "pnpm openclaw qa discord",
+  });
   assert.deepEqual(updated.resources.maxRssKbSamples, [204800, 307200]);
   assert.equal(updated.resources.maxRssKb.p50, 204800);
   assert.equal(updated.resources.maxRssKb.max, 307200);

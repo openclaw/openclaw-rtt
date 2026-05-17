@@ -75,8 +75,13 @@ async function readJson(pathname) {
 }
 
 async function readResources(args) {
+  const measurement = {
+    kind: "process-max-rss",
+    scope: args.family === "telegram" ? "release-harness-command" : "qa-command",
+    command: args.family === "telegram" ? "pnpm rtt" : `pnpm openclaw qa ${args.family}`,
+  };
   if (args.resourceMetricsPath) {
-    return aggregateResources([await readResourceMetrics(path.resolve(args.resourceMetricsPath))]);
+    return aggregateResources([await readResourceMetrics(path.resolve(args.resourceMetricsPath))], measurement);
   }
 
   const text = await fs.readFile(path.resolve(args.samplePaths), "utf8");
@@ -88,7 +93,7 @@ async function readResources(args) {
     }
     samples.push(await readResourceMetrics(path.resolve(resourceMetricsPath)));
   }
-  return aggregateResources(samples);
+  return aggregateResources(samples, measurement);
 }
 
 function rttFingerprint(rows) {

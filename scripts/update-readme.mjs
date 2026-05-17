@@ -98,7 +98,7 @@ function sampleCount(row) {
   return row.rtt.warmSamples?.length ?? 0;
 }
 
-function latestMainRow({ label, row, rssP50 = "-", rssMax = "-" }) {
+function latestMainRow({ label, row, rssP50 = "-", rssP95 = "-" }) {
   if (!row) {
     return `| ${label} | - | - | - | - | - |`;
   }
@@ -108,7 +108,7 @@ function latestMainRow({ label, row, rssP50 = "-", rssMax = "-" }) {
     formatMs(row.rtt.p50Ms),
     formatMs(row.rtt.p95Ms),
     rssP50,
-    `${rssMax} |`,
+    `${rssP95} |`,
   ].join(" | ");
 }
 
@@ -172,7 +172,7 @@ function mainDashboardRows(telegramRow, discordRow, channelRows) {
       scenario: row.channel.scenario,
       row,
       rssP50: formatRssKb(row.resources?.maxRssKb?.p50),
-      rssMax: formatRssKb(row.resources?.maxRssKb?.max),
+      rssP95: formatRssKb(row.resources?.maxRssKb?.p95),
     })),
   ].sort((left, right) => {
     const leftOrder = MAIN_DASHBOARD_ORDER.get(left.label) ?? Number.MAX_SAFE_INTEGER;
@@ -205,7 +205,7 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
     "",
     latestRunSummary(rows),
     "",
-    "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS max |",
+    "| Channel | Result | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |",
     "|---|---:|---:|---:|---:|---:|",
     ...tableRows.map((row) => latestMainRow(row)),
     "",
@@ -232,11 +232,11 @@ function releaseTableFor(rows, start, end) {
   return [
     start,
     "",
-    "| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |",
+    "| npm version | Result | Samples | RTT p50 | RTT p95 | Command RSS p50 | Command RSS p95 |",
     "|---|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| \`${row.package.version}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.max)} |`,
+        `| \`${row.package.version}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} |`,
     ),
     "",
     end,
