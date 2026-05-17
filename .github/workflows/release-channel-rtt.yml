@@ -108,7 +108,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: openclaw/openclaw
-          ref: main
+          ref: ${{ matrix.package.qa_ref }}
           path: openclaw-qa
           fetch-depth: 1
           persist-credentials: false

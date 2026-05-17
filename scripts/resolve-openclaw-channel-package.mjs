@@ -158,6 +158,7 @@ for (const channelId of channelIds) {
       scenario: channel.defaultScenario,
       summary: `${channel.command}-qa-summary.json`,
       observed: `${channel.command}-qa-observed-messages.json`,
+      qa_ref: `v${version}`,
       spec,
       version,
       tag: `v${version}`,
