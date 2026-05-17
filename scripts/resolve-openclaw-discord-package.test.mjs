@@ -107,12 +107,15 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
   });
 
   const outputs = parseOutputs(stdout);
-  assert.equal(outputs.count, "1");
-  assert.equal(outputs.missing_baseline_count, "1");
-  assert.equal(outputs.unsupported_baseline_count, "2");
+  assert.equal(outputs.count, "3");
+  assert.equal(outputs.missing_baseline_count, "3");
   assert.equal(outputs.reason, "missing-discord-release-versions");
-  assert.equal(outputs.versions, "2026.5.12");
-  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.12"]);
+  assert.equal(outputs.versions, "2026.4.15 2026.5.3 2026.5.12");
+  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), [
+    "2026.4.15",
+    "2026.5.3",
+    "2026.5.12",
+  ]);
 });
 
 test("queues Discord release rows missing RSS for backfill", async () => {

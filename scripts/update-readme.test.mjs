@@ -297,11 +297,11 @@ test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsAp
   );
   assert.match(
     coverageSection,
-    /\| `2026\.4\.15` \| - \| `900ms` \| Not supported \| - \| - \|/u,
+    /\| `2026\.4\.15` \| - \| `900ms` \| - \| - \| - \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| - \| `950ms` \| Not supported \| - \| - \|/u,
+    /\| `2026\.5\.3` \| - \| `950ms` \| - \| - \| - \|/u,
   );
 
   const telegramSection = readme.slice(
