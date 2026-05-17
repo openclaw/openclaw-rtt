@@ -24,13 +24,13 @@ const MAIN_DASHBOARD_ORDER = new Map([
   ["WhatsApp", 3],
 ]);
 const RELEASE_COVERAGE_CHANNELS = [
-  { label: "Telegram", missingLabel: () => "Missing" },
+  { label: "Telegram", missingLabel: () => "-" },
   {
     label: "Discord",
-    missingLabel: (version) => (isDiscordReleaseSupportedVersion(version) ? "Missing" : "Not supported"),
+    missingLabel: (version) => (isDiscordReleaseSupportedVersion(version) ? "-" : "Not supported"),
   },
-  { label: "Slack", missingLabel: () => "Missing" },
-  { label: "WhatsApp", missingLabel: () => "Missing" },
+  { label: "Slack", missingLabel: () => "-" },
+  { label: "WhatsApp", missingLabel: () => "-" },
 ];
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
@@ -263,7 +263,7 @@ function releaseMetricCell(row, missingLabel = "Missing") {
   if (!row) {
     return missingLabel;
   }
-  const metric = `${formatMs(row.rtt.p50Ms)} / ${formatMs(row.rtt.p95Ms)}`;
+  const metric = `${formatMs(row.rtt.p50Ms)}<br>${formatMs(row.rtt.p95Ms)}`;
   return row.run.status === "pass" ? metric : `${resultLabel(row)} · ${metric}`;
 }
 
@@ -311,7 +311,7 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
         .filter(Boolean),
     )}\``,
     "",
-    "| Version | Telegram | Discord | Slack | WhatsApp | p50 σ |",
+    "| Version | p50 σ | Telegram | Discord | Slack | WhatsApp |",
     "|---|---:|---:|---:|---:|---:|",
     ...versions.map((version) => {
       const channelRowsForVersion = RELEASE_COVERAGE_CHANNELS.map((channel) =>
@@ -320,7 +320,7 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
       const cells = RELEASE_COVERAGE_CHANNELS.map((channel, index) =>
         releaseMetricCell(channelRowsForVersion[index], channel.missingLabel(version)),
       );
-      return `| \`${version}\` | ${cells.join(" | ")} | ${releaseP50StdDev(channelRowsForVersion)} |`;
+      return `| \`${version}\` | ${releaseP50StdDev(channelRowsForVersion)} | ${cells.join(" | ")} |`;
     }),
     "",
     RELEASE_COVERAGE_END,

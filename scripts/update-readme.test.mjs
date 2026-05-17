@@ -237,23 +237,23 @@ test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsAp
   );
   assert.doesNotMatch(coverageSection, /Discord release gap:/u);
   assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:05:00\.000Z`/u);
-  assert.match(coverageSection, /\| Version \| Telegram \| Discord \| Slack \| WhatsApp \| p50 σ \|/u);
+  assert.match(coverageSection, /\| Version \| p50 σ \| Telegram \| Discord \| Slack \| WhatsApp \|/u);
   assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.1` \| `1,100ms` \/ `2,100ms` \| `6,000ms` \/ `7,000ms` \| `3,000ms` \/ `4,000ms` \| `8,000ms` \/ `9,000ms` \| `2,660ms` \|/u,
+    /\| `2026\.5\.16-beta\.1` \| `2,660ms` \| `1,100ms`<br>`2,100ms` \| `6,000ms`<br>`7,000ms` \| `3,000ms`<br>`4,000ms` \| `8,000ms`<br>`9,000ms` \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.12` \| `1,000ms` \/ `2,000ms` \| Missing \| Missing \| Missing \| - \|/u,
+    /\| `2026\.5\.12` \| - \| `1,000ms`<br>`2,000ms` \| - \| - \| - \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.4\.15` \| `900ms` \/ `1,900ms` \| Not supported \| Missing \| Missing \| - \|/u,
+    /\| `2026\.4\.15` \| - \| `900ms`<br>`1,900ms` \| Not supported \| - \| - \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| `950ms` \/ `1,950ms` \| Not supported \| Missing \| Missing \| - \|/u,
+    /\| `2026\.5\.3` \| - \| `950ms`<br>`1,950ms` \| Not supported \| - \| - \|/u,
   );
 
   const telegramSection = readme.slice(
