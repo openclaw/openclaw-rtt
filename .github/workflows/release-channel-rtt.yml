@@ -155,6 +155,18 @@ jobs:
           set -euo pipefail
           time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
+      - name: Link OpenClaw release channel package
+        shell: bash
+        run: |
+          set -euo pipefail
+          channel_dir="openclaw/extensions/${{ matrix.package.channel }}"
+          if [[ ! -d "$channel_dir" ]]; then
+            echo "OpenClaw release does not contain ${channel_dir}." >&2
+            exit 1
+          fi
+          mkdir -p openclaw/node_modules/@openclaw
+          ln -sfn "../../../extensions/${{ matrix.package.channel }}" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
+
       - name: Verify OpenClaw release ref
         working-directory: openclaw
         shell: bash
