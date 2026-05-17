@@ -169,8 +169,8 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   assert.doesNotMatch(readme, /\| Channel \|.*\| Samples \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Retries \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Updated \|/u);
-  assert.match(readme, /\| Telegram \| `1,000ms` \| `2,000ms` \| - \| - \|/u);
-  assert.match(readme, /\| Discord \| `6,000ms` \| `7,000ms` \| - \| - \|/u);
+  assert.match(readme, /\| Telegram \| `1,000ms` \| `2,000ms` \| n\/a \| n\/a \|/u);
+  assert.match(readme, /\| Discord \| `6,000ms` \| `7,000ms` \| n\/a \| n\/a \|/u);
   assert.match(readme, /\| Slack \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \|/u);
   assert.match(readme, /\| WhatsApp \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });
@@ -217,7 +217,8 @@ test("keeps latest passing main rows visible when a newer run fails", async () =
     readme.indexOf("<!-- latest-main:start -->"),
     readme.indexOf("<!-- latest-main:end -->"),
   );
-  assert.match(dashboardSection, /\| Telegram \| `1,100ms` \| `2,100ms` \| - \| - \|/u);
+  assert.match(dashboardSection, /\| Telegram \| `1,100ms` \| `2,100ms` \| n\/a \| n\/a \|/u);
+  assert.match(dashboardSection, /\| Discord \| n\/a \| n\/a \| n\/a \| n\/a \|/u);
   assert.match(dashboardSection, /\| Slack \| `4,000ms` \| `5,000ms` \| `400MB` \| `500MB` \|/u);
   assert.doesNotMatch(dashboardSection, /fail123456|slackfail/u);
 });
@@ -320,7 +321,7 @@ test("renders dense release coverage across Telegram, Discord, Slack, and WhatsA
   assert.match(slackSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
   assert.doesNotMatch(slackSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(slackSection, /\| npm version \|.*\| Samples \|/u);
-  assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| `3,000ms` \| `4,000ms` \| - \| - \|/u);
+  assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| `3,000ms` \| `4,000ms` \| n\/a \| n\/a \|/u);
 
   const whatsappSection = readme.slice(
     readme.indexOf("<!-- whatsapp-release-sweep:start -->"),

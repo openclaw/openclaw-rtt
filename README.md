@@ -33,8 +33,8 @@ Latest imported channel run: `2026-05-17T01:26:25.187Z` · latest `2026.5.17` / 
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|
-| Telegram | `1,137ms` | `2,334ms` | - | - |
-| Discord | `26,486ms` | `27,607ms` | - | - |
+| Telegram | `1,137ms` | `2,334ms` | n/a | n/a |
+| Discord | `26,486ms` | `27,607ms` | n/a | n/a |
 | Slack | `4,568ms` | `5,796ms` | `670MB` | `681MB` |
 | WhatsApp | `7,485ms` | `8,382ms` | `828MB` | `1,597MB` |
 
@@ -88,7 +88,7 @@ The system under test is the published package running its own Telegram bot. The
 | `2026.5.4` | `3,504ms` | `16,673ms` | `134MB` | `134MB` |
 | `2026.5.3` | `3,505ms` | `16,741ms` | `136MB` | `136MB` |
 | `2026.5.2` | `3,501ms` | `16,759ms` | `135MB` | `135MB` |
-| `2026.4.29` | `17,936ms` | `24,517ms` | - | - |
+| `2026.4.29` | `17,936ms` | `24,517ms` | n/a | n/a |
 | `2026.4.27` | `4,639ms` | `13,664ms` | `134MB` | `134MB` |
 | `2026.4.26` | `5,880ms` | `18,610ms` | `135MB` | `135MB` |
 | `2026.4.25` | `7,508ms` | `27,982ms` | `146MB` | `146MB` |

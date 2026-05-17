@@ -38,7 +38,7 @@ function formatMs(value) {
 function formatRssKb(value) {
   return typeof value === "number"
     ? `\`${Math.round(value / 1024).toLocaleString("en-US")}MB\``
-    : "-";
+    : "n/a";
 }
 
 function formatVersion(value) {
@@ -78,9 +78,9 @@ function resultLabel(row) {
   return row.run.status === "pass" ? "Pass" : "Fail";
 }
 
-function latestMainRow({ label, row, rssP50 = "-", rssP95 = "-" }) {
+function latestMainRow({ label, row, rssP50 = "n/a", rssP95 = "n/a" }) {
   if (!row) {
-    return `| ${label} | - | - | - | - |`;
+    return `| ${label} | n/a | n/a | n/a | n/a |`;
   }
   return [
     `| ${label}`,
