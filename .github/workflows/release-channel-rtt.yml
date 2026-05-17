@@ -104,6 +104,15 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Checkout OpenClaw QA harness
+        uses: actions/checkout@v6
+        with:
+          repository: openclaw/openclaw
+          ref: main
+          path: openclaw-qa
+          fetch-depth: 1
+          persist-credentials: false
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -128,12 +137,19 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: openclaw-release-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
+          key: openclaw-release-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml', 'openclaw-qa/pnpm-lock.yaml') }}
           restore-keys: |
             openclaw-release-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install OpenClaw dependencies
         working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+
+      - name: Install OpenClaw QA harness dependencies
+        working-directory: openclaw-qa
         shell: bash
         run: |
           set -euo pipefail
@@ -150,8 +166,17 @@ jobs:
             exit 1
           fi
 
-      - name: Build private QA runtime
+      - name: Build OpenClaw release
         working-directory: openclaw
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm build
+
+      - name: Build OpenClaw QA harness
+        working-directory: openclaw-qa
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         shell: bash
@@ -182,7 +207,8 @@ jobs:
           retry_base_seconds="${CHANNEL_RTT_RETRY_BASE_SECONDS:-15}"
           retry_max_seconds="${CHANNEL_RTT_RETRY_MAX_SECONDS:-60}"
 
-          output_root=".artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          workspace_root="${GITHUB_WORKSPACE:?}"
+          output_root="${workspace_root}/openclaw/.artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           sample_paths="$RUNNER_TEMP/openclaw-${{ matrix.package.channel }}-${{ matrix.package.version }}-rtt-samples.tsv"
           : >"$sample_paths"
           echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
@@ -201,8 +227,8 @@ jobs:
               /usr/bin/time \
                 -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
                 -o "$metrics_path" \
-                pnpm openclaw qa "${{ matrix.package.channel }}" \
-                --repo-root . \
+                pnpm --dir "${workspace_root}/openclaw-qa" openclaw qa "${{ matrix.package.channel }}" \
+                --repo-root "${workspace_root}/openclaw" \
                 --output-dir "${output_dir}" \
                 --provider-mode mock-openai \
                 --model mock-openai/gpt-5.5 \
@@ -240,9 +266,9 @@ jobs:
               exit "$status"
             fi
             if [[ -f "$observed_path" ]]; then
-              printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
+              printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
             else
-              printf '%s\t\t%s\n' "${PWD}/${summary_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
+              printf '%s\t\t%s\n' "$summary_path" "$metrics_path" >>"$sample_paths"
             fi
           done
 
