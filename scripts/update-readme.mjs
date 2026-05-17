@@ -94,17 +94,12 @@ function resultLabel(row) {
   return row.run.status === "pass" ? "Pass" : "Fail";
 }
 
-function sampleCount(row) {
-  return row.rtt.warmSamples?.length ?? 0;
-}
-
 function latestMainRow({ label, row, rssP50 = "-", rssP95 = "-" }) {
   if (!row) {
-    return `| ${label} | - | - | - | - | - |`;
+    return `| ${label} | - | - | - | - |`;
   }
   return [
     `| ${label}`,
-    resultLabel(row),
     formatMs(row.rtt.p50Ms),
     formatMs(row.rtt.p95Ms),
     rssP50,
@@ -205,8 +200,8 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
     "",
     latestRunSummary(rows),
     "",
-    "| Channel | Result | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
-    "|---|---:|---:|---:|---:|---:|",
+    "| Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
+    "|---|---:|---:|---:|---:|",
     ...tableRows.map((row) => latestMainRow(row)),
     "",
     LATEST_MAIN_END,
@@ -232,11 +227,11 @@ function releaseTableFor(rows, start, end) {
   return [
     start,
     "",
-    "| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
-    "|---|---:|---:|---:|---:|---:|---:|",
+    "| npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
+    "|---|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>
-        `| \`${row.package.version}\` | ${resultLabel(row)} | ${sampleCount(row)} | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} |`,
+        `| \`${row.package.version}\` | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} |`,
     ),
     "",
     end,
