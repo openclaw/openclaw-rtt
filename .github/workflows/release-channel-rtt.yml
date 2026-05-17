@@ -85,7 +85,7 @@ jobs:
       cancel-in-progress: false
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 12
       matrix:
         package: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
