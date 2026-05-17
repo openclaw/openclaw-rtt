@@ -232,7 +232,7 @@ function releaseTableFor(rows, start, end) {
   return [
     start,
     "",
-    "| npm version | Result | Samples | p50 | p95 | RSS p50 | RSS max |",
+    "| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |",
     "|---|---:|---:|---:|---:|---:|---:|",
     ...tableRows.map(
       (row) =>

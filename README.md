@@ -79,7 +79,7 @@ The system under test is the published package running its own Telegram bot. The
 
 <!-- release-sweep:start -->
 
-| npm version | Result | Samples | p50 | p95 | RSS p50 | RSS max |
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.2` | Pass | 20 | `1,050ms` | `2,002ms` | `145MB` | `145MB` |
 | `2026.5.16-beta.1` | Pass | 20 | `1,196ms` | `1,969ms` | `145MB` | `145MB` |
@@ -111,7 +111,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 <!-- discord-release-sweep:start -->
 
-| npm version | Result | Samples | p50 | p95 | RSS p50 | RSS max |
+| npm version | Result | Samples | RTT p50 | RTT p95 | RSS p50 | RSS max |
 |---|---:|---:|---:|---:|---:|---:|
 | `2026.5.16-beta.2` | Pass | 20 | `26,639ms` | `27,767ms` | `808MB` | `6,662MB` |
 | `2026.5.16-beta.1` | Pass | 20 | `21,140ms` | `22,665ms` | `804MB` | `6,956MB` |
