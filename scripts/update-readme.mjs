@@ -31,6 +31,7 @@ const RELEASE_COVERAGE_CHANNELS = [
 ];
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
+const RELEASE_COVERAGE_MIN_VERSION = "2026.4.24";
 const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
@@ -284,7 +285,9 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
   ]);
   const versions = [
     ...new Set([...rowsByChannel.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
-  ].sort((left, right) => compareVersions(right, left));
+  ]
+    .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
+    .sort((left, right) => compareVersions(right, left));
   if (versions.length === 0) {
     return [
       RELEASE_COVERAGE_START,

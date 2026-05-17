@@ -9,6 +9,7 @@ const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
+const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
   if (stableMatch) {
@@ -104,7 +105,9 @@ function writeOutput(values) {
 
 const discordRows = releaseRows(await readDiscordRttRows());
 const baselineRows = releaseRows(await readRows());
-const baselineVersions = releaseVersionSet(baselineRows);
+const baselineVersions = releaseVersionSet(
+  baselineRows.filter((row) => compareVersions(row.package.version, DISCORD_RELEASE_MIN_VERSION) >= 0),
+);
 const anchor = latestReleaseVersion(discordRows) ?? latestStableVersion(baselineRows);
 if (!anchor) {
   throw new Error("No measured openclaw release baseline found.");
@@ -128,6 +131,7 @@ if (rssBackfill) {
   queue = (await npmVersions())
     .filter((version) => typeof version === "string" && parseVersion(version))
     .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))
+    .filter((pkg) => compareVersions(pkg.version, DISCORD_RELEASE_MIN_VERSION) >= 0)
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
     .filter(
       (pkg) =>

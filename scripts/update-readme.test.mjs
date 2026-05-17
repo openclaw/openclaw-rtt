@@ -295,10 +295,7 @@ test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsAp
     coverageSection,
     /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \|/u,
   );
-  assert.match(
-    coverageSection,
-    /\| `2026\.4\.15` \| - \| `900ms` \| - \| - \| - \|/u,
-  );
+  assert.doesNotMatch(coverageSection, /2026\.4\.15/u);
   assert.match(
     coverageSection,
     /\| `2026\.5\.3` \| - \| `950ms` \| - \| - \| - \|/u,
