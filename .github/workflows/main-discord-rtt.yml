@@ -129,12 +129,16 @@ jobs:
             output_dir="${output_root}/sample-${sample}"
             summary_path="${output_dir}/discord-qa-summary.json"
             observed_path="${output_dir}/discord-qa-observed-messages.json"
+            metrics_path="${output_dir}/resource-metrics.env"
             status=1
             for attempt in 1 2 3; do
               rm -rf "$output_dir"
               mkdir -p "$output_dir"
               set +e
-              pnpm openclaw qa discord \
+              /usr/bin/time \
+                -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+                -o "$metrics_path" \
+                pnpm openclaw qa discord \
                 --repo-root . \
                 --output-dir "${output_dir}" \
                 --provider-mode mock-openai \
@@ -146,6 +150,11 @@ jobs:
                 --scenario discord-canary
               status="$?"
               set -e
+              {
+                echo "sample=${sample}"
+                echo "attempts=${attempt}"
+                echo "exit_status=${status}"
+              } >>"$metrics_path"
               if [[ -f "$summary_path" && -f "$observed_path" ]]; then
                 break
               fi
@@ -157,7 +166,7 @@ jobs:
               echo "No Discord QA artifacts produced for sample ${sample}." >&2
               exit "$status"
             fi
-            printf '%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" >>"$sample_paths"
+            printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
           done
 
       - name: Import Discord RTT result
@@ -171,7 +180,7 @@ jobs:
             --version "${{ steps.openclaw_ref.outputs.version }}" \
             --provider-mode mock-openai \
             --require-pass
-          node scripts/update-readme.mjs --latest-main-only
+          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/discord-rtt-summary.mjs
 

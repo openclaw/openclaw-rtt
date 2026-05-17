@@ -103,8 +103,12 @@ jobs:
           OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
         shell: bash
         run: |
+          metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
           set +e
-          pnpm rtt openclaw@main \
+          /usr/bin/time \
+            -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+            -o "$metrics_path" \
+            pnpm rtt openclaw@main \
             --package-tgz "${{ steps.pack.outputs.package_tgz }}" \
             --harness-root "$PWD" \
             --output "$RUNNER_TEMP/openclaw-rtt-runs" \
@@ -119,6 +123,7 @@ jobs:
             exit "$status"
           fi
           echo "result_path=$result_path" >>"$GITHUB_OUTPUT"
+          echo "resource_metrics_path=$metrics_path" >>"$GITHUB_OUTPUT"
 
       - name: Import result
         working-directory: openclaw-rtt
@@ -126,7 +131,8 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          node scripts/import-result.mjs "${{ steps.rtt.outputs.result_path }}"
+          node scripts/import-result.mjs "${{ steps.rtt.outputs.result_path }}" \
+            --resource-metrics "${{ steps.rtt.outputs.resource_metrics_path }}"
           node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/summary.mjs

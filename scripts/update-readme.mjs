@@ -118,6 +118,14 @@ function latestRow(rows) {
   return [...rows].sort((left, right) => String(left.run.startedAt).localeCompare(String(right.run.startedAt))).at(-1);
 }
 
+function latestPassingRow(rows) {
+  return latestRow(rows.filter((row) => row.run.status === "pass"));
+}
+
+function latestDashboardRow(rows) {
+  return latestPassingRow(rows) ?? latestRow(rows);
+}
+
 function versionAndRef(value) {
   const formatted = formatVersion(value);
   const [version, ref] = formatted.split("+", 2);
@@ -135,9 +143,12 @@ function latestRunSummary(rows) {
 function channelRttRows(rows) {
   const byKey = new Map();
   for (const row of rows) {
-    byKey.set(`${row.channel.id}\0${row.channel.scenario}\0${row.package.spec}`, row);
+    const key = `${row.channel.id}\0${row.channel.scenario}\0${row.package.spec}`;
+    const existing = byKey.get(key) ?? [];
+    existing.push(row);
+    byKey.set(key, existing);
   }
-  return [...byKey.values()].sort((left, right) => {
+  return [...byKey.values()].map(latestDashboardRow).filter(Boolean).sort((left, right) => {
     const channelDiff = String(left.channel.label).localeCompare(String(right.channel.label));
     if (channelDiff !== 0) {
       return channelDiff;
@@ -335,10 +346,8 @@ async function main() {
   const rows = await readRows();
   const discordRows = await readDiscordRttRows();
   const channelRows = await readChannelRttRows();
-  const latestMain = rows.filter((row) => row.package.spec === MAIN_SPEC).at(-1);
-  const latestDiscordMain = discordRows
-    .filter((row) => row.package.spec === MAIN_SPEC)
-    .at(-1);
+  const latestMain = latestDashboardRow(rows.filter((row) => row.package.spec === MAIN_SPEC));
+  const latestDiscordMain = latestDashboardRow(discordRows.filter((row) => row.package.spec === MAIN_SPEC));
   const readme = await fs.readFile(README_PATH, "utf8");
   const withLatestMain = replaceMarked(
     readme,

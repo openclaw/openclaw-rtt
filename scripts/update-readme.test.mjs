@@ -175,6 +175,53 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   assert.match(readme, /\| WhatsApp \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });
 
+test("keeps latest passing main rows visible when a newer run fails", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    rttRow({
+      package: { spec: "openclaw@main", version: "2026.5.17+pass123456" },
+      run: { id: "telegram-pass", startedAt: "2026-05-17T01:00:00.000Z", status: "pass" },
+      rtt: { warmSamples: [1100, 2100], p50Ms: 1100, p95Ms: 2100 },
+    }),
+    rttRow({
+      package: { spec: "openclaw@main", version: "2026.5.17+fail123456" },
+      run: { id: "telegram-fail", startedAt: "2026-05-17T07:00:00.000Z", status: "fail" },
+      rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+    }),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/slack.jsonl"), [
+    {
+      channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
+      ...rttRow({
+        package: { spec: "openclaw@main", version: "2026.5.17+slackpass" },
+        run: { id: "slack-pass", startedAt: "2026-05-17T02:00:00.000Z", status: "pass" },
+        rtt: { warmSamples: [4000, 5000], p50Ms: 4000, p95Ms: 5000 },
+      }),
+      resources: { maxRssKb: { p50: 409600, p95: 512000, max: 512000 } },
+    },
+    {
+      channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
+      ...rttRow({
+        package: { spec: "openclaw@main", version: "2026.5.17+slackfail" },
+        run: { id: "slack-fail", startedAt: "2026-05-17T08:00:00.000Z", status: "fail" },
+        rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+      }),
+    },
+  ]);
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const dashboardSection = readme.slice(
+    readme.indexOf("<!-- latest-main:start -->"),
+    readme.indexOf("<!-- latest-main:end -->"),
+  );
+  assert.match(dashboardSection, /\| Telegram \| `1,100ms` \| `2,100ms` \| - \| - \|/u);
+  assert.match(dashboardSection, /\| Slack \| `4,000ms` \| `5,000ms` \| `400MB` \| `500MB` \|/u);
+  assert.doesNotMatch(dashboardSection, /fail123456|slackfail/u);
+});
+
 test("renders release coverage gaps across Telegram, Discord, Slack, and WhatsApp", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
