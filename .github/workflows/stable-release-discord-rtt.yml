@@ -201,7 +201,7 @@ jobs:
           fi
 
           workspace_root="${GITHUB_WORKSPACE:?}"
-          output_root="${workspace_root}/openclaw/.artifacts/qa-e2e/discord-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          output_root=".artifacts/qa-e2e/discord-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           sample_paths="$RUNNER_TEMP/openclaw-discord-release-rtt-samples.tsv"
           : >"$sample_paths"
           echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
@@ -248,7 +248,7 @@ jobs:
               echo "No Discord QA artifacts produced for sample ${sample}." >&2
               exit "$status"
             fi
-            printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
+            printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
           done
 
       - name: Prepare Discord release import artifact

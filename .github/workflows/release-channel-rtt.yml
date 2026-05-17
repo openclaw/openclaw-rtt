@@ -208,7 +208,7 @@ jobs:
           retry_max_seconds="${CHANNEL_RTT_RETRY_MAX_SECONDS:-60}"
 
           workspace_root="${GITHUB_WORKSPACE:?}"
-          output_root="${workspace_root}/openclaw/.artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          output_root=".artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           sample_paths="$RUNNER_TEMP/openclaw-${{ matrix.package.channel }}-${{ matrix.package.version }}-rtt-samples.tsv"
           : >"$sample_paths"
           echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
@@ -266,9 +266,9 @@ jobs:
               exit "$status"
             fi
             if [[ -f "$observed_path" ]]; then
-              printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
+              printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
             else
-              printf '%s\t\t%s\n' "$summary_path" "$metrics_path" >>"$sample_paths"
+              printf '%s\t\t%s\n' "${PWD}/${summary_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
             fi
           done
 
