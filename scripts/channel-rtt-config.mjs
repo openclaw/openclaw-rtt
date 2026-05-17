@@ -36,8 +36,8 @@ export function resolveChannelRttChannel(id) {
   return { id, ...channel };
 }
 
-export function channelRttDataPath(channelId) {
-  return channelDataPath(channelId);
+export function channelRttDataPath(channelId, version) {
+  return channelDataPath(channelId, version);
 }
 
 export function channelRttRunsDir(channelId) {

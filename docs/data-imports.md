@@ -25,11 +25,11 @@ pnpm rtt openclaw@2026.4.30 --provider live-frontier
 
 ## Data Layout
 
-- `data/channels/<channel>.jsonl`: append-only graph source, one normalized run per line per channel.
+- `data/channels/<channel>/<version>.jsonl`: append-only graph source, one normalized run per line for that channel/version bucket.
 - `runs/<channel>/<run-id>/result.json`: copied per-run record for audit/debug.
 
-Current channel files are `telegram`, `discord`, `slack`, and `whatsapp`. Telegram and Discord still have specialized importers because their source artifact shapes differ; they now share the same storage contract as generic live-transport channels.
+Current channel folders are `telegram`, `discord`, `slack`, and `whatsapp`. Telegram and Discord still have specialized importers because their source artifact shapes differ; they now share the same storage contract as generic live-transport channels.
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied here later.
 
-Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it writes the JSONL file.
+Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it rewrites that version's JSONL file.

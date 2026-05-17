@@ -51,7 +51,7 @@ test("does not write failed Discord runs when pass is required", async () => {
     /Discord RTT run failed/u,
   );
 
-  await assert.rejects(fs.stat(path.join(workspace, "data/channels/discord.jsonl")), { code: "ENOENT" });
+  await assert.rejects(fs.stat(path.join(workspace, "data/channels/discord/2026.5.16.jsonl")), { code: "ENOENT" });
   await assert.rejects(fs.stat(path.join(workspace, "runs/discord")), { code: "ENOENT" });
 });
 
@@ -102,7 +102,7 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
     "--require-pass",
   ], { cwd: workspace });
 
-  const [row] = (await fs.readFile(path.join(workspace, "data/channels/discord.jsonl"), "utf8"))
+  const [row] = (await fs.readFile(path.join(workspace, "data/channels/discord/2026.5.16.jsonl"), "utf8"))
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line));

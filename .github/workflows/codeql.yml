@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/codeql.yml"
+      - "scripts/**"
   pull_request:
+    paths:
+      - ".github/workflows/codeql.yml"
+      - "scripts/**"
   schedule:
     - cron: "22 9 * * 1"
   workflow_dispatch:

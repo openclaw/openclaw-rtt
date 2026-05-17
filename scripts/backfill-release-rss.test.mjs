@@ -30,8 +30,8 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
     mode: { providerMode: "mock-openai", scenarios: ["telegram-mentioned-message-reply"] },
     rtt: { warmSamples: [1000, 2000], failedSamples: 0, p50Ms: 1000, p95Ms: 2000 },
   };
-  await fs.mkdir(path.join(workspace, "data/channels"), { recursive: true });
-  await fs.writeFile(path.join(workspace, "data/channels/telegram.jsonl"), `${JSON.stringify(row)}\n`);
+  await fs.mkdir(path.join(workspace, "data/channels/telegram"), { recursive: true });
+  await fs.writeFile(path.join(workspace, "data/channels/telegram/2026.5.16.jsonl"), `${JSON.stringify(row)}\n`);
   await fs.mkdir(path.join(workspace, "runs/telegram", runId), { recursive: true });
   await fs.writeFile(
     path.join(workspace, "runs/telegram", runId, "result.json"),
@@ -51,7 +51,7 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
     path.join(workspace, "resource-metrics.env"),
   ], { cwd: workspace });
 
-  const [updated] = (await fs.readFile(path.join(workspace, "data/channels/telegram.jsonl"), "utf8"))
+  const [updated] = (await fs.readFile(path.join(workspace, "data/channels/telegram/2026.5.16.jsonl"), "utf8"))
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line));
@@ -81,8 +81,8 @@ test("backfills Discord RSS from per-sample metrics without touching RTT p50/p95
     mode: { providerMode: "mock-openai", scenarios: ["discord-canary"] },
     rtt: { warmSamples: [5000, 7000], failedSamples: 0, p50Ms: 5000, p95Ms: 7000 },
   };
-  await fs.mkdir(path.join(workspace, "data/channels"), { recursive: true });
-  await fs.writeFile(path.join(workspace, "data/channels/discord.jsonl"), `${JSON.stringify(row)}\n`);
+  await fs.mkdir(path.join(workspace, "data/channels/discord"), { recursive: true });
+  await fs.writeFile(path.join(workspace, "data/channels/discord/2026.5.16.jsonl"), `${JSON.stringify(row)}\n`);
   await fs.mkdir(path.join(workspace, "runs/discord", runId), { recursive: true });
   await fs.writeFile(
     path.join(workspace, "runs/discord", runId, "result.json"),
@@ -110,7 +110,7 @@ test("backfills Discord RSS from per-sample metrics without touching RTT p50/p95
     path.join(workspace, "samples.tsv"),
   ], { cwd: workspace });
 
-  const [updated] = (await fs.readFile(path.join(workspace, "data/channels/discord.jsonl"), "utf8"))
+  const [updated] = (await fs.readFile(path.join(workspace, "data/channels/discord/2026.5.16.jsonl"), "utf8"))
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line));

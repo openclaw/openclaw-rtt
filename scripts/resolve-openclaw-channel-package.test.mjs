@@ -1,0 +1,93 @@
+import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import test from "node:test";
+
+const execFileAsync = promisify(execFile);
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const RESOLVE_SCRIPT = path.join(REPO_ROOT, "scripts/resolve-openclaw-channel-package.mjs");
+
+async function makeWorkspace() {
+  return await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-rtt-channel-resolve-test-"));
+}
+
+async function writeJsonl(pathname, rows) {
+  await fs.mkdir(path.dirname(pathname), { recursive: true });
+  await fs.writeFile(pathname, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
+}
+
+function row(version, channel) {
+  return {
+    ...(channel ? { channel: { id: channel, label: channel, scenario: `${channel}-canary` } } : {}),
+    package: { spec: `openclaw@${version}`, version },
+    run: { id: `${channel ?? "telegram"}-${version}`, startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
+    rtt: { warmSamples: [1000], p50Ms: 1000, p95Ms: 1000 },
+  };
+}
+
+test("queues explicit Slack and WhatsApp release versions", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.16-beta.3.jsonl"), [
+    row("2026.5.16-beta.3"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.16-beta.3",
+      INPUT_CHANNELS: "slack whatsapp",
+      INPUT_VERSIONS: "2026.5.16-beta.3",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  const matrix = JSON.parse(outputs.matrix);
+  assert.equal(outputs.should_run, "true");
+  assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
+    "slack:2026.5.16-beta.3",
+    "whatsapp:2026.5.16-beta.3",
+  ]);
+});
+
+test("skips channel release versions already measured", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.16-beta.3.jsonl"), [
+    row("2026.5.16-beta.3"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/slack/2026.5.16-beta.3.jsonl"), [
+    row("2026.5.16-beta.3", "slack"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.16-beta.3",
+      INPUT_CHANNELS: "slack whatsapp",
+      INPUT_VERSIONS: "2026.5.16-beta.3",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  const matrix = JSON.parse(outputs.matrix);
+  assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
+    "whatsapp:2026.5.16-beta.3",
+  ]);
+});

@@ -263,7 +263,7 @@ function releaseMetricCell(row, missingLabel = "Missing") {
   if (!row) {
     return missingLabel;
   }
-  const metric = `${formatMs(row.rtt.p50Ms)}<br>${formatMs(row.rtt.p95Ms)}`;
+  const metric = formatMs(row.rtt.p50Ms);
   return row.run.status === "pass" ? metric : `${resultLabel(row)} · ${metric}`;
 }
 

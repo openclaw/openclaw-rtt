@@ -4,8 +4,19 @@ import path from "node:path";
 export const CHANNEL_DATA_DIR = "data/channels";
 export const CHANNEL_RUNS_DIR = "runs";
 
-export function channelDataPath(channelId) {
-  return path.join(CHANNEL_DATA_DIR, `${channelId}.jsonl`);
+export function channelDataDir(channelId) {
+  return path.join(CHANNEL_DATA_DIR, channelId);
+}
+
+export function channelVersionKey(version) {
+  if (typeof version !== "string" || version.trim().length === 0) {
+    throw new Error("channel data version key must be a non-empty string.");
+  }
+  return version.replace(/[^a-zA-Z0-9.+_-]+/gu, "_").replace(/^_+|_+$/gu, "");
+}
+
+export function channelDataPath(channelId, version) {
+  return path.join(channelDataDir(channelId), `${channelVersionKey(version)}.jsonl`);
 }
 
 export function channelRunsDir(channelId) {
@@ -38,15 +49,44 @@ export async function appendJsonl(pathname, row) {
   await fs.appendFile(pathname, `${JSON.stringify(row)}\n`);
 }
 
-export async function readChannelRows(channelId) {
+export async function appendChannelRow(channelId, row) {
+  await appendJsonl(channelDataPath(channelId, row.package?.version), row);
+}
+
+async function readChannelFiles(channelId) {
+  const files = [];
+  const legacyPath = path.join(CHANNEL_DATA_DIR, `${channelId}.jsonl`);
   try {
-    return (await readJsonl(channelDataPath(channelId))).sort(compareStartedAt);
+    await fs.access(legacyPath);
+    files.push(legacyPath);
   } catch (error) {
-    if (error?.code === "ENOENT") {
-      return [];
+    if (error?.code !== "ENOENT") {
+      throw error;
     }
-    throw error;
   }
+
+  let entries = [];
+  try {
+    entries = await fs.readdir(channelDataDir(channelId), { withFileTypes: true });
+  } catch (error) {
+    if (error?.code !== "ENOENT") {
+      throw error;
+    }
+  }
+  for (const entry of entries) {
+    if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+      files.push(path.join(channelDataDir(channelId), entry.name));
+    }
+  }
+  return files.sort();
+}
+
+export async function readChannelRows(channelId) {
+  const rows = [];
+  for (const file of await readChannelFiles(channelId)) {
+    rows.push(...(await readJsonl(file)));
+  }
+  return rows.sort(compareStartedAt);
 }
 
 export async function readAllChannelRows() {
@@ -62,10 +102,13 @@ export async function readAllChannelRows() {
 
   const rows = [];
   for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith(".jsonl")) {
-      continue;
+    if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+      rows.push(...(await readJsonl(path.join(CHANNEL_DATA_DIR, entry.name))));
     }
-    rows.push(...(await readJsonl(path.join(CHANNEL_DATA_DIR, entry.name))));
+    if (entry.isDirectory()) {
+      const channelId = entry.name;
+      rows.push(...(await readChannelRows(channelId)));
+    }
   }
   return rows.sort(compareStartedAt);
 }

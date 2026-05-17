@@ -1,8 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { channelResultPath } from "./channel-storage.mjs";
 import {
-  channelRttDataPath,
+  appendChannelRow,
+  channelResultPath,
+  existingChannelRunIds,
+} from "./channel-storage.mjs";
+import {
   channelRttRunsDir,
   resolveChannelRttChannel,
 } from "./channel-rtt-config.mjs";
@@ -146,24 +149,6 @@ async function readSampleEntries(samplesPath) {
     });
 }
 
-async function existingRunIds(dataPath) {
-  try {
-    const text = await fs.readFile(dataPath, "utf8");
-    return new Set(
-      text
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => JSON.parse(line).run?.id)
-        .filter(Boolean),
-    );
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return new Set();
-    }
-    throw error;
-  }
-}
-
 function extractObservedRtt(observedMessages, scenarioId) {
   if (!Array.isArray(observedMessages)) {
     throw new Error("observed messages must be an array.");
@@ -288,9 +273,8 @@ async function main() {
     throw new Error("Channel RTT sample timestamps must be parseable.");
   }
 
-  const dataPath = channelRttDataPath(channel.id);
   const runId = buildRunId(startedAt, channel.id, scenarioId, args.spec);
-  const seen = await existingRunIds(dataPath);
+  const seen = await existingChannelRunIds(channel.id);
   if (seen.has(runId)) {
     throw new Error(`Channel RTT run already imported: ${runId}`);
   }
@@ -365,8 +349,7 @@ async function main() {
 
   await fs.mkdir(runDir, { recursive: true });
   await fs.writeFile(resultPath, `${JSON.stringify(result, null, 2)}\n`);
-  await fs.mkdir(path.dirname(dataPath), { recursive: true });
-  await fs.appendFile(dataPath, `${JSON.stringify(result)}\n`);
+  await appendChannelRow(channel.id, result);
   process.stdout.write(`imported ${runId}\n`);
   if (args.requirePass && result.run.status !== "pass") {
     throw new Error(`Channel RTT run failed: ${runId}`);

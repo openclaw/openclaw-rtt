@@ -4,7 +4,7 @@
 
 ## Current State
 
-- All imported rows use `data/channels/<channel>.jsonl` and `runs/<channel>/<run-id>/result.json`.
+- All imported rows use `data/channels/<channel>/<version>.jsonl` and `runs/<channel>/<run-id>/result.json`.
 - Telegram main/release RTT still uses the older `pnpm rtt` source shape, but it now writes through the shared Telegram channel storage path.
 - Discord main/release RTT uses the live QA lane with a specialized importer because its summary currently needs observed-message timestamp fallback.
 - Slack and WhatsApp main RTT use the reusable live-transport importer.
@@ -26,7 +26,7 @@ Required pieces:
 - Import with `scripts/import-live-transport-rtt.mjs`, passing the summary TSV, channel id, `openclaw@main` or release spec, version/ref, provider mode, and scenario id.
 - Capture per-sample resource metrics with `/usr/bin/time` and include the metrics path in the importer TSV so RSS appears beside RTT in the dashboard.
 - Record the attempt count in the resource metrics file. The importer stores per-sample attempts and aggregate retry count so the dashboard can show when a green sample needed transient recovery.
-- Commit only `README.md`, `data/channels/<channel>.jsonl`, and `runs/<channel>/`.
+- Commit only `README.md`, `data/channels/<channel>/`, and `runs/<channel>/`.
 - Add importer proof with `node --test` when the new channel has a new artifact shape.
 
 ## First Wave

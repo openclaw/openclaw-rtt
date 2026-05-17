@@ -1,0 +1,377 @@
+name: Release Channel RTT
+
+on:
+  workflow_dispatch:
+    inputs:
+      channels:
+        description: Space or comma separated channel ids
+        required: false
+        default: "slack whatsapp"
+        type: string
+      versions:
+        description: Space or comma separated OpenClaw versions to measure
+        required: false
+        default: ""
+        type: string
+      version_limit:
+        description: Maximum future versions per channel when versions is empty
+        required: false
+        default: "2"
+        type: string
+      samples:
+        description: Number of RTT samples
+        required: false
+        default: "20"
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "10.33.0"
+  CHANNEL_RTT_MAX_ATTEMPTS: "3"
+  CHANNEL_RTT_RETRY_BASE_SECONDS: "15"
+  CHANNEL_RTT_RETRY_MAX_SECONDS: "60"
+
+jobs:
+  resolve:
+    name: Resolve OpenClaw channel release packages
+    runs-on: ubuntu-24.04
+    outputs:
+      channels: ${{ steps.release.outputs.channels }}
+      matrix: ${{ steps.release.outputs.matrix }}
+      reason: ${{ steps.release.outputs.reason }}
+      should_run: ${{ steps.release.outputs.should_run }}
+      versions: ${{ steps.release.outputs.versions }}
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Resolve OpenClaw channel release packages
+        id: release
+        env:
+          INPUT_CHANNELS: ${{ inputs.channels }}
+          INPUT_VERSIONS: ${{ inputs.versions }}
+          INPUT_VERSION_LIMIT: ${{ inputs.version_limit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/resolve-openclaw-channel-package.mjs
+
+      - name: Report skipped package
+        if: steps.release.outputs.should_run != 'true'
+        run: |
+          echo "No channel release versions to measure (${{ steps.release.outputs.reason }})"
+
+  measure:
+    name: Measure OpenClaw ${{ matrix.package.label }} release RTT
+    needs: resolve
+    if: needs.resolve.outputs.should_run == 'true'
+    runs-on: blacksmith-32vcpu-ubuntu-2404
+    timeout-minutes: 120
+    environment: qa-live-shared
+    concurrency:
+      group: release-channel-rtt-measure-${{ matrix.package.channel }}-${{ matrix.package.version }}-${{ github.ref }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        package: ${{ fromJSON(needs.resolve.outputs.matrix) }}
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          path: openclaw-rtt
+          fetch-depth: 0
+
+      - name: Checkout OpenClaw release
+        uses: actions/checkout@v6
+        with:
+          repository: openclaw/openclaw
+          ref: ${{ matrix.package.tag }}
+          path: openclaw
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+
+      - name: Locate pnpm store
+        id: pnpm-store
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
+
+      - name: Restore pnpm store
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: openclaw-release-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
+          restore-keys: |
+            openclaw-release-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Install OpenClaw dependencies
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+
+      - name: Verify OpenClaw release ref
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          if [[ "$version" != "${{ matrix.package.version }}" ]]; then
+            echo "OpenClaw package version mismatch: expected ${{ matrix.package.version }}, got ${version}" >&2
+            exit 1
+          fi
+
+      - name: Build private QA runtime
+        working-directory: openclaw
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm build
+
+      - name: Run ${{ matrix.package.label }} RTT samples
+        id: channel_rtt
+        working-directory: openclaw
+        env:
+          INPUT_SAMPLES: ${{ inputs.samples }}
+          OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
+          OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
+          OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
+          OPENCLAW_QA_CREDENTIAL_HTTP_TIMEOUT_MS: "60000"
+          OPENCLAW_QA_REDACT_PUBLIC_METADATA: "1"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          samples="${INPUT_SAMPLES:-20}"
+          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
+            echo "samples must be a positive integer, got: $samples" >&2
+            exit 1
+          fi
+          max_attempts="${CHANNEL_RTT_MAX_ATTEMPTS:-3}"
+          retry_base_seconds="${CHANNEL_RTT_RETRY_BASE_SECONDS:-15}"
+          retry_max_seconds="${CHANNEL_RTT_RETRY_MAX_SECONDS:-60}"
+
+          output_root=".artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sample_paths="$RUNNER_TEMP/openclaw-${{ matrix.package.channel }}-${{ matrix.package.version }}-rtt-samples.tsv"
+          : >"$sample_paths"
+          echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
+
+          for sample in $(seq 1 "$samples"); do
+            output_dir="${output_root}/sample-${sample}"
+            summary_path="${output_dir}/${{ matrix.package.summary }}"
+            observed_path="${output_dir}/${{ matrix.package.observed }}"
+            metrics_path="${output_dir}/resource-metrics.env"
+            status=1
+            for attempt in $(seq 1 "$max_attempts"); do
+              rm -rf "$output_dir"
+              mkdir -p "$output_dir"
+              echo "CHANNEL_RELEASE_RTT_PHASE:${{ matrix.package.channel }} version=${{ matrix.package.version }} sample=${sample}/${samples} attempt=${attempt}/${max_attempts}"
+              set +e
+              /usr/bin/time \
+                -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+                -o "$metrics_path" \
+                pnpm openclaw qa "${{ matrix.package.channel }}" \
+                --repo-root . \
+                --output-dir "${output_dir}" \
+                --provider-mode mock-openai \
+                --model mock-openai/gpt-5.5 \
+                --alt-model mock-openai/gpt-5.5-alt \
+                --fast \
+                --credential-source convex \
+                --credential-role ci \
+                --scenario "${{ matrix.package.scenario }}" \
+                --allow-failures
+              status="$?"
+              set -e
+              {
+                echo "sample=${sample}"
+                echo "attempts=${attempt}"
+                echo "exit_status=${status}"
+              } >>"$metrics_path"
+              scenario_status=""
+              if [[ -f "$summary_path" ]]; then
+                scenario_status="$(node -e 'const fs = require("node:fs"); const [summaryPath, scenarioId] = process.argv.slice(1); const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8")); const scenario = Array.isArray(summary.scenarios) ? summary.scenarios.find((item) => item && item.id === scenarioId) : undefined; process.stdout.write(typeof scenario?.status === "string" ? scenario.status : "missing");' "$summary_path" "${{ matrix.package.scenario }}")"
+              fi
+              if [[ "$scenario_status" == "pass" ]]; then
+                break
+              fi
+              if [[ "$attempt" -lt "$max_attempts" ]]; then
+                delay=$((retry_base_seconds * (2 ** (attempt - 1))))
+                if [[ "$delay" -gt "$retry_max_seconds" ]]; then
+                  delay="$retry_max_seconds"
+                fi
+                echo "${{ matrix.package.label }} QA sample ${sample} attempt ${attempt} did not pass (status=${scenario_status:-no-summary}); retrying in ${delay}s." >&2
+                sleep "$delay"
+              fi
+            done
+            if [[ ! -f "$summary_path" ]]; then
+              echo "No ${{ matrix.package.label }} QA summary produced for sample ${sample}." >&2
+              exit "$status"
+            fi
+            if [[ -f "$observed_path" ]]; then
+              printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
+            else
+              printf '%s\t\t%s\n' "${PWD}/${summary_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
+            fi
+          done
+
+      - name: Prepare ${{ matrix.package.label }} release import artifact
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          import_dir="$RUNNER_TEMP/release-channel-rtt-import-${{ matrix.package.channel }}-${{ matrix.package.version }}"
+          rm -rf "$import_dir"
+          mkdir -p "$import_dir"
+          cp -R "${{ steps.channel_rtt.outputs.output_root }}" "$import_dir/artifacts"
+          {
+            echo "channel=${{ matrix.package.channel }}"
+            echo "scenario=${{ matrix.package.scenario }}"
+            echo "summary=${{ matrix.package.summary }}"
+            echo "observed=${{ matrix.package.observed }}"
+            echo "spec=${{ matrix.package.spec }}"
+            echo "version=${{ matrix.package.version }}"
+          } >"$import_dir/metadata.env"
+
+      - name: Upload ${{ matrix.package.label }} release import artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: release-channel-rtt-import-${{ matrix.package.channel }}-${{ matrix.package.version }}
+          path: ${{ runner.temp }}/release-channel-rtt-import-${{ matrix.package.channel }}-${{ matrix.package.version }}
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Upload ${{ matrix.package.label }} RTT artifacts
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: release-channel-rtt-${{ matrix.package.channel }}-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/.artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+
+  report:
+    name: Import channel release RTT reports
+    needs:
+      - resolve
+      - measure
+    if: needs.resolve.outputs.should_run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: rtt-report-writer-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download channel release import artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          pattern: release-channel-rtt-import-*
+          path: ${{ runner.temp }}/release-channel-rtt-imports
+
+      - name: Import channel release RTT results
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          import_root="$RUNNER_TEMP/release-channel-rtt-imports"
+          shopt -s nullglob
+          import_dirs=("$import_root"/release-channel-rtt-import-*)
+          if [[ "${#import_dirs[@]}" -eq 0 ]]; then
+            echo "No channel release RTT import artifacts downloaded." >&2
+            exit 1
+          fi
+          get_metadata() {
+            local metadata_path="$1"
+            local key="$2"
+            grep -m 1 "^${key}=" "$metadata_path" | cut -d= -f2-
+          }
+          for import_dir in "${import_dirs[@]}"; do
+            metadata_path="${import_dir}/metadata.env"
+            channel="$(get_metadata "$metadata_path" channel)"
+            scenario="$(get_metadata "$metadata_path" scenario)"
+            summary="$(get_metadata "$metadata_path" summary)"
+            observed="$(get_metadata "$metadata_path" observed)"
+            spec="$(get_metadata "$metadata_path" spec)"
+            version="$(get_metadata "$metadata_path" version)"
+            sample_paths="$RUNNER_TEMP/openclaw-${channel}-${version}-rtt-samples.tsv"
+            : >"$sample_paths"
+            while IFS= read -r sample_dir; do
+              summary_path="${sample_dir}/${summary}"
+              observed_path="${sample_dir}/${observed}"
+              metrics_path="${sample_dir}/resource-metrics.env"
+              if [[ ! -f "$summary_path" || ! -f "$metrics_path" ]]; then
+                echo "Missing ${channel} release artifacts under ${sample_dir}." >&2
+                exit 1
+              fi
+              if [[ -f "$observed_path" ]]; then
+                printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
+              else
+                printf '%s\t\t%s\n' "$summary_path" "$metrics_path" >>"$sample_paths"
+              fi
+            done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
+            node scripts/import-live-transport-rtt.mjs "$sample_paths" \
+              --channel "$channel" \
+              --spec "$spec" \
+              --version "$version" \
+              --provider-mode mock-openai \
+              --scenario "$scenario" \
+              --require-pass
+          done
+          node scripts/update-readme.mjs
+          node scripts/validate.mjs
+          node scripts/channel-rtt-summary.mjs
+
+      - name: Commit result
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet --exit-code; then
+            echo "No channel release RTT changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md data/channels/ runs/
+          git commit -m "data: record channel release rtt"
+          git push

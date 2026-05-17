@@ -12,9 +12,16 @@ channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbo
 
 That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. RSS appears when the importing workflow collected resource metrics; older release rows stay blank until an RSS backfill run updates only the resource fields.
 
-Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries where QA-lab overhead can inflate RSS. Missing cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
+Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries where QA-lab overhead can inflate RSS. `-` cells mean no compatible imported run exists; `Not supported` means the older release predates or fails that canary contract.
 
-Reports: [Dashboard](#dashboard) · [Release Coverage Matrix](#release-coverage-matrix) · [Telegram Release Runs](#telegram-release-runs) · [Discord Release Runs](#discord-release-runs) · [Slack Release Runs](#slack-release-runs) · [WhatsApp Release Runs](#whatsapp-release-runs).
+Reports:
+
+- [Dashboard](#dashboard)
+- [Release Coverage Matrix](#release-coverage-matrix)
+- [Telegram Release Runs](#telegram-release-runs)
+- [Discord Release Runs](#discord-release-runs)
+- [Slack Release Runs](#slack-release-runs)
+- [WhatsApp Release Runs](#whatsapp-release-runs)
 
 ## Dashboard
 
@@ -39,7 +46,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 Version-by-version RTT coverage for release canaries. The matrix shows the latest imported row for each channel family side by side.
 
-Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show `p50` then `p95` on the next line for that channel's release scenario; `p50 σ` is the standard deviation across available channel p50 values for that release. `-` means no compatible import exists, and `Not supported` means that release predates or fails the channel canary contract.
+Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; `p50 σ` is the standard deviation across available channel p50 values for that release. `-` means no compatible import exists, and `Not supported` means that release predates or fails the channel canary contract.
 
 <!-- release-coverage:start -->
 
@@ -47,28 +54,28 @@ Latest imported channel run: `2026-05-17T01:17:20.809Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.16-beta.3` | - | `1,112ms`<br>`2,172ms` | - | - | - |
-| `2026.5.16-beta.2` | `12,795ms` | `1,050ms`<br>`2,002ms` | `26,639ms`<br>`27,767ms` | - | - |
-| `2026.5.16-beta.1` | `9,972ms` | `1,196ms`<br>`1,969ms` | `21,140ms`<br>`22,665ms` | - | - |
-| `2026.5.14-beta.2` | `10,142ms` | `990ms`<br>`1,745ms` | `21,273ms`<br>`21,924ms` | - | - |
-| `2026.5.14-beta.1` | `10,516ms` | `1,004ms`<br>`3,915ms` | `22,035ms`<br>`22,796ms` | - | - |
-| `2026.5.12` | `8,891ms` | `2,858ms`<br>`23,061ms` | `20,640ms`<br>`22,622ms` | - | - |
-| `2026.5.9-beta.1` | `7,121ms` | `2,517ms`<br>`14,692ms` | `16,759ms`<br>`18,006ms` | - | - |
-| `2026.5.7` | `7,725ms` | `3,499ms`<br>`21,847ms` | `18,948ms`<br>`22,954ms` | - | - |
-| `2026.5.6` | `7,252ms` | `3,497ms`<br>`16,762ms` | `18,001ms`<br>`18,832ms` | - | - |
-| `2026.5.4` | `7,717ms` | `3,504ms`<br>`16,673ms` | `18,937ms`<br>`19,896ms` | - | - |
-| `2026.5.3` | - | `3,505ms`<br>`16,741ms` | Not supported | - | - |
-| `2026.5.2` | `8,323ms` | `3,501ms`<br>`16,759ms` | `20,146ms`<br>`21,604ms` | - | - |
-| `2026.4.29` | - | `17,936ms`<br>`24,517ms` | Not supported | - | - |
-| `2026.4.27` | `16,110ms` | `4,639ms`<br>`13,664ms` | `36,858ms`<br>`38,863ms` | - | - |
-| `2026.4.26` | `13,405ms` | `5,880ms`<br>`18,610ms` | `32,689ms`<br>`34,092ms` | - | - |
-| `2026.4.25` | `20,925ms` | `7,508ms`<br>`27,982ms` | `49,357ms`<br>`52,963ms` | - | - |
-| `2026.4.24` | `15,325ms` | `2,679ms`<br>`13,451ms` | `33,328ms`<br>`34,734ms` | - | - |
-| `2026.4.23` | - | `2,507ms`<br>`14,671ms` | Not supported | - | - |
-| `2026.4.22` | - | `2,497ms`<br>`14,847ms` | Not supported | - | - |
-| `2026.4.21` | - | `3,502ms`<br>`16,828ms` | Not supported | - | - |
-| `2026.4.20` | - | `3,504ms`<br>`16,796ms` | Not supported | - | - |
-| `2026.4.15` | - | `3,503ms`<br>`16,809ms` | Not supported | - | - |
+| `2026.5.16-beta.3` | - | `1,112ms` | - | - | - |
+| `2026.5.16-beta.2` | `12,795ms` | `1,050ms` | `26,639ms` | - | - |
+| `2026.5.16-beta.1` | `9,972ms` | `1,196ms` | `21,140ms` | - | - |
+| `2026.5.14-beta.2` | `10,142ms` | `990ms` | `21,273ms` | - | - |
+| `2026.5.14-beta.1` | `10,516ms` | `1,004ms` | `22,035ms` | - | - |
+| `2026.5.12` | `8,891ms` | `2,858ms` | `20,640ms` | - | - |
+| `2026.5.9-beta.1` | `7,121ms` | `2,517ms` | `16,759ms` | - | - |
+| `2026.5.7` | `7,725ms` | `3,499ms` | `18,948ms` | - | - |
+| `2026.5.6` | `7,252ms` | `3,497ms` | `18,001ms` | - | - |
+| `2026.5.4` | `7,717ms` | `3,504ms` | `18,937ms` | - | - |
+| `2026.5.3` | - | `3,505ms` | Not supported | - | - |
+| `2026.5.2` | `8,323ms` | `3,501ms` | `20,146ms` | - | - |
+| `2026.4.29` | - | `17,936ms` | Not supported | - | - |
+| `2026.4.27` | `16,110ms` | `4,639ms` | `36,858ms` | - | - |
+| `2026.4.26` | `13,405ms` | `5,880ms` | `32,689ms` | - | - |
+| `2026.4.25` | `20,925ms` | `7,508ms` | `49,357ms` | - | - |
+| `2026.4.24` | `15,325ms` | `2,679ms` | `33,328ms` | - | - |
+| `2026.4.23` | - | `2,507ms` | Not supported | - | - |
+| `2026.4.22` | - | `2,497ms` | Not supported | - | - |
+| `2026.4.21` | - | `3,502ms` | Not supported | - | - |
+| `2026.4.20` | - | `3,504ms` | Not supported | - | - |
+| `2026.4.15` | - | `3,503ms` | Not supported | - | - |
 
 <!-- release-coverage:end -->
 

@@ -1,8 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
-  appendJsonl,
-  channelDataPath,
+  appendChannelRow,
   channelResultPath,
   channelRunsDir,
   existingChannelRunIds,
@@ -274,7 +273,7 @@ async function main() {
 
   await fs.mkdir(runDir, { recursive: true });
   await fs.writeFile(resultPath, `${JSON.stringify(result, null, 2)}\n`);
-  await appendJsonl(channelDataPath(DISCORD_CHANNEL.id), result);
+  await appendChannelRow(DISCORD_CHANNEL.id, result);
   process.stdout.write(`imported ${runId}\n`);
 }
 

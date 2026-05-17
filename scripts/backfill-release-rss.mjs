@@ -1,6 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { channelDataPath, channelResultPath } from "./channel-storage.mjs";
+import {
+  channelDataPath,
+  channelResultPath,
+  readChannelRows,
+  writeJsonl,
+} from "./channel-storage.mjs";
 import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs";
 
 const FAMILIES = {
@@ -67,18 +72,6 @@ function parseArgs(argv) {
 
 async function readJson(pathname) {
   return JSON.parse(await fs.readFile(pathname, "utf8"));
-}
-
-async function readJsonl(pathname) {
-  const text = await fs.readFile(pathname, "utf8");
-  return text
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
-}
-
-async function writeJsonl(pathname, rows) {
-  await fs.writeFile(pathname, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
 }
 
 async function readResources(args) {
@@ -162,7 +155,9 @@ async function main() {
     throw new Error("Backfill resource metrics did not include max_rss_kb.");
   }
 
-  const rows = await readJsonl(channelDataPath(family.channelId));
+  const rows = (await readChannelRows(family.channelId)).filter(
+    (row) => row.package?.version === target.version,
+  );
   const before = rttFingerprint(rows);
   const matches = rows
     .map((row, index) => ({ row, index }))
@@ -181,7 +176,7 @@ async function main() {
     resources,
   };
   assertRttUnchanged(before, rows);
-  await writeJsonl(channelDataPath(family.channelId), rows);
+  await writeJsonl(channelDataPath(family.channelId, target.version), rows);
 
   const resultPath = channelResultPath(family.channelId, row.run.id);
   const result = await readJson(resultPath);

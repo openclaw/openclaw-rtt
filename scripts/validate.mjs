@@ -1,10 +1,5 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import { channelDataPath } from "./channel-storage.mjs";
+import { readChannelRows } from "./channel-storage.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
-
-const TELEGRAM_DATA_PATH = channelDataPath("telegram");
-const DISCORD_RTT_DATA_PATH = channelDataPath("discord");
 
 function assertRun(row, index) {
   if (typeof row !== "object" || row === null) {
@@ -153,29 +148,16 @@ function assertChannelRttRun(row, index) {
   assertResources(row, index, "Channel RTT row");
 }
 
-async function validateJsonl(pathname, label, assertRow) {
-  let text = "";
-  try {
-    text = await fs.readFile(pathname, "utf8");
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      process.stdout.write(`ok: no ${path.relative(process.cwd(), pathname)} yet\n`);
-      return;
-    }
-    throw error;
-  }
-
+function validateRows(rows, label, assertRow) {
   const seen = new Set();
-  const lines = text.split("\n").filter(Boolean);
-  lines.forEach((line, index) => {
-    const row = JSON.parse(line);
+  rows.forEach((row, index) => {
     assertRow(row, index + 1);
     if (seen.has(row.run.id)) {
       throw new Error(`duplicate ${label} run id: ${row.run.id}`);
     }
     seen.add(row.run.id);
   });
-  process.stdout.write(`ok: ${lines.length} ${label} rows\n`);
+  process.stdout.write(`ok: ${rows.length} ${label} rows\n`);
 }
 
 async function validateChannelRttRows() {
@@ -192,8 +174,8 @@ async function validateChannelRttRows() {
 }
 
 async function main() {
-  await validateJsonl(TELEGRAM_DATA_PATH, "RTT", assertRun);
-  await validateJsonl(DISCORD_RTT_DATA_PATH, "Discord RTT", assertDiscordRttRun);
+  validateRows(await readChannelRows("telegram"), "RTT", assertRun);
+  validateRows(await readChannelRows("discord"), "Discord RTT", assertDiscordRttRun);
   await validateChannelRttRows();
 }
 
