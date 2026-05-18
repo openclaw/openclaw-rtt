@@ -178,6 +178,25 @@ function extractSummaryScenarioRtt(scenario) {
     : undefined;
 }
 
+function extractGatewayResourceMetrics(summary) {
+  const metrics = summary.metrics;
+  if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
+    return {};
+  }
+  return Object.fromEntries(
+    [
+      "gatewayProcessRssStartBytes",
+      "gatewayProcessRssEndBytes",
+      "gatewayProcessRssDeltaBytes",
+      "gatewayProcessRssPeakBytes",
+      "gatewayProcessRssPeakDeltaBytes",
+    ].flatMap((metricName) => {
+      const value = metrics[metricName];
+      return typeof value === "number" && Number.isFinite(value) ? [[metricName, value]] : [];
+    }),
+  );
+}
+
 async function readSample(entry, index) {
   const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
   const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
@@ -206,7 +225,10 @@ async function readSample(entry, index) {
     rttMs,
     rttSource,
     details: scenario?.details,
-    resources,
+    resources: {
+      ...(resources ?? {}),
+      ...extractGatewayResourceMetrics(summary),
+    },
   };
 }
 

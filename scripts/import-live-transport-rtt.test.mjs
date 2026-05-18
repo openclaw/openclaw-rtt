@@ -37,6 +37,13 @@ test("imports live transport summary RTT samples", async () => {
     startedAt: "2026-05-16T00:00:00.000Z",
     finishedAt: "2026-05-16T00:00:02.000Z",
     counts: { total: 1, passed: 1, failed: 0 },
+    metrics: {
+      gatewayProcessRssStartBytes: 100_000_000,
+      gatewayProcessRssEndBytes: 125_000_000,
+      gatewayProcessRssDeltaBytes: 25_000_000,
+      gatewayProcessRssPeakBytes: 140_000_000,
+      gatewayProcessRssPeakDeltaBytes: 40_000_000,
+    },
     scenarios: [
       {
         id: "slack-canary",
@@ -82,6 +89,9 @@ test("imports live transport summary RTT samples", async () => {
   assert.deepEqual(row.resources.maxRssKbSamples, [204800]);
   assert.equal(row.resources.maxRssKb.p50, 204800);
   assert.deepEqual(row.resources.elapsedSecondsSamples, [2.5]);
+  assert.deepEqual(row.resources.gatewayProcessRssPeakBytesSamples, [140_000_000]);
+  assert.equal(row.resources.gatewayProcessRssPeakBytes.p50, 140_000_000);
+  assert.equal(row.resources.gatewayProcessRssPeakDeltaBytes.p50, 40_000_000);
   assert.deepEqual(row.polling.attemptSamples, [2]);
   assert.equal(row.polling.retryCount, 1);
   assert.equal(row.polling.maxAttempts, 2);
