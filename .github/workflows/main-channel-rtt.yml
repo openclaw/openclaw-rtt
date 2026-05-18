@@ -173,6 +173,8 @@ jobs:
         working-directory: openclaw
         env:
           NODE_OPTIONS: --max-old-space-size=8192
+          OPENCLAW_BUILD_PRIVATE_QA: "1"
+          OPENCLAW_ENABLE_PRIVATE_QA_CLI: "1"
         shell: bash
         run: |
           set -euo pipefail
