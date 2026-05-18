@@ -35,7 +35,9 @@ env:
   CHANNEL_RTT_MAX_ATTEMPTS: "3"
   CHANNEL_RTT_RETRY_BASE_SECONDS: "15"
   CHANNEL_RTT_RETRY_MAX_SECONDS: "60"
-  CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS: "120"
+  # Must exceed OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS so lease waits can
+  # finish and the QA CLI can write a structured failure summary.
+  CHANNEL_RTT_SAMPLE_TIMEOUT_SECONDS: "300"
 
 jobs:
   resolve:
