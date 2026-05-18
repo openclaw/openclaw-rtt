@@ -117,3 +117,55 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
   assert.equal(row.resources.maxRssKb.p50, 204800);
   assert.equal(row.resources.elapsedSeconds.p50, 12.5);
 });
+
+test("prefers Discord summary rttMs over observed-message fallback", async () => {
+  const workspace = await makeWorkspace();
+  const sampleDir = path.join(workspace, "sample-1");
+  await fs.mkdir(sampleDir, { recursive: true });
+  await fs.writeFile(
+    path.join(sampleDir, "discord-qa-summary.json"),
+    `${JSON.stringify({
+      startedAt: "2026-05-16T00:00:00.000Z",
+      finishedAt: "2026-05-16T00:00:45.000Z",
+      counts: { total: 1, passed: 1, failed: 0 },
+      scenarios: [{ id: "discord-canary", status: "pass", rttMs: 6123 }],
+      credentials: { source: "convex", role: "ci" },
+    })}\n`,
+  );
+  await fs.writeFile(
+    path.join(sampleDir, "discord-qa-observed-messages.json"),
+    `${JSON.stringify([
+      {
+        scenarioId: "discord-canary",
+        matchedScenario: true,
+      },
+    ])}\n`,
+  );
+  await fs.writeFile(
+    path.join(workspace, "samples.tsv"),
+    `${path.join(sampleDir, "discord-qa-summary.json")}\t${path.join(
+      sampleDir,
+      "discord-qa-observed-messages.json",
+    )}\n`,
+  );
+
+  await execFileAsync(process.execPath, [
+    IMPORT_SCRIPT,
+    path.join(workspace, "samples.tsv"),
+    "--spec",
+    "openclaw@2026.5.17",
+    "--version",
+    "2026.5.17",
+    "--require-pass",
+  ], { cwd: workspace });
+
+  const result = JSON.parse(
+    await fs.readFile(
+      path.join(workspace, "runs/discord/2026-05-16T000000000Z-openclaw_2026.5.17-discord-rtt/result.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(result.rtt.p50Ms, 6123);
+  assert.deepEqual(result.rtt.sources, ["summary-rtt"]);
+  assert.equal(result.discord.samples[0].rttSource, "summary-rtt");
+});

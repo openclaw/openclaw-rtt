@@ -169,6 +169,15 @@ function extractSummaryDurationRtt(summary) {
   return Number.isFinite(rttMs) ? rttMs : undefined;
 }
 
+function extractSummaryScenarioRtt(scenario) {
+  if (scenario?.status !== "pass") {
+    return undefined;
+  }
+  return typeof scenario.rttMs === "number" && Number.isFinite(scenario.rttMs)
+    ? Math.max(0, Math.round(scenario.rttMs))
+    : undefined;
+}
+
 async function readSample(entry, index) {
   const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
   const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
@@ -176,15 +185,26 @@ async function readSample(entry, index) {
     ? await readResourceMetrics(path.resolve(entry.resourceMetricsPath))
     : undefined;
   const scenario = summary.scenarios.find((item) => item?.id === "discord-canary");
+  const summaryRttMs = extractSummaryScenarioRtt(scenario);
   const observedRttMs = extractCanaryRtt(observedMessages);
   const rttMs =
-    observedRttMs ?? (scenario?.status === "pass" ? extractSummaryDurationRtt(summary) : undefined);
+    summaryRttMs ??
+    observedRttMs ??
+    (scenario?.status === "pass" ? extractSummaryDurationRtt(summary) : undefined);
+  const rttSource =
+    summaryRttMs !== undefined
+      ? "summary-rtt"
+      : observedRttMs !== undefined
+        ? "observed-message"
+        : rttMs !== undefined
+          ? "summary-duration"
+          : undefined;
   return {
     index,
     summary,
     status: scenario?.status === "pass" && rttMs !== undefined ? "pass" : "fail",
     rttMs,
-    rttSource: observedRttMs === undefined && rttMs !== undefined ? "summary-duration" : "observed-message",
+    rttSource,
     details: scenario?.details,
     resources,
   };
