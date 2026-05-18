@@ -111,6 +111,27 @@ function readVersionSetEnv(name) {
   );
 }
 
+function readRequestedVersionsEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    return [];
+  }
+  const versions = [
+    ...new Set(
+      value
+        .split(/[\s,]+/u)
+        .map((part) => part.trim())
+        .filter(Boolean),
+    ),
+  ];
+  for (const version of versions) {
+    if (!parseVersion(version)) {
+      throw new Error(`${name} contains unsupported OpenClaw version: ${version}`);
+    }
+  }
+  return versions;
+}
+
 function writeOutput(values) {
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) {
@@ -121,11 +142,16 @@ function writeOutput(values) {
 
 const rows = await readRows();
 const anchor = latestMeasuredStable(rows);
+const requestedVersions = readRequestedVersionsEnv("INPUT_VERSIONS");
 const rssBackfill = process.env.INPUT_RSS_BACKFILL === "true";
 const rssBackfillLimit = readPositiveIntegerEnv("INPUT_RSS_BACKFILL_LIMIT");
 const rssBackfillSkipVersions = readVersionSetEnv("INPUT_RSS_BACKFILL_SKIP_VERSIONS");
 let queue;
-if (rssBackfill) {
+if (requestedVersions.length > 0) {
+  queue = requestedVersions
+    .map((version) => ({ version, spec: `openclaw@${version}` }))
+    .sort((left, right) => compareVersions(left.version, right.version));
+} else if (rssBackfill) {
   queue = releaseRows(rows)
     .filter((row) => row.resources?.maxRssKb?.max === undefined)
     .filter((row) => !rssBackfillSkipVersions.has(row.package.version))
@@ -153,7 +179,9 @@ await writeOutput({
   rss_backfill: rssBackfill ? "true" : "false",
   reason:
     queue.length > 0
-      ? rssBackfill
+      ? requestedVersions.length > 0
+        ? "requested-release-versions"
+        : rssBackfill
         ? "release-rss-backfill"
         : "new-release-versions"
       : rssBackfill

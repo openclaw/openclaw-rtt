@@ -5,6 +5,11 @@ on:
     - cron: "15 */6 * * *"
   workflow_dispatch:
     inputs:
+      versions:
+        description: Space or comma separated OpenClaw versions to measure
+        required: false
+        default: ""
+        type: string
       rss_backfill:
         description: Backfill RSS onto existing release rows without changing RTT values
         required: false
@@ -57,6 +62,7 @@ jobs:
         id: release
         working-directory: openclaw-rtt
         env:
+          INPUT_VERSIONS: ${{ github.event_name == 'workflow_dispatch' && inputs.versions || '' }}
           INPUT_RSS_BACKFILL: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill || 'false' }}
           INPUT_RSS_BACKFILL_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_limit || '' }}
           INPUT_RSS_BACKFILL_SKIP_VERSIONS: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_skip_versions || '' }}
