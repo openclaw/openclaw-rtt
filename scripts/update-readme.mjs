@@ -89,6 +89,7 @@ function latestMainRow({ label, row, rssP50 = "n/a", rssP95 = "n/a" }) {
 
 function latestStartedAt(rows) {
   return rows
+    .filter(Boolean)
     .map((row) => row.run.startedAt)
     .sort()
     .at(-1);
@@ -311,7 +312,6 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
     ...new Set([...rowsByChannel.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
   ]
     .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
-    .filter((version) => RELEASE_COVERAGE_CHANNELS.every((label) => rowsByChannel.get(label)?.has(version)))
     .sort((left, right) => compareVersions(right, left));
   if (versions.length === 0) {
     return [

@@ -44,7 +44,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 ## Release Coverage Matrix
 
-Version-by-version RTT coverage for release canaries. The matrix shows only versions where all four channel families have a compatible imported row, so the comparison stays dense and readable. A `-` cell means the row exists but that channel produced no successful RTT sample for the version.
+Version-by-version RTT coverage for release canaries. The matrix follows imported release versions from `2026.4.24` onward and leaves missing channel/version cells as `-`. A `-` cell means no compatible row exists for that channel/version yet, or an imported row produced no successful RTT sample.
 
 Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; `p50 σ` is the standard deviation across channel p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
 
@@ -65,6 +65,16 @@ Latest imported channel run: `2026-05-18T09:09:04.859Z`
 | `2026.5.14-beta.1` | `8,082ms` | `1,004ms` | `22,035ms` | `4,211ms` | `6,636ms` |
 | `2026.5.12` | `7,071ms` | `2,858ms` | `20,640ms` | `4,170ms` | `7,035ms` |
 | `2026.5.9-beta.1` | `5,604ms` | `2,517ms` | `16,759ms` | `4,488ms` | `4,971ms` |
+| `2026.5.7` | `6,981ms` | `3,499ms` | `18,948ms` | `4,877ms` | - |
+| `2026.5.6` | `6,537ms` | `3,497ms` | `18,001ms` | `4,876ms` | - |
+| `2026.5.4` | `6,926ms` | `3,504ms` | `18,937ms` | `5,121ms` | - |
+| `2026.5.3` | `738ms` | `3,505ms` | - | `4,980ms` | - |
+| `2026.5.2` | `8,323ms` | `3,501ms` | `20,146ms` | - | - |
+| `2026.4.29` | - | `17,936ms` | - | - | - |
+| `2026.4.27` | `16,110ms` | `4,639ms` | `36,858ms` | - | - |
+| `2026.4.26` | `13,405ms` | `5,880ms` | `32,689ms` | - | - |
+| `2026.4.25` | `20,925ms` | `7,508ms` | `49,357ms` | - | - |
+| `2026.4.24` | `15,325ms` | `2,679ms` | `33,328ms` | - | - |
 
 <!-- release-coverage:end -->
 

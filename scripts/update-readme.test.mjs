@@ -225,7 +225,7 @@ test("keeps latest passing main rows visible when a newer run fails", async () =
   assert.doesNotMatch(dashboardSection, /fail123456|slackfail/u);
 });
 
-test("renders dense release coverage across Telegram, Discord, Slack, and WhatsApp", async () => {
+test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
@@ -294,9 +294,15 @@ test("renders dense release coverage across Telegram, Discord, Slack, and WhatsA
     coverageSection,
     /\| `2026\.5\.16-beta\.1` \| `2,660ms` \| `1,100ms` \| `6,000ms` \| `3,000ms` \| `8,000ms` \|/u,
   );
-  assert.doesNotMatch(coverageSection, /2026\.5\.12/u);
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \|/u,
+  );
   assert.doesNotMatch(coverageSection, /2026\.4\.15/u);
-  assert.doesNotMatch(coverageSection, /2026\.5\.3/u);
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.3` \| - \| `950ms` \| - \| - \| - \|/u,
+  );
 
   const telegramSection = readme.slice(
     readme.indexOf("<!-- release-sweep:start -->"),
