@@ -12,7 +12,7 @@ channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbo
 
 That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. Command RSS appears when the importing workflow collected process resource metrics around the sampled command; older release rows stay blank until an RSS backfill run updates only the resource fields.
 
-Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries. Command RSS is not pure channel transport memory: for Discord, Slack, and WhatsApp it includes the QA-lab command process and any cold-start overhead. `-` cells mean no imported compatible run exists yet or the canary could not produce a usable row for that version.
+Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `telegram-mentioned-message-reply`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries. Command RSS is not pure channel transport memory: for Discord, Slack, and WhatsApp it includes the QA-lab command process and any cold-start overhead. `-` cells mean no successful RTT sample was imported for that channel/version yet, or an imported all-failed run exists but produced no usable RTT value.
 
 Reports:
 
@@ -44,7 +44,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 ## Release Coverage Matrix
 
-Version-by-version RTT coverage for release canaries. The matrix shows only versions where all four channel families have a compatible imported row, so the comparison stays dense and readable.
+Version-by-version RTT coverage for release canaries. The matrix shows only versions where all four channel families have a compatible imported row, so the comparison stays dense and readable. A `-` cell means the row exists but that channel produced no successful RTT sample for the version.
 
 Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; `p50 σ` is the standard deviation across channel p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
 

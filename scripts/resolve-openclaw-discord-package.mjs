@@ -100,6 +100,35 @@ function readPositiveIntegerEnv(name) {
   return Number(value);
 }
 
+function readRequestedVersionsEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    return [];
+  }
+  const versions = [
+    ...new Set(
+      value
+        .split(/[\s,]+/u)
+        .map((part) => part.trim())
+        .filter(Boolean),
+    ),
+  ];
+  for (const version of versions) {
+    if (!parseVersion(version)) {
+      throw new Error(`${name} contains unsupported OpenClaw version: ${version}`);
+    }
+    if (compareVersions(version, DISCORD_RELEASE_MIN_VERSION) < 0) {
+      throw new Error(
+        `${name} contains Discord release version before ${DISCORD_RELEASE_MIN_VERSION}: ${version}`,
+      );
+    }
+    if (DISCORD_RELEASE_PROTOCOL_GAPS.has(version)) {
+      throw new Error(`${name} contains a known Discord release protocol gap: ${version}`);
+    }
+  }
+  return versions;
+}
+
 function writeOutput(values) {
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) {
@@ -122,10 +151,21 @@ if (!anchor) {
   throw new Error("No measured openclaw release baseline found.");
 }
 
+const requestedVersions = readRequestedVersionsEnv("INPUT_VERSIONS");
 const rssBackfill = process.env.INPUT_RSS_BACKFILL === "true";
 const rssBackfillLimit = readPositiveIntegerEnv("INPUT_RSS_BACKFILL_LIMIT");
 let queue;
-if (rssBackfill) {
+if (requestedVersions.length > 0) {
+  const publishedVersions = new Set(await npmVersions());
+  queue = requestedVersions
+    .map((version) => {
+      if (!publishedVersions.has(version)) {
+        throw new Error(`Requested OpenClaw version is not published on npm: ${version}`);
+      }
+      return { version, spec: `openclaw@${version}`, tag: `v${version}` };
+    })
+    .sort((left, right) => compareVersions(left.version, right.version));
+} else if (rssBackfill) {
   queue = discordRows
     .filter((row) => row.resources?.maxRssKb?.max === undefined)
     .map((row) => ({
@@ -137,7 +177,7 @@ if (rssBackfill) {
     .slice(0, rssBackfillLimit);
 } else {
   const measured = new Set(
-    successfulDiscordRows.map((row) => `${row.package.spec}\0${row.package.version}`),
+    discordRows.map((row) => `${row.package.spec}\0${row.package.version}`),
   );
   queue = (await npmVersions())
     .filter((version) => typeof version === "string" && parseVersion(version))
@@ -151,12 +191,17 @@ if (rssBackfill) {
     )
     .sort((left, right) => compareVersions(left.version, right.version));
 }
-const missingBaselineCount = rssBackfill ? 0 : queue.filter((pkg) => baselineVersions.has(pkg.version)).length;
+const missingBaselineCount =
+  rssBackfill || requestedVersions.length > 0
+    ? 0
+    : queue.filter((pkg) => baselineVersions.has(pkg.version)).length;
 const reason =
   queue.length === 0
     ? rssBackfill
       ? "no-discord-release-rss-backfill-needed"
       : "no-new-or-missing-discord-release-versions"
+    : requestedVersions.length > 0
+      ? "requested-discord-release-versions"
     : rssBackfill
       ? "discord-release-rss-backfill"
       : missingBaselineCount > 0

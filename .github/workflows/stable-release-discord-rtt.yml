@@ -5,6 +5,11 @@ on:
     - cron: "45 */6 * * *"
   workflow_dispatch:
     inputs:
+      versions:
+        description: Space or comma separated OpenClaw versions to measure
+        required: false
+        default: ""
+        type: string
       samples:
         description: Number of Discord canary RTT samples
         required: false
@@ -57,6 +62,7 @@ jobs:
       - name: Resolve OpenClaw Discord packages
         id: release
         env:
+          INPUT_VERSIONS: ${{ github.event_name == 'workflow_dispatch' && inputs.versions || '' }}
           INPUT_RSS_BACKFILL: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill || 'false' }}
           INPUT_RSS_BACKFILL_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.rss_backfill_limit || '' }}
         shell: bash
@@ -77,7 +83,7 @@ jobs:
     timeout-minutes: 120
     environment: qa-live-shared
     concurrency:
-      group: release-discord-rtt-measure-${{ github.ref }}
+      group: release-discord-rtt-measure-${{ github.ref }}-${{ matrix.package.version }}
       cancel-in-progress: false
     strategy:
       fail-fast: false
@@ -291,7 +297,7 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && needs.resolve.outputs.should_run == 'true'
+    if: always() && needs.resolve.outputs.should_run == 'true' && needs.measure.result != 'cancelled'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
