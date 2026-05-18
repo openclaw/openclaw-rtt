@@ -241,6 +241,7 @@ jobs:
             summary_path="${output_dir}/${{ matrix.package.summary }}"
             observed_path="${output_dir}/${{ matrix.package.observed }}"
             metrics_path="${output_dir}/resource-metrics.env"
+            sample_started_at="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
             status=1
             for attempt in $(seq 1 "$max_attempts"); do
               rm -rf "$output_dir"
@@ -286,13 +287,24 @@ jobs:
               fi
             done
             if [[ ! -f "$summary_path" ]]; then
-              echo "No ${{ matrix.package.label }} QA summary produced for sample ${sample}." >&2
-              exit "$status"
+              echo "No ${{ matrix.package.label }} QA summary produced for sample ${sample}; recording failed sample." >&2
+              sample_finished_at="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
+              node "${workspace_root}/openclaw-rtt/scripts/write-failed-channel-summary.mjs" \
+                "$summary_path" \
+                "${{ matrix.package.scenario }}" \
+                "${{ matrix.package.label }} canary" \
+                "QA command exited with status ${status} before writing a summary." \
+                "$sample_started_at" \
+                "$sample_finished_at"
+              scenario_status="fail"
             fi
             if [[ -f "$observed_path" ]]; then
               printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
             else
               printf '%s\t\t%s\n' "${PWD}/${summary_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
+            fi
+            if [[ "$scenario_status" != "pass" ]]; then
+              break
             fi
           done
 
@@ -408,8 +420,7 @@ jobs:
               --spec "$spec" \
               --version "$version" \
               --provider-mode mock-openai \
-              --scenario "$scenario" \
-              --require-pass
+              --scenario "$scenario"
           done
           node scripts/update-readme.mjs
           node scripts/validate.mjs
