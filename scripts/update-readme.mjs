@@ -147,11 +147,15 @@ function mainDashboardRows(telegramRow, discordRow, channelRows) {
       label: "Telegram",
       scenario: "telegram-mentioned-message-reply",
       row: telegramRow,
+      rssP50: formatRssKb(telegramRow?.resources?.maxRssKb?.p50),
+      rssP95: formatRssKb(telegramRow?.resources?.maxRssKb?.p95),
     },
     {
       label: "Discord",
       scenario: "discord-canary",
       row: discordRow,
+      rssP50: formatRssKb(discordRow?.resources?.maxRssKb?.p50),
+      rssP95: formatRssKb(discordRow?.resources?.maxRssKb?.p95),
     },
     ...mainChannelRttRows(channelRows).map((row) => ({
       label: row.channel.label,

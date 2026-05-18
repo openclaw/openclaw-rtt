@@ -122,6 +122,7 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
       package: { spec: "openclaw@main", version: "2026.5.16+telegram1234" },
       run: { id: "telegram-run", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
       rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
+      resources: { maxRssKb: { p50: 153600, p95: 204800, max: 204800 } },
     }),
   ]);
   await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
@@ -129,6 +130,7 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
       package: { spec: "openclaw@main", version: "2026.5.16+discord1234" },
       run: { id: "discord-run", startedAt: "2026-05-16T00:01:00.000Z", status: "pass" },
       rtt: { warmSamples: [6000, 7000], p50Ms: 6000, p95Ms: 7000 },
+      resources: { maxRssKb: { p50: 256000, p95: 358400, max: 358400 } },
     }),
   ]);
   await writeJsonl(path.join(workspace, "data/channels/slack.jsonl"), [
@@ -169,8 +171,8 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   assert.doesNotMatch(readme, /\| Channel \|.*\| Samples \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Retries \|/u);
   assert.doesNotMatch(readme, /\| Channel \|.*\| Updated \|/u);
-  assert.match(readme, /\| Telegram \| `1,000ms` \| `2,000ms` \| n\/a \| n\/a \|/u);
-  assert.match(readme, /\| Discord \| `6,000ms` \| `7,000ms` \| n\/a \| n\/a \|/u);
+  assert.match(readme, /\| Telegram \| `1,000ms` \| `2,000ms` \| `150MB` \| `200MB` \|/u);
+  assert.match(readme, /\| Discord \| `6,000ms` \| `7,000ms` \| `250MB` \| `350MB` \|/u);
   assert.match(readme, /\| Slack \| `4,000ms` \| `5,000ms` \| `200MB` \| `300MB` \|/u);
   assert.match(readme, /\| WhatsApp \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });
