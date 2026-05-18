@@ -143,6 +143,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|
+| `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `699MB` | `762MB` |
 | `2026.5.16-beta.6` | `4,719ms` | `5,051ms` | `724MB` | `760MB` |
 | `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `725MB` | `1,008MB` |
 | `2026.5.16-beta.4` | `4,255ms` | `5,484ms` | `671MB` | `709MB` |
@@ -168,6 +169,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `838MB` | `2,714MB` |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` |
