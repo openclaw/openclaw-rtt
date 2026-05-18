@@ -19,6 +19,14 @@ export function numericStats(samples) {
   };
 }
 
+const GATEWAY_RSS_METRIC_NAMES = Object.freeze([
+  "gatewayProcessRssStartBytes",
+  "gatewayProcessRssEndBytes",
+  "gatewayProcessRssDeltaBytes",
+  "gatewayProcessRssPeakBytes",
+  "gatewayProcessRssPeakDeltaBytes",
+]);
+
 function readFiniteNumber(value, label) {
   if (value === undefined || value === "") {
     return undefined;
@@ -56,7 +64,24 @@ export function aggregateResources(samples, measurement) {
   const elapsedSecondsSamples = samples.flatMap((sample) =>
     typeof sample.elapsedSeconds === "number" ? [sample.elapsedSeconds] : [],
   );
-  if (maxRssKbSamples.length === 0 && elapsedSecondsSamples.length === 0) {
+  const gatewayRssStats = Object.fromEntries(
+    GATEWAY_RSS_METRIC_NAMES.flatMap((metricName) => {
+      const metricSamples = samples.flatMap((sample) =>
+        typeof sample[metricName] === "number" ? [sample[metricName]] : [],
+      );
+      return metricSamples.length === 0
+        ? []
+        : [
+            [`${metricName}Samples`, metricSamples],
+            [metricName, numericStats(metricSamples)],
+          ];
+    }),
+  );
+  if (
+    maxRssKbSamples.length === 0 &&
+    elapsedSecondsSamples.length === 0 &&
+    Object.keys(gatewayRssStats).length === 0
+  ) {
     return undefined;
   }
   return {
@@ -65,5 +90,6 @@ export function aggregateResources(samples, measurement) {
     elapsedSecondsSamples,
     maxRssKb: numericStats(maxRssKbSamples),
     elapsedSeconds: numericStats(elapsedSecondsSamples),
+    ...gatewayRssStats,
   };
 }

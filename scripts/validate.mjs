@@ -55,23 +55,23 @@ function assertResources(row, index, label) {
   if (typeof row.resources !== "object" || row.resources === null || Array.isArray(row.resources)) {
     throw new Error(`${label} ${index} has invalid resources`);
   }
-  if (
-    row.resources.maxRssKbSamples !== undefined &&
-    (!Array.isArray(row.resources.maxRssKbSamples) ||
-      row.resources.maxRssKbSamples.some(
-        (sample) => typeof sample !== "number" || !Number.isFinite(sample),
-      ))
-  ) {
-    throw new Error(`${label} ${index} has invalid resources.maxRssKbSamples`);
-  }
-  if (
-    row.resources.elapsedSecondsSamples !== undefined &&
-    (!Array.isArray(row.resources.elapsedSecondsSamples) ||
-      row.resources.elapsedSecondsSamples.some(
-        (sample) => typeof sample !== "number" || !Number.isFinite(sample),
-      ))
-  ) {
-    throw new Error(`${label} ${index} has invalid resources.elapsedSecondsSamples`);
+  for (const samplesName of [
+    "maxRssKbSamples",
+    "elapsedSecondsSamples",
+    "gatewayProcessRssStartBytesSamples",
+    "gatewayProcessRssEndBytesSamples",
+    "gatewayProcessRssDeltaBytesSamples",
+    "gatewayProcessRssPeakBytesSamples",
+    "gatewayProcessRssPeakDeltaBytesSamples",
+  ]) {
+    const samples = row.resources[samplesName];
+    if (
+      samples !== undefined &&
+      (!Array.isArray(samples) ||
+        samples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample)))
+    ) {
+      throw new Error(`${label} ${index} has invalid resources.${samplesName}`);
+    }
   }
   if (row.resources.measurement !== undefined) {
     if (
@@ -91,6 +91,11 @@ function assertResources(row, index, label) {
   for (const [metricName, stats] of Object.entries({
     maxRssKb: row.resources.maxRssKb,
     elapsedSeconds: row.resources.elapsedSeconds,
+    gatewayProcessRssStartBytes: row.resources.gatewayProcessRssStartBytes,
+    gatewayProcessRssEndBytes: row.resources.gatewayProcessRssEndBytes,
+    gatewayProcessRssDeltaBytes: row.resources.gatewayProcessRssDeltaBytes,
+    gatewayProcessRssPeakBytes: row.resources.gatewayProcessRssPeakBytes,
+    gatewayProcessRssPeakDeltaBytes: row.resources.gatewayProcessRssPeakDeltaBytes,
   })) {
     if (stats === undefined) {
       continue;

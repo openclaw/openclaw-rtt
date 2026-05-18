@@ -65,6 +65,13 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
       startedAt: "2026-05-16T00:00:00.000Z",
       finishedAt: "2026-05-16T00:00:45.000Z",
       counts: { total: 1, passed: 1, failed: 0 },
+      metrics: {
+        gatewayProcessRssStartBytes: 100_000_000,
+        gatewayProcessRssEndBytes: 125_000_000,
+        gatewayProcessRssDeltaBytes: 25_000_000,
+        gatewayProcessRssPeakBytes: 140_000_000,
+        gatewayProcessRssPeakDeltaBytes: 40_000_000,
+      },
       scenarios: [{ id: "discord-canary", status: "pass" }],
       credentials: { source: "convex", role: "ci" },
     })}\n`,
@@ -116,6 +123,9 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
   assert.deepEqual(row.resources.maxRssKbSamples, [204800]);
   assert.equal(row.resources.maxRssKb.p50, 204800);
   assert.equal(row.resources.elapsedSeconds.p50, 12.5);
+  assert.deepEqual(row.resources.gatewayProcessRssPeakBytesSamples, [140_000_000]);
+  assert.equal(row.resources.gatewayProcessRssPeakBytes.p50, 140_000_000);
+  assert.equal(row.resources.gatewayProcessRssPeakDeltaBytes.p50, 40_000_000);
 });
 
 test("prefers Discord summary rttMs over observed-message fallback", async () => {

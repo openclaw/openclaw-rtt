@@ -9,6 +9,7 @@ import {
   channelRttRunsDir,
   resolveChannelRttChannel,
 } from "./channel-rtt-config.mjs";
+import { aggregateResources } from "./resource-metrics.mjs";
 
 function usage() {
   return [
@@ -201,6 +202,25 @@ function readAttemptCount(value) {
   return value;
 }
 
+function extractGatewayResourceMetrics(summary) {
+  const metrics = summary.metrics;
+  if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) {
+    return {};
+  }
+  return Object.fromEntries(
+    [
+      "gatewayProcessRssStartBytes",
+      "gatewayProcessRssEndBytes",
+      "gatewayProcessRssDeltaBytes",
+      "gatewayProcessRssPeakBytes",
+      "gatewayProcessRssPeakDeltaBytes",
+    ].flatMap((metricName) => {
+      const value = metrics[metricName];
+      return typeof value === "number" && Number.isFinite(value) ? [[metricName, value]] : [];
+    }),
+  );
+}
+
 function selectScenario(summary, scenarioId) {
   const scenario = summary.scenarios.find((item) => item?.id === scenarioId);
   if (!scenario) {
@@ -230,6 +250,7 @@ async function readSample(entry, index, scenarioId) {
       ...(resourceMetrics.elapsed_seconds === undefined
         ? {}
         : { elapsedSeconds: resourceMetrics.elapsed_seconds }),
+      ...extractGatewayResourceMetrics(summary),
     },
     scenario: {
       details: scenario.details,
@@ -282,12 +303,22 @@ async function main() {
   const warmSamples = samples.flatMap((sample) =>
     sample.scenario.status === "pass" ? [sample.scenario.rttMs] : [],
   );
-  const maxRssKbSamples = samples.flatMap((sample) =>
-    typeof sample.resources.maxRssKb === "number" ? [sample.resources.maxRssKb] : [],
-  );
-  const elapsedSecondsSamples = samples.flatMap((sample) =>
-    typeof sample.resources.elapsedSeconds === "number" ? [sample.resources.elapsedSeconds] : [],
-  );
+  const resources =
+    aggregateResources(samples.map((sample) => sample.resources), {
+      kind: "process-max-rss",
+      scope: "qa-command",
+      command: `pnpm openclaw qa ${channel.command}`,
+    }) ?? {
+      measurement: {
+        kind: "process-max-rss",
+        scope: "qa-command",
+        command: `pnpm openclaw qa ${channel.command}`,
+      },
+      maxRssKbSamples: [],
+      elapsedSecondsSamples: [],
+      maxRssKb: numericStats([]),
+      elapsedSeconds: numericStats([]),
+    };
   const attemptSamples = samples.map((sample) => sample.attempts);
   const retryCount = attemptSamples.reduce((total, attempts) => total + Math.max(0, attempts - 1), 0);
   const failedSamples = samples.length - warmSamples.length;
@@ -325,17 +356,7 @@ async function main() {
       failedSamples,
       ...stats(warmSamples),
     },
-    resources: {
-      measurement: {
-        kind: "process-max-rss",
-        scope: "qa-command",
-        command: `pnpm openclaw qa ${channel.command}`,
-      },
-      maxRssKbSamples,
-      elapsedSecondsSamples,
-      maxRssKb: numericStats(maxRssKbSamples),
-      elapsedSeconds: numericStats(elapsedSecondsSamples),
-    },
+    resources,
     samples: samples.map((sample) => ({
       index: sample.index,
       status: sample.scenario.status,
