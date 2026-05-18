@@ -24,7 +24,7 @@ Required pieces:
 - Add the channel id, display label, CLI command, and default canary scenario in `scripts/channel-rtt-config.mjs`.
 - Add or extend a workflow that runs `pnpm openclaw qa <channel>` with Convex-managed CI credentials and `OPENCLAW_QA_REDACT_PUBLIC_METADATA=1`.
 - Import with `scripts/import-live-transport-rtt.mjs`, passing the summary TSV, channel id, `openclaw@main` or release spec, version/ref, provider mode, and scenario id.
-- Capture per-sample command resource metrics with `/usr/bin/time` and include the metrics path in the importer TSV so command RSS appears beside RTT in the dashboard.
+- Capture per-sample process resource metrics with `/usr/bin/time` and include the metrics path in the importer TSV so RSS appears beside RTT in the dashboard.
 - Record the attempt count in the resource metrics file. The importer stores per-sample attempts and aggregate retry count so the dashboard can show when a green sample needed transient recovery.
 - Commit only `README.md`, `data/channels/<channel>/`, and `runs/<channel>/`.
 - Add importer proof with `node --test` when the new channel has a new artifact shape.
@@ -39,9 +39,9 @@ Discord is intentionally not migrated to the generic live-transport importer yet
 
 Telegram is listed in the channel config for the future live-transport path, but the current production graph remains on the older `pnpm rtt` package-result path because that is what release sweeps already use.
 
-Do not read cross-channel values as pure transport rankings. Telegram release rows use `telegram-mentioned-message-reply`; Discord, Slack, and WhatsApp rows use canary scenarios. The live-transport lane also includes QA-lab process overhead in command RSS because the measured process is `pnpm openclaw qa <channel>`, not only the channel adapter.
+Do not read cross-channel values as pure transport rankings. Telegram release rows use `telegram-mentioned-message-reply`; Discord, Slack, and WhatsApp rows use canary scenarios. The live-transport lane also includes QA-lab process overhead in RSS because the measured process is `pnpm openclaw qa <channel>`, not only the channel adapter.
 
-Slack and WhatsApp rows come from `openclaw qa <channel>` canaries, so their command RSS columns include the QA-lab sample process and should not be read as pure channel transport memory.
+Slack and WhatsApp rows come from `openclaw qa <channel>` canaries, so their RSS columns include the QA-lab sample process and should not be read as pure channel transport memory.
 
 ## CI And Security
 
