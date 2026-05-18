@@ -33,7 +33,7 @@ Latest imported channel run: `2026-05-18T07:37:29.021Z` · latest `2026.5.17` / 
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|
-| Telegram | `1,088ms` | `2,340ms` | n/a | n/a |
+| Telegram | `1,088ms` | `2,340ms` | `135MB` | `135MB` |
 | Discord | `26,486ms` | `27,607ms` | n/a | n/a |
 | Slack | `4,568ms` | `5,796ms` | `670MB` | `681MB` |
 | WhatsApp | `7,485ms` | `8,382ms` | `828MB` | `1,597MB` |
