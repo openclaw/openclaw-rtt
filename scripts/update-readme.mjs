@@ -106,6 +106,31 @@ function latestDashboardRow(rows) {
   return latestPassingRow(rows) ?? latestRow(rows);
 }
 
+function hasRttMetric(row) {
+  return typeof row?.rtt?.p50Ms === "number" || typeof row?.rtt?.p95Ms === "number";
+}
+
+function hasRssMetric(row) {
+  return (
+    typeof row?.resources?.maxRssKb?.p50 === "number" ||
+    typeof row?.resources?.maxRssKb?.p95 === "number"
+  );
+}
+
+function latestReleaseSummaryRow(rows) {
+  const latest = latestRow(rows);
+  if (!latest) {
+    return undefined;
+  }
+  const rttRow = latestRow(rows.filter(hasRttMetric)) ?? latest;
+  const rssRow = latestRow(rows.filter(hasRssMetric)) ?? latest;
+  return {
+    ...latest,
+    rtt: rttRow.rtt,
+    resources: rssRow.resources,
+  };
+}
+
 function versionAndRef(value) {
   const formatted = formatVersion(value);
   const [version, ref] = formatted.split("+", 2);
@@ -209,9 +234,14 @@ function releaseRows(rows, specRe = RELEASE_SPEC_RE) {
     if (!specRe.test(row.package.spec)) {
       continue;
     }
-    byVersion.set(row.package.version, row);
+    const existing = byVersion.get(row.package.version) ?? [];
+    existing.push(row);
+    byVersion.set(row.package.version, existing);
   }
-  return [...byVersion.values()].sort((left, right) => compareVersions(right.package.version, left.package.version));
+  return [...byVersion.values()]
+    .map(latestReleaseSummaryRow)
+    .filter(Boolean)
+    .sort((left, right) => compareVersions(right.package.version, left.package.version));
 }
 
 function releaseTableFor(rows, start, end) {

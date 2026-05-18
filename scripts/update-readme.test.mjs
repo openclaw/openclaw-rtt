@@ -382,3 +382,66 @@ test("renders release coverage p50 cells without failure labels", async () => {
   );
   assert.doesNotMatch(coverageSection, /Fail/u);
 });
+
+test("keeps prior release RTT visible when a newer import has only RSS", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  const version = "2026.5.16-beta.6";
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    rttRow({
+      package: { spec: `openclaw@${version}`, version },
+      run: { id: "telegram-pass", startedAt: "2026-05-18T00:00:00.000Z", status: "pass" },
+      rtt: { warmSamples: [1400], p50Ms: 1400, p95Ms: 1500 },
+    }),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
+    rttRow({
+      package: { spec: `openclaw@${version}`, version },
+      run: { id: "discord-partial", startedAt: "2026-05-18T00:01:00.000Z", status: "fail" },
+      rtt: { warmSamples: [7800], p50Ms: 7800, p95Ms: 7900 },
+      resources: { maxRssKb: { p50: 700000, p95: 710000, max: 710000 } },
+    }),
+    rttRow({
+      package: { spec: `openclaw@${version}`, version },
+      run: { id: "discord-all-failed", startedAt: "2026-05-18T00:05:00.000Z", status: "fail" },
+      rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+      resources: { maxRssKb: { p50: 786432, p95: 798720, max: 798720 } },
+    }),
+  ]);
+  for (const [channel, label, p50] of [
+    ["slack", "Slack", 4700],
+    ["whatsapp", "WhatsApp", 7600],
+  ]) {
+    await writeJsonl(path.join(workspace, `data/channels/${channel}.jsonl`), [
+      {
+        channel: { id: channel, label, scenario: `${channel}-canary` },
+        ...rttRow({
+          package: { spec: `openclaw@${version}`, version },
+          run: { id: `${channel}-pass`, startedAt: "2026-05-18T00:02:00.000Z", status: "pass" },
+          rtt: { warmSamples: [p50], p50Ms: p50, p95Ms: p50 + 100 },
+        }),
+      },
+    ]);
+  }
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const coverageSection = readme.slice(
+    readme.indexOf("<!-- release-coverage:start -->"),
+    readme.indexOf("<!-- release-coverage:end -->"),
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \|/u,
+  );
+
+  const discordSection = readme.slice(
+    readme.indexOf("<!-- discord-release-sweep:start -->"),
+    readme.indexOf("<!-- discord-release-sweep:end -->"),
+  );
+  assert.match(
+    discordSection,
+    /\| `2026\.5\.16-beta\.6` \| `7,800ms` \| `7,900ms` \| `768MB` \| `780MB` \|/u,
+  );
+});
