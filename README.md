@@ -77,6 +77,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|
+| `2026.5.16-beta.7` | `1,583ms` | `2,601ms` | `147MB` | `147MB` |
 | `2026.5.16-beta.6` | `1,417ms` | `13,429ms` | `135MB` | `135MB` |
 | `2026.5.16-beta.5` | `1,386ms` | `3,823ms` | `145MB` | `145MB` |
 | `2026.5.16-beta.4` | `1,221ms` | `2,077ms` | `145MB` | `145MB` |
