@@ -20,14 +20,14 @@ async function writeJsonl(pathname, rows) {
   await fs.writeFile(pathname, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
 }
 
-function releaseRow(version, source) {
+function releaseRow(version, source, status = "pass") {
   return {
     package: { spec: `openclaw@${version}`, version },
     run: {
       id: `${source}-${version}`,
       startedAt: "2026-05-16T00:00:00.000Z",
       finishedAt: "2026-05-16T00:00:02.000Z",
-      status: "pass",
+      status,
     },
     rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
   };
@@ -113,6 +113,42 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
   assert.equal(outputs.reason, "missing-discord-release-versions");
   assert.equal(outputs.versions, "2026.5.12");
   assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.12"]);
+});
+
+test("requeues failed Discord releases from a passing Telegram baseline", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    releaseRow("2026.5.12", "telegram"),
+    releaseRow("2026.5.16-beta.5", "telegram"),
+    releaseRow("2026.5.16-beta.6", "telegram"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
+    releaseRow("2026.5.12", "discord"),
+    releaseRow("2026.5.16-beta.5", "discord", "fail"),
+  ]);
+  const binDir = await writeFakeNpm(workspace, [
+    "2026.5.12",
+    "2026.5.16-beta.5",
+    "2026.5.16-beta.6",
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.count, "2");
+  assert.equal(outputs.missing_baseline_count, "2");
+  assert.equal(outputs.reason, "missing-discord-release-versions");
+  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), [
+    "2026.5.16-beta.5",
+    "2026.5.16-beta.6",
+  ]);
 });
 
 test("queues Discord release rows missing RSS for backfill", async () => {

@@ -91,6 +91,10 @@ function releaseRows(rows) {
   );
 }
 
+function successfulReleaseRows(rows) {
+  return releaseRows(rows).filter((row) => row.run?.status === "pass");
+}
+
 function writeOutput(values) {
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) {
@@ -116,14 +120,17 @@ const availableVersions = await npmVersions();
 const explicitVersions = readListEnv("INPUT_VERSIONS");
 const versionLimit = readPositiveIntegerEnv("INPUT_VERSION_LIMIT", DEFAULT_VERSION_LIMIT);
 const channelRows = releaseRows(await readChannelRttRows());
+const successfulChannelRows = successfulReleaseRows(channelRows);
 const measured = new Set(
-  channelRows.map((row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`),
+  successfulChannelRows.map(
+    (row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`,
+  ),
 );
 
 const queue = [];
 for (const channelId of channelIds) {
   const channel = channelConfig.get(channelId);
-  const measuredVersions = channelRows
+  const measuredVersions = successfulChannelRows
     .filter((row) => row.channel?.id === channelId)
     .map((row) => row.package.version)
     .filter((version) => parseVersion(version));

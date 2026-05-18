@@ -20,7 +20,7 @@ async function writeJsonl(pathname, rows) {
   await fs.writeFile(pathname, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
 }
 
-function releaseRow(version) {
+function releaseRow(version, status = "pass") {
   return {
     package: { spec: `openclaw@${version}`, version },
     run: {
@@ -28,11 +28,32 @@ function releaseRow(version) {
       startedAt: "2026-05-16T00:00:00.000Z",
       finishedAt: "2026-05-16T00:00:02.000Z",
       durationMs: 2000,
-      status: "pass",
+      status,
     },
     mode: { providerMode: "mock-openai", scenarios: ["telegram-mentioned-message-reply"] },
     rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
   };
+}
+
+async function writeFakeNpm(workspace, versions) {
+  const binDir = path.join(workspace, "bin");
+  await fs.mkdir(binDir, { recursive: true });
+  const npmPath = path.join(binDir, "npm");
+  await fs.writeFile(
+    npmPath,
+    [
+      "#!/usr/bin/env node",
+      "const args = process.argv.slice(2).join(' ');",
+      "if (args !== 'view openclaw versions --json') {",
+      "  console.error(`unexpected npm args: ${args}`);",
+      "  process.exit(1);",
+      "}",
+      `process.stdout.write(${JSON.stringify(JSON.stringify(versions))});`,
+      "",
+    ].join("\n"),
+  );
+  await fs.chmod(npmPath, 0o755);
+  return binDir;
 }
 
 function withResources(row) {
@@ -106,4 +127,32 @@ test("skips selected Telegram release RSS backfill versions", async () => {
   const outputs = parseOutputs(stdout);
   assert.equal(outputs.count, "1");
   assert.equal(outputs.versions, "2026.5.12");
+});
+
+test("requeues failed Telegram release rows", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    releaseRow("2026.5.12"),
+    releaseRow("2026.5.16-beta.5", "fail"),
+    releaseRow("2026.5.16-beta.6", "fail"),
+  ]);
+  const binDir = await writeFakeNpm(workspace, [
+    "2026.5.12",
+    "2026.5.16-beta.5",
+    "2026.5.16-beta.6",
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.count, "2");
+  assert.equal(outputs.reason, "new-release-versions");
+  assert.equal(outputs.versions, "2026.5.16-beta.5 2026.5.16-beta.6");
 });

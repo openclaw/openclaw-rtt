@@ -67,6 +67,10 @@ function latestStableVersion(rows) {
     .at(-1);
 }
 
+function successfulReleaseRows(rows) {
+  return releaseRows(rows).filter((row) => row.run?.status === "pass");
+}
+
 function releaseVersionSet(rows) {
   return new Set(
     rows
@@ -105,11 +109,15 @@ function writeOutput(values) {
 }
 
 const discordRows = releaseRows(await readDiscordRttRows());
+const successfulDiscordRows = successfulReleaseRows(discordRows);
 const baselineRows = releaseRows(await readRows());
+const successfulBaselineRows = successfulReleaseRows(baselineRows);
 const baselineVersions = releaseVersionSet(
-  baselineRows.filter((row) => compareVersions(row.package.version, DISCORD_RELEASE_MIN_VERSION) >= 0),
+  successfulBaselineRows.filter(
+    (row) => compareVersions(row.package.version, DISCORD_RELEASE_MIN_VERSION) >= 0,
+  ),
 );
-const anchor = latestReleaseVersion(discordRows) ?? latestStableVersion(baselineRows);
+const anchor = latestReleaseVersion(successfulDiscordRows) ?? latestStableVersion(successfulBaselineRows);
 if (!anchor) {
   throw new Error("No measured openclaw release baseline found.");
 }
@@ -128,7 +136,9 @@ if (rssBackfill) {
     .sort((left, right) => compareVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
 } else {
-  const measured = new Set(discordRows.map((row) => `${row.package.spec}\0${row.package.version}`));
+  const measured = new Set(
+    successfulDiscordRows.map((row) => `${row.package.spec}\0${row.package.version}`),
+  );
   queue = (await npmVersions())
     .filter((version) => typeof version === "string" && parseVersion(version))
     .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))

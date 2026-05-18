@@ -83,6 +83,10 @@ function releaseRows(rows) {
   return [...byVersion.values()];
 }
 
+function successfulReleaseRows(rows) {
+  return releaseRows(rows).filter((row) => row.run?.status === "pass");
+}
+
 function readPositiveIntegerEnv(name) {
   const value = process.env[name];
   if (!value) {
@@ -129,7 +133,9 @@ if (rssBackfill) {
     .sort((left, right) => compareVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
 } else {
-  const measured = new Set(rows.map((row) => `${row.package.spec}\0${row.package.version}`));
+  const measured = new Set(
+    successfulReleaseRows(rows).map((row) => `${row.package.spec}\0${row.package.version}`),
+  );
   queue = (await npmVersions())
     .filter((version) => typeof version === "string" && parseVersion(version))
     .filter((version) => compareVersions(version, anchor) > 0)

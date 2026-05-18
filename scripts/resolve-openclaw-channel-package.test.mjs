@@ -20,11 +20,11 @@ async function writeJsonl(pathname, rows) {
   await fs.writeFile(pathname, `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
 }
 
-function row(version, channel) {
+function row(version, channel, status = "pass") {
   return {
     ...(channel ? { channel: { id: channel, label: channel, scenario: `${channel}-canary` } } : {}),
     package: { spec: `openclaw@${version}`, version },
-    run: { id: `${channel ?? "telegram"}-${version}`, startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
+    run: { id: `${channel ?? "telegram"}-${version}`, startedAt: "2026-05-16T00:00:00.000Z", status },
     rtt: { warmSamples: [1000], p50Ms: 1000, p95Ms: 1000 },
   };
 }
@@ -90,6 +90,36 @@ test("skips channel release versions already measured", async () => {
   const matrix = JSON.parse(outputs.matrix);
   assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
     "whatsapp:2026.5.16-beta.3",
+  ]);
+});
+
+test("requeues failed channel release versions", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/slack/2026.5.16-beta.6.jsonl"), [
+    row("2026.5.16-beta.6", "slack", "fail"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.16-beta.6",
+      INPUT_CHANNELS: "slack whatsapp",
+      INPUT_VERSIONS: "2026.5.16-beta.6",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  const matrix = JSON.parse(outputs.matrix);
+  assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
+    "slack:2026.5.16-beta.6",
+    "whatsapp:2026.5.16-beta.6",
   ]);
 });
 
