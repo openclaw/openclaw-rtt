@@ -91,10 +91,6 @@ function releaseRows(rows) {
   );
 }
 
-function successfulReleaseRows(rows) {
-  return releaseRows(rows).filter((row) => row.run?.status === "pass");
-}
-
 function writeOutput(values) {
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
   if (process.env.GITHUB_OUTPUT) {
@@ -120,9 +116,8 @@ const availableVersions = await npmVersions();
 const explicitVersions = readListEnv("INPUT_VERSIONS");
 const versionLimit = readPositiveIntegerEnv("INPUT_VERSION_LIMIT", DEFAULT_VERSION_LIMIT);
 const channelRows = releaseRows(await readChannelRttRows());
-const successfulChannelRows = successfulReleaseRows(channelRows);
 const measured = new Set(
-  successfulChannelRows.map(
+  channelRows.map(
     (row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`,
   ),
 );
@@ -130,7 +125,7 @@ const measured = new Set(
 const queue = [];
 for (const channelId of channelIds) {
   const channel = channelConfig.get(channelId);
-  const measuredVersions = successfulChannelRows
+  const measuredVersions = channelRows
     .filter((row) => row.channel?.id === channelId)
     .map((row) => row.package.version)
     .filter((version) => parseVersion(version));
@@ -151,12 +146,13 @@ for (const channelId of channelIds) {
       throw new Error(`openclaw@${version} was not found on npm.`);
     }
     const spec = `openclaw@${version}`;
-    if (measured.has(`${channelId}\0${spec}\0${version}`)) {
-      continue;
-    }
     const skipReason = releaseSkipReason(channel, version);
     if (skipReason) {
       process.stderr.write(`Skipping ${channelId} ${spec}: ${skipReason}.\n`);
+      continue;
+    }
+    const alreadyMeasured = measured.has(`${channelId}\0${spec}\0${version}`);
+    if (alreadyMeasured && explicitVersions.length === 0) {
       continue;
     }
     queue.push({
