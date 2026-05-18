@@ -74,10 +74,6 @@ function compareVersions(left, right) {
   return 0;
 }
 
-function resultLabel(row) {
-  return row.run.status === "pass" ? "Pass" : "Fail";
-}
-
 function latestMainRow({ label, row, rssP50 = "n/a", rssP95 = "n/a" }) {
   if (!row) {
     return `| ${label} | n/a | n/a | n/a | n/a |`;
@@ -253,8 +249,7 @@ function releaseMetricCell(row, missingLabel = "Missing") {
   if (!row) {
     return missingLabel;
   }
-  const metric = formatMs(row.rtt.p50Ms);
-  return row.run.status === "pass" ? metric : `${resultLabel(row)} · ${metric}`;
+  return formatMs(row.rtt.p50Ms);
 }
 
 function releaseP50StdDev(rows) {

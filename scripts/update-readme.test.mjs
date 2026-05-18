@@ -332,3 +332,51 @@ test("renders dense release coverage across Telegram, Discord, Slack, and WhatsA
   assert.doesNotMatch(whatsappSection, /\| npm version \|.*\| Samples \|/u);
   assert.match(whatsappSection, /\| `2026\.5\.16-beta\.1` \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
 });
+
+test("renders release coverage p50 cells without failure labels", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  const version = "2026.5.16-beta.6";
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    rttRow({
+      package: { spec: `openclaw@${version}`, version },
+      run: { id: "telegram-fail", startedAt: "2026-05-18T00:00:00.000Z", status: "fail" },
+      rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+    }),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
+    rttRow({
+      package: { spec: `openclaw@${version}`, version },
+      run: { id: "discord-partial", startedAt: "2026-05-18T00:01:00.000Z", status: "fail" },
+      rtt: { warmSamples: [7844], p50Ms: 7844, p95Ms: 7844 },
+    }),
+  ]);
+  for (const [channel, label] of [
+    ["slack", "Slack"],
+    ["whatsapp", "WhatsApp"],
+  ]) {
+    await writeJsonl(path.join(workspace, `data/channels/${channel}.jsonl`), [
+      {
+        channel: { id: channel, label, scenario: `${channel}-canary` },
+        ...rttRow({
+          package: { spec: `openclaw@${version}`, version },
+          run: { id: `${channel}-fail`, startedAt: "2026-05-18T00:02:00.000Z", status: "fail" },
+          rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+        }),
+      },
+    ]);
+  }
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const coverageSection = readme.slice(
+    readme.indexOf("<!-- release-coverage:start -->"),
+    readme.indexOf("<!-- release-coverage:end -->"),
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.16-beta\.6` \| - \| - \| `7,844ms` \| - \| - \|/u,
+  );
+  assert.doesNotMatch(coverageSection, /Fail/u);
+});
