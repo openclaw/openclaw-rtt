@@ -367,9 +367,12 @@ jobs:
           import_root="$RUNNER_TEMP/channel-rtt-imports"
           shopt -s nullglob
           import_dirs=("$import_root"/main-channel-rtt-import-*)
+          if [[ -f "$import_root/metadata.env" ]]; then
+            import_dirs=("$import_root")
+          fi
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
-            echo "No channel RTT import artifacts downloaded; nothing to import."
-            exit 0
+            echo "No channel RTT import artifacts downloaded." >&2
+            exit 1
           fi
           get_metadata() {
             local metadata_path="$1"
