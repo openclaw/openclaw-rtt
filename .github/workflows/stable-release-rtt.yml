@@ -167,13 +167,13 @@ jobs:
                 --result "$result_path" \
                 --resource-metrics "$metrics_path"
               node scripts/validate.mjs
-              if git diff --quiet --exit-code; then
+              git add data/channels/telegram/ runs/telegram/
+              if git diff --cached --quiet --exit-code; then
                 echo "No RSS changes to commit for $spec."
                 exit 0
               fi
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
-              git add data/channels/telegram/ runs/telegram/
               git commit -m "data: record release rtt batch"
               git push || {
                 git pull --rebase origin main
@@ -259,13 +259,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet --exit-code; then
+          git add data/channels/telegram/ runs/telegram/
+          if git diff --cached --quiet --exit-code; then
             echo "No RTT changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/channels/telegram/ runs/telegram/
           git commit -m "data: record release rtt batch"
           git push || {
             git pull --rebase origin main
