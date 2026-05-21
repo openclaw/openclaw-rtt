@@ -169,10 +169,20 @@ jobs:
             echo "OpenClaw release does not contain ${channel_dir}." >&2
             exit 1
           fi
+          release_channel_dir="${GITHUB_WORKSPACE:?}/${channel_dir}"
           mkdir -p openclaw/node_modules/@openclaw
-          ln -sfn "../../extensions/${{ matrix.package.channel }}" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
+          ln -sfn "$release_channel_dir" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
           mkdir -p openclaw-qa/node_modules/@openclaw
-          ln -sfn "../../extensions/${{ matrix.package.channel }}" "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
+          ln -sfn "$release_channel_dir" "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
+          for link_path in \
+            "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}" \
+            "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
+          do
+            if [[ "$(realpath "$link_path")" != "$(realpath "$release_channel_dir")" ]]; then
+              echo "${link_path} does not resolve to ${release_channel_dir}." >&2
+              exit 1
+            fi
+          done
 
       - name: Verify OpenClaw release ref
         working-directory: openclaw
