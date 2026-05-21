@@ -1,0 +1,220 @@
+{
+  "channel": {
+    "id": "slack",
+    "label": "Slack",
+    "scenario": "slack-canary"
+  },
+  "package": {
+    "spec": "openclaw@main",
+    "version": "2026.5.20+6ccca4ae95"
+  },
+  "run": {
+    "id": "2026-05-21T135121911Z-openclaw_main-slack-slack-canary-rtt",
+    "startedAt": "2026-05-21T13:51:21.911Z",
+    "finishedAt": "2026-05-21T14:11:25.071Z",
+    "durationMs": 1203160,
+    "status": "fail"
+  },
+  "polling": {
+    "attemptSamples": [
+      1,
+      1,
+      2,
+      2,
+      1,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      3
+    ],
+    "retryCount": 5,
+    "maxAttempts": 3
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "credentialSource": "convex",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [
+      4538,
+      4681,
+      4745,
+      4680,
+      4548,
+      4871,
+      4718,
+      4635,
+      7263,
+      7249,
+      4582
+    ],
+    "failedSamples": 1,
+    "avgMs": 5137.272727272727,
+    "p50Ms": 4681,
+    "p95Ms": 7263,
+    "maxMs": 7263
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa slack"
+    },
+    "maxRssKbSamples": [
+      1036124,
+      734444,
+      742920,
+      748228,
+      704016,
+      746288,
+      727380,
+      764668,
+      742428,
+      696832,
+      756580,
+      715764
+    ],
+    "elapsedSecondsSamples": [
+      27.89,
+      83.21,
+      21.73,
+      21.88,
+      21.96,
+      23.02,
+      23.05,
+      22.66,
+      84.63,
+      25.35,
+      22.53,
+      122.82
+    ],
+    "maxRssKb": {
+      "avg": 759639.3333333334,
+      "p50": 742428,
+      "p95": 1036124,
+      "max": 1036124
+    },
+    "elapsedSeconds": {
+      "avg": 41.7275,
+      "p50": 23.02,
+      "p95": 122.82,
+      "max": 122.82
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 4538,
+      "maxRssKb": 1036124,
+      "elapsedSeconds": 27.89,
+      "details": "reply matched in 4538ms"
+    },
+    {
+      "index": 2,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 4681,
+      "maxRssKb": 734444,
+      "elapsedSeconds": 83.21,
+      "details": "reply matched in 4681ms; retried 1x"
+    },
+    {
+      "index": 3,
+      "status": "pass",
+      "attempts": 2,
+      "rttMs": 4745,
+      "maxRssKb": 742920,
+      "elapsedSeconds": 21.73,
+      "details": "reply matched in 4745ms"
+    },
+    {
+      "index": 4,
+      "status": "pass",
+      "attempts": 2,
+      "rttMs": 4680,
+      "maxRssKb": 748228,
+      "elapsedSeconds": 21.88,
+      "details": "reply matched in 4680ms"
+    },
+    {
+      "index": 5,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 4548,
+      "maxRssKb": 704016,
+      "elapsedSeconds": 21.96,
+      "details": "reply matched in 4548ms"
+    },
+    {
+      "index": 6,
+      "status": "pass",
+      "attempts": 2,
+      "rttMs": 4871,
+      "maxRssKb": 746288,
+      "elapsedSeconds": 23.02,
+      "details": "reply matched in 4871ms"
+    },
+    {
+      "index": 7,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 4718,
+      "maxRssKb": 727380,
+      "elapsedSeconds": 23.05,
+      "details": "reply matched in 4718ms"
+    },
+    {
+      "index": 8,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 4635,
+      "maxRssKb": 764668,
+      "elapsedSeconds": 22.66,
+      "details": "reply matched in 4635ms"
+    },
+    {
+      "index": 9,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 7263,
+      "maxRssKb": 742428,
+      "elapsedSeconds": 84.63,
+      "details": "reply matched in 7263ms; retried 1x"
+    },
+    {
+      "index": 10,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 7249,
+      "maxRssKb": 696832,
+      "elapsedSeconds": 25.35,
+      "details": "reply matched in 7249ms"
+    },
+    {
+      "index": 11,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 4582,
+      "maxRssKb": 756580,
+      "elapsedSeconds": 22.53,
+      "details": "reply matched in 4582ms"
+    },
+    {
+      "index": 12,
+      "status": "fail",
+      "attempts": 3,
+      "maxRssKb": 715764,
+      "elapsedSeconds": 122.82,
+      "details": "timed out after 45000ms waiting for Slack message; retried 1x"
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/slack/2026-05-21T135121911Z-openclaw_main-slack-slack-canary-rtt/result.json"
+  }
+}
