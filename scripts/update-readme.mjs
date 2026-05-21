@@ -339,7 +339,7 @@ function releaseFailureReason(row) {
   const statusCode = parsed?.error?.output?.statusCode ?? parsed?.output?.statusCode;
   const message = parsed?.error?.output?.payload?.message ?? parsed?.output?.payload?.message;
   if (statusCode === 401) {
-    return message === "Connection Failure" ? "auth 401: connection failure" : "auth 401";
+    return message === "Connection Failure" ? "logged out: relink required" : "auth 401";
   }
   return details[0] ? `failed: ${details[0]}` : "failed";
 }
@@ -369,6 +369,9 @@ function releaseMatrixCell(row, label, version) {
     const status = releaseStatus(row, label, version);
     if (status.startsWith("auth 401")) {
       return "auth 401";
+    }
+    if (status.startsWith("logged out")) {
+      return "logged out";
     }
     if (status.startsWith("blocked:")) {
       return "blocked";

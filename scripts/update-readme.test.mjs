@@ -390,6 +390,17 @@ test("renders release coverage failure cells without verbose labels", async () =
     ["slack", "Slack"],
     ["whatsapp", "WhatsApp"],
   ]) {
+    const details =
+      channel === "whatsapp"
+        ? JSON.stringify({
+            error: {
+              output: {
+                statusCode: 401,
+                payload: { message: "Connection Failure" },
+              },
+            },
+          })
+        : undefined;
     await writeJsonl(path.join(workspace, `data/channels/${channel}.jsonl`), [
       {
         channel: { id: channel, label, scenario: `${channel}-canary` },
@@ -397,6 +408,7 @@ test("renders release coverage failure cells without verbose labels", async () =
           package: { spec: `openclaw@${version}`, version },
           run: { id: `${channel}-fail`, startedAt: "2026-05-18T00:02:00.000Z", status: "fail" },
           rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+          samples: details ? [{ index: 1, status: "fail", details }] : [],
         }),
       },
     ]);
@@ -411,7 +423,7 @@ test("renders release coverage failure cells without verbose labels", async () =
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| fail \|/u,
+    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| logged out \|/u,
   );
   assert.match(
     coverageSection,
@@ -424,6 +436,12 @@ test("renders release coverage failure cells without verbose labels", async () =
     readme.indexOf("<!-- discord-release-sweep:end -->"),
   );
   assert.match(discordSection, /\| `2026\.5\.16-beta\.5` \| - \| - \| n\/a \| n\/a \| timeout \|/u);
+
+  const whatsappSection = readme.slice(
+    readme.indexOf("<!-- whatsapp-release-sweep:start -->"),
+    readme.indexOf("<!-- whatsapp-release-sweep:end -->"),
+  );
+  assert.match(whatsappSection, /\| `2026\.5\.16-beta\.6` \| - \| - \| n\/a \| n\/a \| logged out: relink required \|/u);
 });
 
 test("keeps prior release RTT visible when a newer import has only RSS", async () => {

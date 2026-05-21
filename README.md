@@ -36,7 +36,7 @@ Latest imported channel run: `2026-05-21T14:50:04.980Z` · latest `2026.5.20` / 
 | Telegram | `1,324ms` | `2,264ms` | `134MB` | `134MB` | ok |
 | Discord | `7,502ms` | `7,953ms` | `783MB` | `796MB` | ok |
 | Slack | `6,021ms` | `6,021ms` | `1,014MB` | `1,014MB` | ok |
-| WhatsApp | `7,733ms` | `10,044ms` | `1,104MB` | `1,572MB` | stale: latest failed; showing last pass (auth 401: connection failure) |
+| WhatsApp | `7,733ms` | `10,044ms` | `1,104MB` | `1,572MB` | stale: latest failed; showing last pass (logged out: relink required) |
 
 <!-- latest-main:end -->
 
@@ -44,7 +44,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 ## Release Coverage Matrix
 
-Version-by-version RTT coverage for release canaries. The matrix and per-channel release tables follow the same imported release-version axis from `2026.4.24` onward. A `-` cell means no row has been imported for that channel/version yet; `n/a` means the release predates the channel harness or has a known protocol gap; `blocked`, `timeout`, and `auth 401` name imported failed runs without usable RTT.
+Version-by-version RTT coverage for release canaries. The matrix and per-channel release tables follow the same imported release-version axis from `2026.4.24` onward. A `-` cell means no row has been imported for that channel/version yet; `n/a` means the release predates the channel harness or has a known protocol gap; `blocked`, `timeout`, `logged out`, and `auth 401` name imported failed runs without usable RTT.
 
 Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; `p50 σ` is the standard deviation across channel p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
 
@@ -54,12 +54,12 @@ Latest imported channel run: `2026-05-21T14:10:02.361Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.20-beta.1` | `2,461ms` | `1,054ms` | `7,047ms` | `4,609ms` | auth 401 |
-| `2026.5.19` | `2,262ms` | `1,444ms` | `6,951ms` | `4,727ms` | auth 401 |
-| `2026.5.19-beta.2` | `2,562ms` | `1,036ms` | `7,279ms` | `4,713ms` | auth 401 |
-| `2026.5.19-beta.1` | `1,710ms` | `1,224ms` | `5,092ms` | `4,551ms` | auth 401 |
-| `2026.5.18` | `2,555ms` | `1,061ms` | `7,318ms` | `4,253ms` | auth 401 |
-| `2026.5.18-beta.1` | `2,470ms` | `1,017ms` | `5,957ms` | blocked | auth 401 |
+| `2026.5.20-beta.1` | `2,461ms` | `1,054ms` | `7,047ms` | `4,609ms` | logged out |
+| `2026.5.19` | `2,262ms` | `1,444ms` | `6,951ms` | `4,727ms` | logged out |
+| `2026.5.19-beta.2` | `2,562ms` | `1,036ms` | `7,279ms` | `4,713ms` | logged out |
+| `2026.5.19-beta.1` | `1,710ms` | `1,224ms` | `5,092ms` | `4,551ms` | logged out |
+| `2026.5.18` | `2,555ms` | `1,061ms` | `7,318ms` | `4,253ms` | logged out |
+| `2026.5.18-beta.1` | `2,470ms` | `1,017ms` | `5,957ms` | blocked | logged out |
 | `2026.5.16-beta.7` | `2,425ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` |
 | `2026.5.16-beta.6` | `2,469ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` |
 | `2026.5.16-beta.5` | `2,640ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` |
@@ -213,12 +213,12 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.20-beta.1` | - | - | `663MB` | `663MB` | auth 401: connection failure |
-| `2026.5.19` | - | - | `683MB` | `683MB` | auth 401: connection failure |
-| `2026.5.19-beta.2` | - | - | `680MB` | `680MB` | auth 401: connection failure |
-| `2026.5.19-beta.1` | - | - | `678MB` | `678MB` | auth 401: connection failure |
-| `2026.5.18` | - | - | `647MB` | `647MB` | auth 401: connection failure |
-| `2026.5.18-beta.1` | - | - | `604MB` | `604MB` | auth 401: connection failure |
+| `2026.5.20-beta.1` | - | - | `663MB` | `663MB` | logged out: relink required |
+| `2026.5.19` | - | - | `683MB` | `683MB` | logged out: relink required |
+| `2026.5.19-beta.2` | - | - | `680MB` | `680MB` | logged out: relink required |
+| `2026.5.19-beta.1` | - | - | `678MB` | `678MB` | logged out: relink required |
+| `2026.5.18` | - | - | `647MB` | `647MB` | logged out: relink required |
+| `2026.5.18-beta.1` | - | - | `604MB` | `604MB` | logged out: relink required |
 | `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `838MB` | `2,714MB` | partial: 13/14 samples passed; blocked: credential pool exhausted |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
