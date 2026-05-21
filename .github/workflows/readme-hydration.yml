@@ -14,6 +14,16 @@ on:
       - "scripts/read-rows.mjs"
       - "scripts/summary.mjs"
       - "scripts/update-readme.mjs"
+  workflow_run:
+    workflows:
+      - Main RTT
+      - Main Discord RTT
+      - Main Channel RTT
+      - Stable Release RTT
+      - Stable Release Discord RTT
+      - Release Channel RTT
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -30,6 +40,7 @@ env:
 jobs:
   hydrate:
     name: Hydrate README
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
