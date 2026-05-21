@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import { promisify } from "node:util";
 import { listChannelRttChannels } from "./channel-rtt-config.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
+import { channelReleaseSkipReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
 const RELEASE_SPEC_RE =
@@ -99,10 +100,6 @@ function writeOutput(values) {
   process.stdout.write(`${lines.join("\n")}\n`);
 }
 
-function releaseSkipReason(channel, version) {
-  return channel.releaseSkipVersions?.[version];
-}
-
 const channelConfig = new Map(listChannelRttChannels().map((channel) => [channel.id, channel]));
 const requestedChannels = readListEnv("INPUT_CHANNELS");
 const channelIds = requestedChannels.length === 0 ? DEFAULT_CHANNELS : requestedChannels;
@@ -146,7 +143,7 @@ for (const channelId of channelIds) {
       throw new Error(`openclaw@${version} was not found on npm.`);
     }
     const spec = `openclaw@${version}`;
-    const skipReason = releaseSkipReason(channel, version);
+    const skipReason = channelReleaseSkipReason(channel, version);
     if (skipReason) {
       process.stderr.write(`Skipping ${channelId} ${spec}: ${skipReason}.\n`);
       continue;

@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
+import { listChannelRttChannels } from "./channel-rtt-config.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
+import {
+  channelReleaseSkipReason,
+  discordReleaseGapReason,
+} from "./release-gap-reasons.mjs";
 
 const README_PATH = "README.md";
 const LATEST_MAIN_START = "<!-- latest-main:start -->";
@@ -24,6 +29,9 @@ const MAIN_DASHBOARD_ORDER = new Map([
   ["WhatsApp", 3],
 ]);
 const RELEASE_COVERAGE_CHANNELS = ["Telegram", "Discord", "Slack", "WhatsApp"];
+const CHANNEL_CONFIG_BY_LABEL = new Map(
+  listChannelRttChannels().map((channel) => [channel.label, channel]),
+);
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const RELEASE_COVERAGE_MIN_VERSION = "2026.4.24";
@@ -43,6 +51,10 @@ function formatRssKb(value) {
 
 function formatVersion(value) {
   return /^[0-9a-f]{40}$/u.test(value) ? value.slice(0, 10) : value;
+}
+
+function escapeMarkdownTableCell(value) {
+  return value.replaceAll("|", "\\|");
 }
 
 function parseVersion(version) {
@@ -74,16 +86,17 @@ function compareVersions(left, right) {
   return 0;
 }
 
-function latestMainRow({ label, row, rssP50 = "n/a", rssP95 = "n/a" }) {
+function latestMainRow({ label, row, rssP50 = "n/a", rssP95 = "n/a", status = "missing" }) {
   if (!row) {
-    return `| ${label} | n/a | n/a | n/a | n/a |`;
+    return `| ${label} | n/a | n/a | n/a | n/a | ${status} |`;
   }
   return [
     `| ${label}`,
     formatMs(row.rtt.p50Ms),
     formatMs(row.rtt.p95Ms),
     rssP50,
-    `${rssP95} |`,
+    rssP95,
+    `${escapeMarkdownTableCell(status)} |`,
   ].join(" | ");
 }
 
@@ -146,7 +159,7 @@ function latestRunSummary(rows) {
   return `Latest imported channel run: \`${row.run.startedAt}\` · latest ${versionAndRef(row.package.version)}`;
 }
 
-function channelRttRows(rows) {
+function channelRttRowGroups(rows) {
   const byKey = new Map();
   for (const row of rows) {
     const key = `${row.channel.id}\0${row.channel.scenario}\0${row.package.spec}`;
@@ -154,7 +167,11 @@ function channelRttRows(rows) {
     existing.push(row);
     byKey.set(key, existing);
   }
-  return [...byKey.values()].map(latestDashboardRow).filter(Boolean).sort((left, right) => {
+  return [...byKey.values()];
+}
+
+function channelRttRows(rows) {
+  return channelRttRowGroups(rows).map(latestDashboardRow).filter(Boolean).sort((left, right) => {
     const channelDiff = String(left.channel.label).localeCompare(String(right.channel.label));
     if (channelDiff !== 0) {
       return channelDiff;
@@ -163,33 +180,45 @@ function channelRttRows(rows) {
   });
 }
 
-function mainChannelRttRows(rows) {
-  return channelRttRows(rows).filter((row) => row.package.spec === MAIN_SPEC);
+function mainEntryStatus(row, latest) {
+  if (!latest) {
+    return "missing: no imported run";
+  }
+  const latestFailed = latest.run?.status !== "pass";
+  if (latestFailed && latest.run?.id !== row?.run?.id) {
+    return `stale: latest failed; showing last pass (${releaseFailureReason(latest)})`;
+  }
+  if (row?.run?.status !== "pass") {
+    return releaseFailureReason(row);
+  }
+  return "ok";
 }
 
-function mainDashboardRows(telegramRow, discordRow, channelRows) {
+function mainDashboardEntry(label, scenario, rows) {
+  const row = latestDashboardRow(rows);
+  const latest = latestRow(rows);
+  return {
+    label,
+    scenario,
+    row,
+    latest,
+    rssP50: formatRssKb(row?.resources?.maxRssKb?.p50),
+    rssP95: formatRssKb(row?.resources?.maxRssKb?.p95),
+    status: mainEntryStatus(row, latest),
+  };
+}
+
+function mainChannelDashboardRows(rows) {
+  return channelRttRowGroups(rows)
+    .filter((group) => group[0]?.package?.spec === MAIN_SPEC)
+    .map((group) => mainDashboardEntry(group[0].channel.label, group[0].channel.scenario, group));
+}
+
+function mainDashboardRows(telegramRows, discordRows, channelRows) {
   return [
-    {
-      label: "Telegram",
-      scenario: "telegram-mentioned-message-reply",
-      row: telegramRow,
-      rssP50: formatRssKb(telegramRow?.resources?.maxRssKb?.p50),
-      rssP95: formatRssKb(telegramRow?.resources?.maxRssKb?.p95),
-    },
-    {
-      label: "Discord",
-      scenario: "discord-canary",
-      row: discordRow,
-      rssP50: formatRssKb(discordRow?.resources?.maxRssKb?.p50),
-      rssP95: formatRssKb(discordRow?.resources?.maxRssKb?.p95),
-    },
-    ...mainChannelRttRows(channelRows).map((row) => ({
-      label: row.channel.label,
-      scenario: row.channel.scenario,
-      row,
-      rssP50: formatRssKb(row.resources?.maxRssKb?.p50),
-      rssP95: formatRssKb(row.resources?.maxRssKb?.p95),
-    })),
+    mainDashboardEntry("Telegram", "telegram-mentioned-message-reply", telegramRows),
+    mainDashboardEntry("Discord", "discord-canary", discordRows),
+    ...mainChannelDashboardRows(channelRows),
   ].sort((left, right) => {
     const leftOrder = MAIN_DASHBOARD_ORDER.get(left.label) ?? Number.MAX_SAFE_INTEGER;
     const rightOrder = MAIN_DASHBOARD_ORDER.get(right.label) ?? Number.MAX_SAFE_INTEGER;
@@ -204,9 +233,9 @@ function mainDashboardRows(telegramRow, discordRow, channelRows) {
   });
 }
 
-function mainTableFor(telegramRow, discordRow, channelRows) {
-  const tableRows = mainDashboardRows(telegramRow, discordRow, channelRows);
-  const rows = tableRows.map((entry) => entry.row).filter(Boolean);
+function mainTableFor(telegramRows, discordRows, channelRows) {
+  const tableRows = mainDashboardRows(telegramRows, discordRows, channelRows);
+  const rows = tableRows.flatMap((entry) => [entry.row, entry.latest]).filter(Boolean);
   if (rows.length === 0) {
     return [
       LATEST_MAIN_START,
@@ -221,8 +250,8 @@ function mainTableFor(telegramRow, discordRow, channelRows) {
     "",
     latestRunSummary(rows),
     "",
-    "| Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
-    "|---|---:|---:|---:|---:|",
+    "| Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |",
+    "|---|---:|---:|---:|---:|---|",
     ...tableRows.map((row) => latestMainRow(row)),
     "",
     LATEST_MAIN_END,
@@ -266,14 +295,104 @@ function releaseTableVersions(tableRows, versionAxis) {
   ].sort((left, right) => compareVersions(right, left));
 }
 
-function releaseTableRow(version, row) {
-  if (!row) {
-    return `| \`${version}\` | - | - | - | - |`;
+function releaseSkipReason(label, version) {
+  if (label === "Discord") {
+    return discordReleaseGapReason(version);
   }
-  return `| \`${version}\` | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} |`;
+  const channel = CHANNEL_CONFIG_BY_LABEL.get(label);
+  return channel ? channelReleaseSkipReason(channel, version) : undefined;
 }
 
-function releaseTableFor(rows, start, end, { versionAxis } = {}) {
+function sampleFailureDetails(row) {
+  return [...(row?.samples ?? [])]
+    .reverse()
+    .map((sample) => sample?.details)
+    .filter((details) => typeof details === "string" && !details.startsWith("reply matched in "));
+}
+
+function parsedFailureDetails(row) {
+  for (const details of sampleFailureDetails(row)) {
+    try {
+      const parsed = JSON.parse(details);
+      if (parsed && typeof parsed === "object") {
+        return parsed;
+      }
+    } catch {
+      // Details are freeform text unless a channel plugin emitted structured JSON.
+    }
+  }
+  return undefined;
+}
+
+function releaseFailureReason(row) {
+  if (!row) {
+    return undefined;
+  }
+  const details = sampleFailureDetails(row);
+  if (details.some((detail) => /status 124|timed out|timeout/iu.test(detail))) {
+    return "timeout";
+  }
+  if (details.some((detail) => /credential pool exhausted|No available credential/iu.test(detail))) {
+    return "blocked: credential pool exhausted";
+  }
+  const parsed = parsedFailureDetails(row);
+  const statusCode = parsed?.error?.output?.statusCode ?? parsed?.output?.statusCode;
+  const message = parsed?.error?.output?.payload?.message ?? parsed?.output?.payload?.message;
+  if (statusCode === 401) {
+    return message === "Connection Failure" ? "auth 401: connection failure" : "auth 401";
+  }
+  return details[0] ? `failed: ${details[0]}` : "failed";
+}
+
+function releaseStatus(row, label, version) {
+  if (!row) {
+    const skipReason = releaseSkipReason(label, version);
+    return skipReason ? `not supported: ${skipReason}` : "missing: no imported run";
+  }
+  const totalSamples = row.samples?.length ?? row.rtt?.warmSamples?.length ?? 0;
+  const passedSamples = row.rtt?.warmSamples?.length ?? 0;
+  if (row.run?.status === "pass") {
+    return "ok";
+  }
+  const reason = releaseFailureReason(row);
+  if (passedSamples > 0 && totalSamples > passedSamples) {
+    return `partial: ${passedSamples}/${totalSamples} samples passed; ${reason}`;
+  }
+  return reason;
+}
+
+function releaseMatrixCell(row, label, version) {
+  if (typeof row?.rtt?.p50Ms === "number") {
+    return formatMs(row.rtt.p50Ms);
+  }
+  if (row) {
+    const status = releaseStatus(row, label, version);
+    if (status.startsWith("auth 401")) {
+      return "auth 401";
+    }
+    if (status.startsWith("blocked:")) {
+      return "blocked";
+    }
+    if (status.startsWith("timeout")) {
+      return "timeout";
+    }
+    if (status.startsWith("partial:")) {
+      return "partial";
+    }
+    return "fail";
+  }
+  return releaseSkipReason(label, version) ? "n/a" : "-";
+}
+
+function releaseTableRow(version, row, label) {
+  const status = escapeMarkdownTableCell(releaseStatus(row, label, version));
+  if (!row) {
+    return `| \`${version}\` | - | - | - | - | ${status} |`;
+  }
+  return `| \`${version}\` | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} | ${status} |`;
+}
+
+function releaseTableFor(rows, start, end, { label, versionAxis } = {}) {
   const tableRows = releaseRows(rows);
   const rowsByVersion = new Map(tableRows.map((row) => [row.package.version, row]));
   const versions = releaseTableVersions(tableRows, versionAxis);
@@ -283,9 +402,9 @@ function releaseTableFor(rows, start, end, { versionAxis } = {}) {
   return [
     start,
     "",
-    "| npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
-    "|---|---:|---:|---:|---:|",
-    ...versions.map((version) => releaseTableRow(version, rowsByVersion.get(version))),
+    "| npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |",
+    "|---|---:|---:|---:|---:|---|",
+    ...versions.map((version) => releaseTableRow(version, rowsByVersion.get(version), label)),
     "",
     end,
   ].join("\n");
@@ -306,13 +425,6 @@ function releaseRowByVersion(rows) {
     byVersion.set(row.package.version, row);
   }
   return byVersion;
-}
-
-function releaseMetricCell(row, missingLabel = "Missing") {
-  if (!row) {
-    return missingLabel;
-  }
-  return formatMs(row.rtt.p50Ms);
 }
 
 function releaseP50StdDev(rows) {
@@ -361,7 +473,9 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
     "|---|---:|---:|---:|---:|---:|",
     ...versions.map((version) => {
       const channelRowsForVersion = RELEASE_COVERAGE_CHANNELS.map((label) => rowsByChannel.get(label)?.get(version));
-      const cells = channelRowsForVersion.map((row) => releaseMetricCell(row, "-"));
+      const cells = channelRowsForVersion.map((row, index) =>
+        releaseMatrixCell(row, RELEASE_COVERAGE_CHANNELS[index], version),
+      );
       return `| \`${version}\` | ${releaseP50StdDev(channelRowsForVersion)} | ${cells.join(" | ")} |`;
     }),
     "",
@@ -383,14 +497,14 @@ async function main() {
   const discordRows = await readDiscordRttRows();
   const channelRows = await readChannelRttRows();
   const releaseAxis = releaseVersionAxis(rows, discordRows, channelRows);
-  const latestMain = latestDashboardRow(rows.filter((row) => row.package.spec === MAIN_SPEC));
-  const latestDiscordMain = latestDashboardRow(discordRows.filter((row) => row.package.spec === MAIN_SPEC));
+  const mainRows = rows.filter((row) => row.package.spec === MAIN_SPEC);
+  const mainDiscordRows = discordRows.filter((row) => row.package.spec === MAIN_SPEC);
   const readme = await fs.readFile(README_PATH, "utf8");
   const withLatestMain = replaceMarked(
     readme,
     LATEST_MAIN_START,
     LATEST_MAIN_END,
-    mainTableFor(latestMain, latestDiscordMain, channelRows),
+    mainTableFor(mainRows, mainDiscordRows, channelRows),
   );
   const next = UPDATE_LATEST_MAIN_ONLY
     ? withLatestMain
@@ -405,15 +519,22 @@ async function main() {
             ),
             RELEASE_START,
             RELEASE_END,
-            releaseTableFor(rows, RELEASE_START, RELEASE_END, { versionAxis: releaseAxis }),
+            releaseTableFor(rows, RELEASE_START, RELEASE_END, {
+              label: "Telegram",
+              versionAxis: releaseAxis,
+            }),
           ),
           DISCORD_RELEASE_START,
           DISCORD_RELEASE_END,
-          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END, { versionAxis: releaseAxis }),
+          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END, {
+            label: "Discord",
+            versionAxis: releaseAxis,
+          }),
         ),
         SLACK_RELEASE_START,
         SLACK_RELEASE_END,
         channelReleaseTableFor(channelRows, "Slack", SLACK_RELEASE_START, SLACK_RELEASE_END, {
+          label: "Slack",
           versionAxis: releaseAxis,
         }),
       );
@@ -424,6 +545,7 @@ async function main() {
         WHATSAPP_RELEASE_START,
         WHATSAPP_RELEASE_END,
         channelReleaseTableFor(channelRows, "WhatsApp", WHATSAPP_RELEASE_START, WHATSAPP_RELEASE_END, {
+          label: "WhatsApp",
           versionAxis: releaseAxis,
         }),
       );

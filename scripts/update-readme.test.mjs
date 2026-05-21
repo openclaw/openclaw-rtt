@@ -222,7 +222,10 @@ test("keeps latest passing main rows visible when a newer run fails", async () =
   assert.match(dashboardSection, /\| Telegram \| `1,100ms` \| `2,100ms` \| n\/a \| n\/a \|/u);
   assert.match(dashboardSection, /\| Discord \| n\/a \| n\/a \| n\/a \| n\/a \|/u);
   assert.match(dashboardSection, /\| Slack \| `4,000ms` \| `5,000ms` \| `400MB` \| `500MB` \|/u);
-  assert.doesNotMatch(dashboardSection, /fail123456|slackfail/u);
+  assert.match(
+    dashboardSection,
+    /stale: latest failed; showing last pass \(failed\)/u,
+  );
 });
 
 test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", async () => {
@@ -301,14 +304,14 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
   assert.doesNotMatch(coverageSection, /2026\.4\.15/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| - \| `950ms` \| - \| - \| - \|/u,
+    /\| `2026\.5\.3` \| - \| `950ms` \| n\/a \| - \| n\/a \|/u,
   );
 
   const telegramSection = readme.slice(
     readme.indexOf("<!-- release-sweep:start -->"),
     readme.indexOf("<!-- release-sweep:end -->"),
   );
-  assert.match(telegramSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
+  assert.match(telegramSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \| Status \|/u);
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Samples \|/u);
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Updated \|/u);
@@ -318,39 +321,39 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
     readme.indexOf("<!-- discord-release-sweep:start -->"),
     readme.indexOf("<!-- discord-release-sweep:end -->"),
   );
-  assert.match(discordSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
+  assert.match(discordSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \| Status \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Samples \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Updated \|/u);
-  assert.match(discordSection, /\| `2026\.5\.12` \| - \| - \| - \| - \|/u);
+  assert.match(discordSection, /\| `2026\.5\.12` \| - \| - \| - \| - \| missing: no imported run \|/u);
   assert.doesNotMatch(discordSection, /2026\.4\.15/u);
 
   const slackSection = readme.slice(
     readme.indexOf("<!-- slack-release-sweep:start -->"),
     readme.indexOf("<!-- slack-release-sweep:end -->"),
   );
-  assert.match(slackSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
+  assert.match(slackSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \| Status \|/u);
   assert.doesNotMatch(slackSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(slackSection, /\| npm version \|.*\| Samples \|/u);
-  assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| `3,000ms` \| `4,000ms` \| n\/a \| n\/a \|/u);
-  assert.match(slackSection, /\| `2026\.5\.12` \| - \| - \| - \| - \|/u);
-  assert.match(slackSection, /\| `2026\.5\.3` \| - \| - \| - \| - \|/u);
+  assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| `3,000ms` \| `4,000ms` \| n\/a \| n\/a \| ok \|/u);
+  assert.match(slackSection, /\| `2026\.5\.12` \| - \| - \| - \| - \| missing: no imported run \|/u);
+  assert.match(slackSection, /\| `2026\.5\.3` \| - \| - \| - \| - \| missing: no imported run \|/u);
   assert.doesNotMatch(slackSection, /2026\.4\.15/u);
 
   const whatsappSection = readme.slice(
     readme.indexOf("<!-- whatsapp-release-sweep:start -->"),
     readme.indexOf("<!-- whatsapp-release-sweep:end -->"),
   );
-  assert.match(whatsappSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \|/u);
+  assert.match(whatsappSection, /\| npm version \| RTT p50 \| RTT p95 \| RSS p50 \| RSS p95 \| Status \|/u);
   assert.doesNotMatch(whatsappSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(whatsappSection, /\| npm version \|.*\| Samples \|/u);
-  assert.match(whatsappSection, /\| `2026\.5\.16-beta\.1` \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
-  assert.match(whatsappSection, /\| `2026\.5\.12` \| - \| - \| - \| - \|/u);
-  assert.match(whatsappSection, /\| `2026\.5\.3` \| - \| - \| - \| - \|/u);
+  assert.match(whatsappSection, /\| `2026\.5\.16-beta\.1` \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \| ok \|/u);
+  assert.match(whatsappSection, /\| `2026\.5\.12` \| - \| - \| - \| - \| missing: no imported run \|/u);
+  assert.match(whatsappSection, /\| `2026\.5\.3` \| - \| - \| - \| - \| not supported: release predates the WhatsApp QA canary \|/u);
   assert.doesNotMatch(whatsappSection, /2026\.4\.15/u);
 });
 
-test("renders release coverage p50 cells without failure labels", async () => {
+test("renders release coverage failure cells without verbose labels", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   const version = "2026.5.16-beta.6";
@@ -393,9 +396,9 @@ test("renders release coverage p50 cells without failure labels", async () => {
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| - \| - \| `7,844ms` \| - \| - \|/u,
+    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| fail \|/u,
   );
-  assert.doesNotMatch(coverageSection, /Fail/u);
+  assert.doesNotMatch(coverageSection, /failed:/u);
 });
 
 test("keeps prior release RTT visible when a newer import has only RSS", async () => {

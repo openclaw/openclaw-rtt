@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import { promisify } from "node:util";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
+import { discordReleaseGapReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
 const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
@@ -10,7 +11,6 @@ const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
-const DISCORD_RELEASE_PROTOCOL_GAPS = new Set(["2026.4.29", "2026.5.3"]);
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
   if (stableMatch) {
@@ -122,8 +122,9 @@ function readRequestedVersionsEnv(name) {
         `${name} contains Discord release version before ${DISCORD_RELEASE_MIN_VERSION}: ${version}`,
       );
     }
-    if (DISCORD_RELEASE_PROTOCOL_GAPS.has(version)) {
-      throw new Error(`${name} contains a known Discord release protocol gap: ${version}`);
+    const gapReason = discordReleaseGapReason(version);
+    if (gapReason) {
+      throw new Error(`${name} contains a known Discord release protocol gap: ${version} (${gapReason})`);
     }
   }
   return versions;
@@ -183,7 +184,7 @@ if (requestedVersions.length > 0) {
     .filter((version) => typeof version === "string" && parseVersion(version))
     .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))
     .filter((pkg) => compareVersions(pkg.version, DISCORD_RELEASE_MIN_VERSION) >= 0)
-    .filter((pkg) => !DISCORD_RELEASE_PROTOCOL_GAPS.has(pkg.version))
+    .filter((pkg) => !discordReleaseGapReason(pkg.version))
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
     .filter(
       (pkg) =>
