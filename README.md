@@ -50,7 +50,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-21T13:36:07.209Z`
+Latest imported channel run: `2026-05-21T14:10:02.361Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
@@ -205,7 +205,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |
 |---|---:|---:|---:|---:|
-| `2026.5.20-beta.1` | - | - | `684MB` | `684MB` |
+| `2026.5.20-beta.1` | - | - | `663MB` | `663MB` |
 | `2026.5.19` | - | - | `683MB` | `683MB` |
 | `2026.5.19-beta.2` | - | - | `680MB` | `680MB` |
 | `2026.5.19-beta.1` | - | - | `678MB` | `678MB` |
