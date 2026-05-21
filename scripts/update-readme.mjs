@@ -245,9 +245,39 @@ function releaseRows(rows, specRe = RELEASE_SPEC_RE) {
     .sort((left, right) => compareVersions(right.package.version, left.package.version));
 }
 
-function releaseTableFor(rows, start, end) {
+function releaseVersionAxis(...rowGroups) {
+  return [
+    ...new Set(rowGroups.flatMap((rows) => releaseRows(rows).map((row) => row.package.version))),
+  ]
+    .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
+    .sort((left, right) => compareVersions(right, left));
+}
+
+function releaseTableVersions(tableRows, versionAxis) {
+  const ownVersions = tableRows.map((row) => row.package.version);
+  if (!versionAxis) {
+    return ownVersions;
+  }
+  return [
+    ...new Set([
+      ...versionAxis,
+      ...ownVersions.filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) < 0),
+    ]),
+  ].sort((left, right) => compareVersions(right, left));
+}
+
+function releaseTableRow(version, row) {
+  if (!row) {
+    return `| \`${version}\` | - | - | - | - |`;
+  }
+  return `| \`${version}\` | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} |`;
+}
+
+function releaseTableFor(rows, start, end, { versionAxis } = {}) {
   const tableRows = releaseRows(rows);
-  if (tableRows.length === 0) {
+  const rowsByVersion = new Map(tableRows.map((row) => [row.package.version, row]));
+  const versions = releaseTableVersions(tableRows, versionAxis);
+  if (versions.length === 0) {
     return [start, "", "No release RTT runs have been imported yet.", "", end].join("\n");
   }
   return [
@@ -255,20 +285,18 @@ function releaseTableFor(rows, start, end) {
     "",
     "| npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 |",
     "|---|---:|---:|---:|---:|",
-    ...tableRows.map(
-      (row) =>
-        `| \`${row.package.version}\` | ${formatMs(row.rtt.p50Ms)} | ${formatMs(row.rtt.p95Ms)} | ${formatRssKb(row.resources?.maxRssKb?.p50)} | ${formatRssKb(row.resources?.maxRssKb?.p95)} |`,
-    ),
+    ...versions.map((version) => releaseTableRow(version, rowsByVersion.get(version))),
     "",
     end,
   ].join("\n");
 }
 
-function channelReleaseTableFor(channelRows, label, start, end) {
+function channelReleaseTableFor(channelRows, label, start, end, options) {
   return releaseTableFor(
     channelRows.filter((row) => row.channel.label === label),
     start,
     end,
+    options,
   );
 }
 
@@ -354,6 +382,7 @@ async function main() {
   const rows = await readRows();
   const discordRows = await readDiscordRttRows();
   const channelRows = await readChannelRttRows();
+  const releaseAxis = releaseVersionAxis(rows, discordRows, channelRows);
   const latestMain = latestDashboardRow(rows.filter((row) => row.package.spec === MAIN_SPEC));
   const latestDiscordMain = latestDashboardRow(discordRows.filter((row) => row.package.spec === MAIN_SPEC));
   const readme = await fs.readFile(README_PATH, "utf8");
@@ -376,15 +405,17 @@ async function main() {
             ),
             RELEASE_START,
             RELEASE_END,
-            releaseTableFor(rows, RELEASE_START, RELEASE_END),
+            releaseTableFor(rows, RELEASE_START, RELEASE_END, { versionAxis: releaseAxis }),
           ),
           DISCORD_RELEASE_START,
           DISCORD_RELEASE_END,
-          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END),
+          releaseTableFor(discordRows, DISCORD_RELEASE_START, DISCORD_RELEASE_END, { versionAxis: releaseAxis }),
         ),
         SLACK_RELEASE_START,
         SLACK_RELEASE_END,
-        channelReleaseTableFor(channelRows, "Slack", SLACK_RELEASE_START, SLACK_RELEASE_END),
+        channelReleaseTableFor(channelRows, "Slack", SLACK_RELEASE_START, SLACK_RELEASE_END, {
+          versionAxis: releaseAxis,
+        }),
       );
   const nextWithWhatsAppRelease = UPDATE_LATEST_MAIN_ONLY
     ? next
@@ -392,7 +423,9 @@ async function main() {
         next,
         WHATSAPP_RELEASE_START,
         WHATSAPP_RELEASE_END,
-        channelReleaseTableFor(channelRows, "WhatsApp", WHATSAPP_RELEASE_START, WHATSAPP_RELEASE_END),
+        channelReleaseTableFor(channelRows, "WhatsApp", WHATSAPP_RELEASE_START, WHATSAPP_RELEASE_END, {
+          versionAxis: releaseAxis,
+        }),
       );
   await fs.writeFile(README_PATH, nextWithWhatsAppRelease);
 }

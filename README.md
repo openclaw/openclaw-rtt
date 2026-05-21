@@ -44,7 +44,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 ## Release Coverage Matrix
 
-Version-by-version RTT coverage for release canaries. The matrix follows imported release versions from `2026.4.24` onward and leaves missing channel/version cells as `-`. A `-` cell means no compatible row exists for that channel/version yet, or an imported row produced no successful RTT sample.
+Version-by-version RTT coverage for release canaries. The matrix and per-channel release tables follow the same imported release-version axis from `2026.4.24` onward and leave missing channel/version cells as `-`. A `-` cell means no compatible row exists for that channel/version yet, or an imported row produced no successful RTT sample.
 
 Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; `p50 σ` is the standard deviation across channel p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
 
@@ -157,7 +157,9 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.5.7` | `18,948ms` | `22,954ms` | `792MB` | `823MB` |
 | `2026.5.6` | `18,001ms` | `18,832ms` | `797MB` | `807MB` |
 | `2026.5.4` | `18,937ms` | `19,896ms` | `794MB` | `810MB` |
+| `2026.5.3` | - | - | - | - |
 | `2026.5.2` | `20,146ms` | `21,604ms` | `719MB` | `724MB` |
+| `2026.4.29` | - | - | - | - |
 | `2026.4.27` | `36,858ms` | `38,863ms` | `842MB` | `961MB` |
 | `2026.4.26` | `32,689ms` | `34,092ms` | `762MB` | `779MB` |
 | `2026.4.25` | `49,357ms` | `52,963ms` | `869MB` | `884MB` |
@@ -194,6 +196,12 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.6` | `4,876ms` | `5,564ms` | `649MB` | `671MB` |
 | `2026.5.4` | `5,121ms` | `5,482ms` | `651MB` | `659MB` |
 | `2026.5.3` | `4,980ms` | `5,146ms` | `628MB` | `631MB` |
+| `2026.5.2` | - | - | - | - |
+| `2026.4.29` | - | - | - | - |
+| `2026.4.27` | - | - | - | - |
+| `2026.4.26` | - | - | - | - |
+| `2026.4.25` | - | - | - | - |
+| `2026.4.24` | - | - | - | - |
 
 <!-- slack-release-sweep:end -->
 
@@ -222,5 +230,15 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.14-beta.1` | `6,636ms` | `7,158ms` | `859MB` | `906MB` |
 | `2026.5.12` | `7,035ms` | `8,106ms` | `857MB` | `893MB` |
 | `2026.5.9-beta.1` | `4,971ms` | `6,231ms` | `851MB` | `879MB` |
+| `2026.5.7` | - | - | - | - |
+| `2026.5.6` | - | - | - | - |
+| `2026.5.4` | - | - | - | - |
+| `2026.5.3` | - | - | - | - |
+| `2026.5.2` | - | - | - | - |
+| `2026.4.29` | - | - | - | - |
+| `2026.4.27` | - | - | - | - |
+| `2026.4.26` | - | - | - | - |
+| `2026.4.25` | - | - | - | - |
+| `2026.4.24` | - | - | - | - |
 
 <!-- whatsapp-release-sweep:end -->

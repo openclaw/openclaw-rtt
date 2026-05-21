@@ -312,6 +312,7 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Samples \|/u);
   assert.doesNotMatch(telegramSection, /\| npm version \|.*\| Updated \|/u);
+  assert.match(telegramSection, /\| `2026\.4\.15` \| `900ms` \| `1,900ms` \| n\/a \| n\/a \|/u);
 
   const discordSection = readme.slice(
     readme.indexOf("<!-- discord-release-sweep:start -->"),
@@ -321,6 +322,8 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Samples \|/u);
   assert.doesNotMatch(discordSection, /\| npm version \|.*\| Updated \|/u);
+  assert.match(discordSection, /\| `2026\.5\.12` \| - \| - \| - \| - \|/u);
+  assert.doesNotMatch(discordSection, /2026\.4\.15/u);
 
   const slackSection = readme.slice(
     readme.indexOf("<!-- slack-release-sweep:start -->"),
@@ -330,6 +333,9 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
   assert.doesNotMatch(slackSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(slackSection, /\| npm version \|.*\| Samples \|/u);
   assert.match(slackSection, /\| `2026\.5\.16-beta\.1` \| `3,000ms` \| `4,000ms` \| n\/a \| n\/a \|/u);
+  assert.match(slackSection, /\| `2026\.5\.12` \| - \| - \| - \| - \|/u);
+  assert.match(slackSection, /\| `2026\.5\.3` \| - \| - \| - \| - \|/u);
+  assert.doesNotMatch(slackSection, /2026\.4\.15/u);
 
   const whatsappSection = readme.slice(
     readme.indexOf("<!-- whatsapp-release-sweep:start -->"),
@@ -339,6 +345,9 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
   assert.doesNotMatch(whatsappSection, /\| npm version \|.*\| Result \|/u);
   assert.doesNotMatch(whatsappSection, /\| npm version \|.*\| Samples \|/u);
   assert.match(whatsappSection, /\| `2026\.5\.16-beta\.1` \| `8,000ms` \| `9,000ms` \| `400MB` \| `500MB` \|/u);
+  assert.match(whatsappSection, /\| `2026\.5\.12` \| - \| - \| - \| - \|/u);
+  assert.match(whatsappSection, /\| `2026\.5\.3` \| - \| - \| - \| - \|/u);
+  assert.doesNotMatch(whatsappSection, /2026\.4\.15/u);
 });
 
 test("renders release coverage p50 cells without failure labels", async () => {
