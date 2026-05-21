@@ -357,6 +357,7 @@ test("renders release coverage failure cells without verbose labels", async () =
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   const version = "2026.5.16-beta.6";
+  const timeoutVersion = "2026.5.16-beta.5";
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     rttRow({
       package: { spec: `openclaw@${version}`, version },
@@ -369,6 +370,20 @@ test("renders release coverage failure cells without verbose labels", async () =
       package: { spec: `openclaw@${version}`, version },
       run: { id: "discord-partial", startedAt: "2026-05-18T00:01:00.000Z", status: "fail" },
       rtt: { warmSamples: [7844], p50Ms: 7844, p95Ms: 7844 },
+    }),
+    rttRow({
+      package: { spec: `openclaw@${timeoutVersion}`, version: timeoutVersion },
+      run: { id: "discord-timeout", startedAt: "2026-05-18T00:01:00.000Z", status: "fail" },
+      rtt: { warmSamples: [], p50Ms: undefined, p95Ms: undefined },
+      discord: {
+        samples: [
+          {
+            index: 1,
+            status: "fail",
+            details: "timed out after 45000ms waiting for Discord message",
+          },
+        ],
+      },
     }),
   ]);
   for (const [channel, label] of [
@@ -398,7 +413,17 @@ test("renders release coverage failure cells without verbose labels", async () =
     coverageSection,
     /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| fail \|/u,
   );
+  assert.match(
+    coverageSection,
+    /\| `2026\.5\.16-beta\.5` \| - \| - \| timeout \| - \| - \|/u,
+  );
   assert.doesNotMatch(coverageSection, /failed:/u);
+
+  const discordSection = readme.slice(
+    readme.indexOf("<!-- discord-release-sweep:start -->"),
+    readme.indexOf("<!-- discord-release-sweep:end -->"),
+  );
+  assert.match(discordSection, /\| `2026\.5\.16-beta\.5` \| - \| - \| n\/a \| n\/a \| timeout \|/u);
 });
 
 test("keeps prior release RTT visible when a newer import has only RSS", async () => {

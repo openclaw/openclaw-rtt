@@ -304,7 +304,7 @@ function releaseSkipReason(label, version) {
 }
 
 function sampleFailureDetails(row) {
-  return [...(row?.samples ?? [])]
+  return [...(row?.samples ?? []), ...(row?.discord?.samples ?? [])]
     .reverse()
     .map((sample) => sample?.details)
     .filter((details) => typeof details === "string" && !details.startsWith("reply matched in "));
