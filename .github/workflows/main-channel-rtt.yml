@@ -103,7 +103,7 @@ jobs:
     timeout-minutes: 120
     environment: qa-live-shared
     concurrency:
-      group: main-channel-rtt-measure-${{ matrix.channel }}-${{ github.ref }}
+      group: channel-rtt-measure-${{ matrix.channel }}-${{ github.ref }}
       cancel-in-progress: false
     strategy:
       fail-fast: false
