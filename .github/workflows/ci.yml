@@ -56,6 +56,7 @@ jobs:
         run: node scripts/validate.mjs
 
       - name: Verify README generation
+        if: github.event_name != 'push'
         shell: bash
         run: |
           set -euo pipefail

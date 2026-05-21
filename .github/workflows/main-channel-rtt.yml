@@ -13,7 +13,6 @@ on:
       - "scripts/channel-rtt-summary.mjs"
       - "scripts/import-live-transport-rtt.mjs"
       - "scripts/read-channel-rtt-rows.mjs"
-      - "scripts/update-readme.mjs"
       - "scripts/validate.mjs"
   workflow_dispatch:
     inputs:
@@ -407,7 +406,6 @@ jobs:
               --provider-mode mock-openai \
               --scenario "$scenario"
           done
-          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/channel-rtt-summary.mjs
 
@@ -422,6 +420,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/channels/ runs/
+          git add data/channels/ runs/
           git commit -m "data: record main channel rtt"
-          git push
+          git push || {
+            git pull --rebase origin main
+            git push
+          }

@@ -1,6 +1,8 @@
 name: Release Channel RTT
 
 on:
+  schedule:
+    - cron: "55 */6 * * *"
   workflow_dispatch:
     inputs:
       channels:
@@ -63,9 +65,9 @@ jobs:
       - name: Resolve OpenClaw channel release packages
         id: release
         env:
-          INPUT_CHANNELS: ${{ inputs.channels }}
-          INPUT_VERSIONS: ${{ inputs.versions }}
-          INPUT_VERSION_LIMIT: ${{ inputs.version_limit }}
+          INPUT_CHANNELS: ${{ github.event_name == 'workflow_dispatch' && inputs.channels || '' }}
+          INPUT_VERSIONS: ${{ github.event_name == 'workflow_dispatch' && inputs.versions || '' }}
+          INPUT_VERSION_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.version_limit || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -209,7 +211,7 @@ jobs:
         id: channel_rtt
         working-directory: openclaw
         env:
-          INPUT_SAMPLES: ${{ inputs.samples }}
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
           OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
           OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
           OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
@@ -428,7 +430,6 @@ jobs:
               --provider-mode mock-openai \
               --scenario "$scenario"
           done
-          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/channel-rtt-summary.mjs
 
@@ -442,6 +443,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/channels/ runs/
+          git add data/channels/ runs/
           git commit -m "data: record channel release rtt"
-          git push
+          git push || {
+            git pull --rebase origin main
+            git push
+          }

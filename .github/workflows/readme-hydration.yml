@@ -1,0 +1,79 @@
+name: Hydrate README
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "data/channels/**"
+      - "runs/**"
+      - "scripts/channel-rtt-summary.mjs"
+      - "scripts/discord-rtt-summary.mjs"
+      - "scripts/read-channel-rtt-rows.mjs"
+      - "scripts/read-discord-rtt-rows.mjs"
+      - "scripts/read-rows.mjs"
+      - "scripts/summary.mjs"
+      - "scripts/update-readme.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: readme-hydration-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  NODE_VERSION: "24.x"
+
+jobs:
+  hydrate:
+    name: Hydrate README
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Hydrate README
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          node scripts/update-readme.mjs
+          node scripts/validate.mjs
+          node scripts/summary.mjs
+          node scripts/discord-rtt-summary.mjs
+          node scripts/channel-rtt-summary.mjs
+
+      - name: Commit README
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet --exit-code README.md; then
+            echo "README is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: hydrate rtt readme"
+          git push || {
+            git pull --rebase origin main
+            node scripts/update-readme.mjs
+            if git diff --quiet --exit-code README.md; then
+              git push
+              exit 0
+            fi
+            git add README.md
+            git commit --amend --no-edit
+            git push
+          }

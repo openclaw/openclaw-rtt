@@ -181,7 +181,6 @@ jobs:
             --spec openclaw@main \
             --version "${{ steps.openclaw_ref.outputs.version }}" \
             --provider-mode mock-openai
-          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/discord-rtt-summary.mjs
 
@@ -205,6 +204,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/channels/discord/ runs/discord/
+          git add data/channels/discord/ runs/discord/
           git commit -m "data: record main discord rtt"
-          git push
+          git push || {
+            git pull --rebase origin main
+            git push
+          }

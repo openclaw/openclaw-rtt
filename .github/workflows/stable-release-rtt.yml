@@ -166,7 +166,6 @@ jobs:
                 --family telegram \
                 --result "$result_path" \
                 --resource-metrics "$metrics_path"
-              node scripts/update-readme.mjs
               node scripts/validate.mjs
               if git diff --quiet --exit-code; then
                 echo "No RSS changes to commit for $spec."
@@ -174,7 +173,7 @@ jobs:
               fi
               git config user.name "github-actions[bot]"
               git config user.email "github-actions[bot]@users.noreply.github.com"
-              git add README.md data/channels/telegram/ runs/telegram/
+              git add data/channels/telegram/ runs/telegram/
               git commit -m "data: record release rtt batch"
               git push || {
                 git pull --rebase origin main
@@ -251,7 +250,6 @@ jobs:
               node scripts/import-result.mjs "$result_path" --resource-metrics "$metrics_path"
             fi
           done <"${{ steps.rtt.outputs.result_paths }}"
-          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/summary.mjs
 
@@ -267,9 +265,12 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/channels/telegram/ runs/telegram/
+          git add data/channels/telegram/ runs/telegram/
           git commit -m "data: record release rtt batch"
-          git push
+          git push || {
+            git pull --rebase origin main
+            git push
+          }
 
       - name: Report skipped package
         if: steps.release.outputs.should_run != 'true'

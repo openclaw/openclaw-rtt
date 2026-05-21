@@ -145,7 +145,6 @@ jobs:
           git pull --rebase origin main
           node scripts/import-result.mjs "${{ steps.rtt.outputs.result_path }}" \
             --resource-metrics "${{ steps.rtt.outputs.resource_metrics_path }}"
-          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/summary.mjs
 
@@ -160,6 +159,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md data/channels/telegram/ runs/telegram/
+          git add data/channels/telegram/ runs/telegram/
           git commit -m "data: record main rtt"
-          git push
+          git push || {
+            git pull --rebase origin main
+            git push
+          }
