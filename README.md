@@ -50,11 +50,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-22T01:18:15.131Z`
+Latest imported channel run: `2026-05-22T02:00:49.697Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.20` | - | `1,004ms` | - | - | - |
+| `2026.5.20` | `1,920ms` | `1,004ms` | `5,189ms` | `4,957ms` | logged out |
 | `2026.5.20-beta.2` | `2,703ms` | `1,002ms` | `7,346ms` | `5,813ms` | logged out |
 | `2026.5.20-beta.1` | `2,461ms` | `1,054ms` | `7,047ms` | `4,609ms` | logged out |
 | `2026.5.19` | `2,262ms` | `1,444ms` | `6,951ms` | `4,727ms` | logged out |
@@ -141,7 +141,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.20` | - | - | - | - | missing: no imported run |
+| `2026.5.20` | `5,189ms` | `5,473ms` | `757MB` | `766MB` | ok |
 | `2026.5.20-beta.2` | `7,346ms` | `7,571ms` | `754MB` | `762MB` | ok |
 | `2026.5.20-beta.1` | `7,047ms` | `7,412ms` | `749MB` | `766MB` | ok |
 | `2026.5.19` | `6,951ms` | `7,238ms` | `746MB` | `778MB` | ok |
@@ -181,7 +181,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.20` | - | - | - | - | missing: no imported run |
+| `2026.5.20` | `4,957ms` | `6,447ms` | `727MB` | `773MB` | ok |
 | `2026.5.20-beta.2` | `5,813ms` | `5,978ms` | `685MB` | `804MB` | ok |
 | `2026.5.20-beta.1` | `4,609ms` | `6,020ms` | `706MB` | `768MB` | ok |
 | `2026.5.19` | `4,727ms` | `6,190ms` | `711MB` | `747MB` | ok |
@@ -221,7 +221,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.20` | - | - | - | - | missing: no imported run |
+| `2026.5.20` | - | - | `536MB` | `536MB` | logged out: relink required |
 | `2026.5.20-beta.2` | - | - | `528MB` | `528MB` | logged out: relink required |
 | `2026.5.20-beta.1` | - | - | `663MB` | `663MB` | logged out: relink required |
 | `2026.5.19` | - | - | `683MB` | `683MB` | logged out: relink required |
