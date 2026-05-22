@@ -1,0 +1,315 @@
+{
+  "channel": {
+    "id": "discord",
+    "label": "Discord",
+    "scenario": "discord-canary"
+  },
+  "package": {
+    "spec": "openclaw@main",
+    "version": "2026.5.21+b741ddb66f"
+  },
+  "run": {
+    "id": "2026-05-22T190833695Z-openclaw_main-discord-rtt",
+    "startedAt": "2026-05-22T19:08:33.695Z",
+    "finishedAt": "2026-05-22T19:32:54.766Z",
+    "durationMs": 1461071,
+    "status": "fail"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "discord-canary"
+    ],
+    "credentialSource": "convex",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [
+      28613,
+      43260,
+      43137,
+      42861,
+      42298,
+      42935,
+      42409,
+      42751,
+      43094
+    ],
+    "failedSamples": 11,
+    "sources": [
+      "summary-rtt"
+    ],
+    "avgMs": 41262,
+    "p50Ms": 42861,
+    "p95Ms": 43260,
+    "maxMs": 43260
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa discord"
+    },
+    "maxRssKbSamples": [
+      1080648,
+      784348,
+      971464,
+      794064,
+      818656,
+      787312,
+      791780,
+      796348,
+      785540,
+      789232,
+      793200,
+      791252,
+      794468,
+      799260,
+      816236,
+      794996,
+      813824,
+      809560,
+      956020,
+      792740
+    ],
+    "elapsedSecondsSamples": [
+      79.04,
+      72.53,
+      75.71,
+      72.17,
+      74.97,
+      71.48,
+      73.67,
+      71.49,
+      71.9,
+      73.88,
+      71.39,
+      71.47,
+      71.7,
+      75.74,
+      73.96,
+      72.89,
+      75.57,
+      72.69,
+      73.55,
+      73.38
+    ],
+    "maxRssKb": {
+      "avg": 828047.4,
+      "p50": 794468,
+      "p95": 971464,
+      "max": 1080648
+    },
+    "elapsedSeconds": {
+      "avg": 73.459,
+      "p50": 72.89,
+      "p95": 75.74,
+      "max": 79.04
+    }
+  },
+  "discord": {
+    "samples": [
+      {
+        "index": 1,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 1080648,
+          "elapsedSeconds": 79.04
+        }
+      },
+      {
+        "index": 2,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 784348,
+          "elapsedSeconds": 72.53
+        }
+      },
+      {
+        "index": 3,
+        "status": "pass",
+        "rttMs": 28613,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 971464,
+          "elapsedSeconds": 75.71
+        }
+      },
+      {
+        "index": 4,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 794064,
+          "elapsedSeconds": 72.17
+        }
+      },
+      {
+        "index": 5,
+        "status": "pass",
+        "rttMs": 43260,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 818656,
+          "elapsedSeconds": 74.97
+        }
+      },
+      {
+        "index": 6,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 787312,
+          "elapsedSeconds": 71.48
+        }
+      },
+      {
+        "index": 7,
+        "status": "pass",
+        "rttMs": 43137,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 791780,
+          "elapsedSeconds": 73.67
+        }
+      },
+      {
+        "index": 8,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 796348,
+          "elapsedSeconds": 71.49
+        }
+      },
+      {
+        "index": 9,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 785540,
+          "elapsedSeconds": 71.9
+        }
+      },
+      {
+        "index": 10,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 789232,
+          "elapsedSeconds": 73.88
+        }
+      },
+      {
+        "index": 11,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 793200,
+          "elapsedSeconds": 71.39
+        }
+      },
+      {
+        "index": 12,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 791252,
+          "elapsedSeconds": 71.47
+        }
+      },
+      {
+        "index": 13,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 794468,
+          "elapsedSeconds": 71.7
+        }
+      },
+      {
+        "index": 14,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 799260,
+          "elapsedSeconds": 75.74
+        }
+      },
+      {
+        "index": 15,
+        "status": "pass",
+        "rttMs": 42861,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 816236,
+          "elapsedSeconds": 73.96
+        }
+      },
+      {
+        "index": 16,
+        "status": "pass",
+        "rttMs": 42298,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 794996,
+          "elapsedSeconds": 72.89
+        }
+      },
+      {
+        "index": 17,
+        "status": "pass",
+        "rttMs": 42935,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 813824,
+          "elapsedSeconds": 75.57
+        }
+      },
+      {
+        "index": 18,
+        "status": "pass",
+        "rttMs": 42409,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 809560,
+          "elapsedSeconds": 72.69
+        }
+      },
+      {
+        "index": 19,
+        "status": "pass",
+        "rttMs": 42751,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 956020,
+          "elapsedSeconds": 73.55
+        }
+      },
+      {
+        "index": 20,
+        "status": "pass",
+        "rttMs": 43094,
+        "rttSource": "summary-rtt",
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 792740,
+          "elapsedSeconds": 73.38
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "resultPath": "runs/discord/2026-05-22T190833695Z-openclaw_main-discord-rtt/result.json"
+  }
+}
