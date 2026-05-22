@@ -29,13 +29,13 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-05-22T07:26:27.688Z` · latest `2026.5.21` / `49e3f8c3ee`
+Latest imported channel run: `2026-05-22T08:00:29.795Z` · latest `2026.5.21` / `6981051682`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,086ms` | `2,287ms` | `136MB` | `136MB` | ok |
 | Discord | `5,793ms` | `6,330ms` | `812MB` | `831MB` | ok |
-| Slack | `4,486ms` | `5,800ms` | `776MB` | `889MB` | ok |
+| Slack | `4,672ms` | `5,959ms` | `726MB` | `824MB` | ok |
 | WhatsApp | `7,733ms` | `10,044ms` | `1,104MB` | `1,572MB` | stale: latest failed; showing last pass (logged out: relink required) |
 
 <!-- latest-main:end -->
