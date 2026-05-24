@@ -29,14 +29,14 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-05-24T07:37:17.574Z` · latest `2026.5.24` / `abdd8a40cc`
+Latest imported channel run: `2026-05-24T07:45:59.674Z` · latest `2026.5.24` / `11bf6424ca`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `2,223ms` | `2,921ms` | `136MB` | `136MB` | ok |
 | Discord | `12,000ms` | `12,219ms` | `806MB` | `821MB` | ok |
-| Slack | `7,367ms` | `8,607ms` | `697MB` | `734MB` | stale: latest failed; showing last pass (timeout) |
-| WhatsApp | `8,669ms` | `10,174ms` | `728MB` | `776MB` | stale: latest failed; showing last pass (blocked: credential pool exhausted) |
+| Slack | `7,216ms` | `8,525ms` | `704MB` | `820MB` | ok |
+| WhatsApp | `8,475ms` | `9,608ms` | `729MB` | `760MB` | ok |
 
 <!-- latest-main:end -->
 
