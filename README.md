@@ -29,11 +29,11 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-05-23T19:13:15.987Z` · latest `2026.5.22` / `ee61f79b90`
+Latest imported channel run: `2026-05-24T01:07:00.711Z` · latest `2026.5.22` / `acf265d4d5`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| Telegram | `2,248ms` | `2,969ms` | `136MB` | `136MB` | ok |
+| Telegram | `2,218ms` | `2,891ms` | `136MB` | `136MB` | ok |
 | Discord | `17,790ms` | `18,710ms` | `807MB` | `847MB` | ok |
 | Slack | `7,367ms` | `8,607ms` | `697MB` | `734MB` | ok |
 | WhatsApp | `8,669ms` | `10,174ms` | `728MB` | `776MB` | ok |
@@ -50,11 +50,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-23T13:39:38.255Z`
+Latest imported channel run: `2026-05-23T19:15:12.872Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.22-beta.1` | `2,540ms` | `2,265ms` | - | `7,071ms` | `8,090ms` |
+| `2026.5.22-beta.1` | `5,543ms` | `2,265ms` | `17,559ms` | `7,071ms` | `8,090ms` |
 | `2026.5.20` | `1,920ms` | `1,004ms` | `5,189ms` | `4,957ms` | logged out |
 | `2026.5.20-beta.2` | `2,703ms` | `1,002ms` | `7,346ms` | `5,813ms` | logged out |
 | `2026.5.20-beta.1` | `2,461ms` | `1,054ms` | `7,047ms` | `4,609ms` | logged out |
@@ -143,7 +143,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.22-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.5.22-beta.1` | `17,559ms` | `18,046ms` | `782MB` | `803MB` | ok |
 | `2026.5.20` | `5,189ms` | `5,473ms` | `757MB` | `766MB` | ok |
 | `2026.5.20-beta.2` | `7,346ms` | `7,571ms` | `754MB` | `762MB` | ok |
 | `2026.5.20-beta.1` | `7,047ms` | `7,412ms` | `749MB` | `766MB` | ok |
