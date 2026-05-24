@@ -34,7 +34,7 @@ Latest imported channel run: `2026-05-24T01:38:00.484Z` · latest `2026.5.22` / 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `2,218ms` | `2,891ms` | `136MB` | `136MB` | ok |
-| Discord | `17,790ms` | `18,710ms` | `807MB` | `847MB` | ok |
+| Discord | `17,790ms` | `18,710ms` | `807MB` | `847MB` | stale: latest failed; showing last pass (timeout) |
 | Slack | `7,367ms` | `8,607ms` | `697MB` | `734MB` | stale: latest failed; showing last pass (timeout) |
 | WhatsApp | `8,669ms` | `10,174ms` | `728MB` | `776MB` | stale: latest failed; showing last pass (blocked: credential pool exhausted) |
 
