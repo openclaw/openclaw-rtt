@@ -143,7 +143,7 @@ The system under test is the published package running its own Telegram bot. The
 
 ## Discord Release Runs
 
-Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials. Older release tags that do not emit observed-message timestamps use sample duration.
+Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, scenario `discord-canary`, and Convex-managed CI credentials. Imported RTT requires a scenario RTT measurement or observed-message timestamps; whole-command duration is retained only as diagnostic metadata.
 
 <!-- discord-release-sweep:start -->
 

@@ -115,6 +115,7 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
     .map((line) => JSON.parse(line));
   assert.equal(row.rtt.p50Ms, 5250);
   assert.equal(row.rtt.p95Ms, 5250);
+  assert.deepEqual(row.rtt.sources, ["observed-message"]);
   assert.deepEqual(row.resources.measurement, {
     kind: "process-max-rss",
     scope: "qa-command",
@@ -128,7 +129,7 @@ test("imports Discord resource metrics without changing RTT stats", async () => 
   assert.equal(row.resources.gatewayProcessRssPeakDeltaBytes.p50, 40_000_000);
 });
 
-test("prefers Discord summary rttMs over observed-message fallback", async () => {
+test("prefers Discord structured RTT measurement over legacy fallbacks", async () => {
   const workspace = await makeWorkspace();
   const sampleDir = path.join(workspace, "sample-1");
   await fs.mkdir(sampleDir, { recursive: true });
@@ -138,7 +139,17 @@ test("prefers Discord summary rttMs over observed-message fallback", async () =>
       startedAt: "2026-05-16T00:00:00.000Z",
       finishedAt: "2026-05-16T00:00:45.000Z",
       counts: { total: 1, passed: 1, failed: 0 },
-      scenarios: [{ id: "discord-canary", status: "pass", rttMs: 6123 }],
+      scenarios: [{
+        id: "discord-canary",
+        status: "pass",
+        rttMs: 6123,
+        rttMeasurement: {
+          finalMatchedReplyRttMs: 6789,
+          requestStartedAt: "2026-05-16T00:00:10.000Z",
+          responseObservedAt: "2026-05-16T00:00:16.789Z",
+          source: "request-to-observed-message",
+        },
+      }],
       credentials: { source: "convex", role: "ci" },
     })}\n`,
   );
@@ -175,7 +186,51 @@ test("prefers Discord summary rttMs over observed-message fallback", async () =>
       "utf8",
     ),
   );
-  assert.equal(result.rtt.p50Ms, 6123);
-  assert.deepEqual(result.rtt.sources, ["summary-rtt"]);
-  assert.equal(result.discord.samples[0].rttSource, "summary-rtt");
+  assert.equal(result.rtt.p50Ms, 6789);
+  assert.deepEqual(result.rtt.sources, ["request-to-observed-message"]);
+  assert.equal(result.discord.samples[0].rttSource, "request-to-observed-message");
+  assert.deepEqual(result.discord.samples[0].rttMeasurement, {
+    finalMatchedReplyRttMs: 6789,
+    requestStartedAt: "2026-05-16T00:00:10.000Z",
+    responseObservedAt: "2026-05-16T00:00:16.789Z",
+    source: "request-to-observed-message",
+  });
+  assert.equal(result.discord.samples[0].durationRttMs, 45000);
+});
+
+test("does not treat Discord whole-command duration as RTT", async () => {
+  const workspace = await makeWorkspace();
+  const sampleDir = path.join(workspace, "sample-1");
+  await fs.mkdir(sampleDir, { recursive: true });
+  await fs.writeFile(
+    path.join(sampleDir, "discord-qa-summary.json"),
+    `${JSON.stringify({
+      startedAt: "2026-05-16T00:00:00.000Z",
+      finishedAt: "2026-05-16T00:00:45.000Z",
+      counts: { total: 1, passed: 1, failed: 0 },
+      scenarios: [{ id: "discord-canary", status: "pass", details: "reply matched" }],
+      credentials: { source: "convex", role: "ci" },
+    })}\n`,
+  );
+  await fs.writeFile(path.join(sampleDir, "discord-qa-observed-messages.json"), "[]\n");
+  await fs.writeFile(
+    path.join(workspace, "samples.tsv"),
+    `${path.join(sampleDir, "discord-qa-summary.json")}\t${path.join(
+      sampleDir,
+      "discord-qa-observed-messages.json",
+    )}\n`,
+  );
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [
+      IMPORT_SCRIPT,
+      path.join(workspace, "samples.tsv"),
+      "--spec",
+      "openclaw@2026.5.18",
+      "--version",
+      "2026.5.18",
+      "--require-pass",
+    ], { cwd: workspace }),
+    /Discord RTT run failed/u,
+  );
 });

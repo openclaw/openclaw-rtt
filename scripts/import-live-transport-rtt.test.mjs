@@ -51,6 +51,12 @@ test("imports live transport summary RTT samples", async () => {
         status: "pass",
         details: "reply matched",
         rttMs: 321,
+        rttMeasurement: {
+          finalMatchedReplyRttMs: 333,
+          requestStartedAt: "2026-05-16T00:00:00.500Z",
+          responseObservedAt: "2026-05-16T00:00:00.833Z",
+          source: "request-to-observed-message",
+        },
       },
     ],
   });
@@ -79,8 +85,9 @@ test("imports live transport summary RTT samples", async () => {
   assert.equal(row.channel.id, "slack");
   assert.equal(row.channel.scenario, "slack-canary");
   assert.equal(row.run.status, "pass");
-  assert.deepEqual(row.rtt.warmSamples, [321]);
-  assert.equal(row.rtt.p50Ms, 321);
+  assert.deepEqual(row.rtt.warmSamples, [333]);
+  assert.deepEqual(row.rtt.sources, ["request-to-observed-message"]);
+  assert.equal(row.rtt.p50Ms, 333);
   assert.deepEqual(row.resources.measurement, {
     kind: "process-max-rss",
     scope: "qa-command",
@@ -96,6 +103,13 @@ test("imports live transport summary RTT samples", async () => {
   assert.equal(row.polling.retryCount, 1);
   assert.equal(row.polling.maxAttempts, 2);
   assert.equal(row.samples[0].attempts, 2);
+  assert.equal(row.samples[0].rttSource, "request-to-observed-message");
+  assert.deepEqual(row.samples[0].rttMeasurement, {
+    finalMatchedReplyRttMs: 333,
+    requestStartedAt: "2026-05-16T00:00:00.500Z",
+    responseObservedAt: "2026-05-16T00:00:00.833Z",
+    source: "request-to-observed-message",
+  });
 });
 
 test("falls back to observed message timestamps when summaries do not carry RTT", async () => {
@@ -148,6 +162,7 @@ test("falls back to observed message timestamps when summaries do not carry RTT"
   assert.equal(row.channel.id, "discord");
   assert.equal(row.run.status, "pass");
   assert.deepEqual(row.rtt.warmSamples, [456]);
+  assert.deepEqual(row.rtt.sources, ["observed-message"]);
 });
 
 test("can require imported channel samples to pass", async () => {

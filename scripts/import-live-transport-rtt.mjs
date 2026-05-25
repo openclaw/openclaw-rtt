@@ -173,6 +173,31 @@ function extractObservedRtt(observedMessages, scenarioId) {
   return Number.isFinite(rttMs) ? rttMs : undefined;
 }
 
+function extractScenarioMeasurement(scenario) {
+  const measurement = scenario?.rttMeasurement;
+  if (typeof measurement !== "object" || measurement === null || Array.isArray(measurement)) {
+    return undefined;
+  }
+  const finalMatchedReplyRttMs = measurement.finalMatchedReplyRttMs;
+  if (typeof finalMatchedReplyRttMs !== "number" || !Number.isFinite(finalMatchedReplyRttMs)) {
+    return undefined;
+  }
+  const source =
+    typeof measurement.source === "string" && measurement.source.trim()
+      ? measurement.source
+      : "request-to-observed-message";
+  return {
+    finalMatchedReplyRttMs: Math.max(0, Math.round(finalMatchedReplyRttMs)),
+    ...(typeof measurement.requestStartedAt === "string"
+      ? { requestStartedAt: measurement.requestStartedAt }
+      : {}),
+    ...(typeof measurement.responseObservedAt === "string"
+      ? { responseObservedAt: measurement.responseObservedAt }
+      : {}),
+    source,
+  };
+}
+
 async function readResourceMetrics(pathname) {
   if (!pathname) {
     return {};
@@ -233,9 +258,17 @@ function selectScenario(summary, scenarioId) {
 async function readSample(entry, index, scenarioId) {
   const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
   const scenario = selectScenario(summary, scenarioId);
-  let rttMs = typeof scenario.rttMs === "number" && Number.isFinite(scenario.rttMs) ? scenario.rttMs : undefined;
+  const rttMeasurement = extractScenarioMeasurement(scenario);
+  const summaryRttMs =
+    typeof scenario.rttMs === "number" && Number.isFinite(scenario.rttMs)
+      ? Math.max(0, Math.round(scenario.rttMs))
+      : undefined;
+  let rttMs = rttMeasurement?.finalMatchedReplyRttMs ?? summaryRttMs;
+  let rttSource =
+    rttMeasurement?.source ?? (summaryRttMs === undefined ? undefined : "summary-rtt");
   if (rttMs === undefined && entry.observedMessagesPath) {
     rttMs = extractObservedRtt(await readJson(path.resolve(entry.observedMessagesPath)), scenarioId);
+    rttSource = rttMs === undefined ? undefined : "observed-message";
   }
   const resourceMetrics = await readResourceMetrics(entry.resourceMetricsPath);
   const attempts = readAttemptCount(resourceMetrics.attempts);
@@ -256,6 +289,8 @@ async function readSample(entry, index, scenarioId) {
       details: scenario.details,
       id: scenario.id,
       rttMs,
+      rttMeasurement,
+      rttSource,
       status: scenario.status === "pass" && rttMs !== undefined ? "pass" : "fail",
       title: scenario.title,
     },
@@ -354,6 +389,13 @@ async function main() {
     rtt: {
       warmSamples,
       failedSamples,
+      sources: [
+        ...new Set(
+          samples
+            .filter((sample) => sample.scenario.status === "pass")
+            .flatMap((sample) => (sample.scenario.rttSource ? [sample.scenario.rttSource] : [])),
+        ),
+      ],
       ...stats(warmSamples),
     },
     resources,
@@ -362,6 +404,8 @@ async function main() {
       status: sample.scenario.status,
       attempts: sample.attempts,
       ...(sample.scenario.rttMs === undefined ? {} : { rttMs: sample.scenario.rttMs }),
+      ...(sample.scenario.rttSource ? { rttSource: sample.scenario.rttSource } : {}),
+      ...(sample.scenario.rttMeasurement ? { rttMeasurement: sample.scenario.rttMeasurement } : {}),
       ...(sample.resources.maxRssKb === undefined ? {} : { maxRssKb: sample.resources.maxRssKb }),
       ...(sample.resources.elapsedSeconds === undefined
         ? {}

@@ -169,6 +169,31 @@ function extractSummaryDurationRtt(summary) {
   return Number.isFinite(rttMs) ? rttMs : undefined;
 }
 
+function extractScenarioMeasurement(scenario) {
+  const measurement = scenario?.rttMeasurement;
+  if (typeof measurement !== "object" || measurement === null || Array.isArray(measurement)) {
+    return undefined;
+  }
+  const finalMatchedReplyRttMs = measurement.finalMatchedReplyRttMs;
+  if (typeof finalMatchedReplyRttMs !== "number" || !Number.isFinite(finalMatchedReplyRttMs)) {
+    return undefined;
+  }
+  const source =
+    typeof measurement.source === "string" && measurement.source.trim()
+      ? measurement.source
+      : "request-to-observed-message";
+  return {
+    finalMatchedReplyRttMs: Math.max(0, Math.round(finalMatchedReplyRttMs)),
+    ...(typeof measurement.requestStartedAt === "string"
+      ? { requestStartedAt: measurement.requestStartedAt }
+      : {}),
+    ...(typeof measurement.responseObservedAt === "string"
+      ? { responseObservedAt: measurement.responseObservedAt }
+      : {}),
+    source,
+  };
+}
+
 function extractSummaryScenarioRtt(scenario) {
   if (scenario?.status !== "pass") {
     return undefined;
@@ -204,27 +229,26 @@ async function readSample(entry, index) {
     ? await readResourceMetrics(path.resolve(entry.resourceMetricsPath))
     : undefined;
   const scenario = summary.scenarios.find((item) => item?.id === "discord-canary");
+  const rttMeasurement = extractScenarioMeasurement(scenario);
   const summaryRttMs = extractSummaryScenarioRtt(scenario);
   const observedRttMs = extractCanaryRtt(observedMessages);
-  const rttMs =
-    summaryRttMs ??
-    observedRttMs ??
-    (scenario?.status === "pass" ? extractSummaryDurationRtt(summary) : undefined);
+  const rttMs = rttMeasurement?.finalMatchedReplyRttMs ?? summaryRttMs ?? observedRttMs;
   const rttSource =
-    summaryRttMs !== undefined
+    rttMeasurement?.source ??
+    (summaryRttMs !== undefined
       ? "summary-rtt"
       : observedRttMs !== undefined
         ? "observed-message"
-        : rttMs !== undefined
-          ? "summary-duration"
-          : undefined;
+        : undefined);
   return {
     index,
     summary,
     status: scenario?.status === "pass" && rttMs !== undefined ? "pass" : "fail",
     rttMs,
     rttSource,
+    rttMeasurement,
     details: scenario?.details,
+    durationRttMs: scenario?.status === "pass" ? extractSummaryDurationRtt(summary) : undefined,
     resources: {
       ...(resources ?? {}),
       ...extractGatewayResourceMetrics(summary),
@@ -304,6 +328,8 @@ async function main() {
         status: sample.status,
         ...(sample.rttMs === undefined ? {} : { rttMs: sample.rttMs }),
         ...(sample.rttSource ? { rttSource: sample.rttSource } : {}),
+        ...(sample.rttMeasurement ? { rttMeasurement: sample.rttMeasurement } : {}),
+        ...(sample.durationRttMs === undefined ? {} : { durationRttMs: sample.durationRttMs }),
         ...(sample.details ? { details: sample.details } : {}),
         ...(sample.resources ? { resources: sample.resources } : {}),
       })),

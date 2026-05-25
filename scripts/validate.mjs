@@ -20,6 +20,7 @@ function assertRun(row, index) {
   if (row.rtt?.warmSamples !== undefined && !Array.isArray(row.rtt.warmSamples)) {
     throw new Error(`row ${index} has invalid rtt.warmSamples`);
   }
+  assertRttSources(row, index, "row");
   assertResources(row, index, "row");
 }
 
@@ -45,7 +46,20 @@ function assertDiscordRttRun(row, index) {
   if (row.rtt.warmSamples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample))) {
     throw new Error(`Discord RTT row ${index} has invalid rtt.warmSamples`);
   }
+  assertRttSources(row, index, "Discord RTT row");
   assertResources(row, index, "Discord RTT row");
+}
+
+function assertRttSources(row, index, label) {
+  if (row.rtt?.sources === undefined) {
+    return;
+  }
+  if (
+    !Array.isArray(row.rtt.sources) ||
+    row.rtt.sources.some((source) => typeof source !== "string" || !source.trim())
+  ) {
+    throw new Error(`${label} ${index} has invalid rtt.sources`);
+  }
 }
 
 function assertResources(row, index, label) {
@@ -165,6 +179,7 @@ function assertChannelRttRun(row, index) {
   if (row.rtt.warmSamples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample))) {
     throw new Error(`Channel RTT row ${index} has invalid rtt.warmSamples`);
   }
+  assertRttSources(row, index, "Channel RTT row");
   assertResources(row, index, "Channel RTT row");
 }
 
