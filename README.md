@@ -50,7 +50,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-26T14:11:29.725Z`
+Latest imported channel run: `2026-05-26T23:04:47.701Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
@@ -59,14 +59,14 @@ Latest imported channel run: `2026-05-26T14:11:29.725Z`
 | `2026.5.24-beta.1` | `5,671ms` | `2,318ms` | `17,943ms` | `7,152ms` | `8,215ms` |
 | `2026.5.22` | `5,723ms` | `2,281ms` | `17,987ms` | `6,835ms` | `8,301ms` |
 | `2026.5.22-beta.1` | `5,543ms` | `2,265ms` | `17,559ms` | `7,071ms` | `8,090ms` |
-| `2026.5.20` | `1,920ms` | `1,004ms` | `5,189ms` | `4,957ms` | logged out |
-| `2026.5.20-beta.2` | `2,703ms` | `1,002ms` | `7,346ms` | `5,813ms` | logged out |
-| `2026.5.20-beta.1` | `2,461ms` | `1,054ms` | `7,047ms` | `4,609ms` | logged out |
-| `2026.5.19` | `2,262ms` | `1,444ms` | `6,951ms` | `4,727ms` | logged out |
-| `2026.5.19-beta.2` | `2,562ms` | `1,036ms` | `7,279ms` | `4,713ms` | logged out |
-| `2026.5.19-beta.1` | `1,710ms` | `1,224ms` | `5,092ms` | `4,551ms` | logged out |
-| `2026.5.18` | `2,555ms` | `1,061ms` | `7,318ms` | `4,253ms` | logged out |
-| `2026.5.18-beta.1` | `2,470ms` | `1,017ms` | `5,957ms` | blocked | logged out |
+| `2026.5.20` | `2,336ms` | `1,004ms` | `5,189ms` | `4,957ms` | `7,506ms` |
+| `2026.5.20-beta.2` | `2,635ms` | `1,002ms` | `7,346ms` | `5,813ms` | `7,515ms` |
+| `2026.5.20-beta.1` | `2,774ms` | `1,054ms` | `7,047ms` | `4,609ms` | `8,336ms` |
+| `2026.5.19` | `2,423ms` | `1,444ms` | `6,951ms` | `4,727ms` | `7,666ms` |
+| `2026.5.19-beta.2` | `2,669ms` | `1,036ms` | `7,279ms` | `4,713ms` | `7,769ms` |
+| `2026.5.19-beta.1` | `2,355ms` | `1,224ms` | `5,092ms` | `4,551ms` | `7,852ms` |
+| `2026.5.18` | `2,659ms` | `1,061ms` | `7,318ms` | `4,253ms` | `7,618ms` |
+| `2026.5.18-beta.1` | `2,889ms` | `1,017ms` | `5,957ms` | blocked | `7,875ms` |
 | `2026.5.16-beta.7` | `2,425ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` |
 | `2026.5.16-beta.6` | `2,469ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` |
 | `2026.5.16-beta.5` | `2,640ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` |
@@ -246,14 +246,14 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.24-beta.1` | `8,215ms` | `9,664ms` | `725MB` | `740MB` | ok |
 | `2026.5.22` | `8,301ms` | `9,291ms` | `702MB` | `777MB` | ok |
 | `2026.5.22-beta.1` | `8,090ms` | `8,992ms` | `736MB` | `783MB` | ok |
-| `2026.5.20` | - | - | `536MB` | `536MB` | logged out: relink required |
-| `2026.5.20-beta.2` | - | - | `528MB` | `528MB` | logged out: relink required |
-| `2026.5.20-beta.1` | - | - | `663MB` | `663MB` | logged out: relink required |
-| `2026.5.19` | - | - | `683MB` | `683MB` | logged out: relink required |
-| `2026.5.19-beta.2` | - | - | `680MB` | `680MB` | logged out: relink required |
-| `2026.5.19-beta.1` | - | - | `678MB` | `678MB` | logged out: relink required |
-| `2026.5.18` | - | - | `647MB` | `647MB` | logged out: relink required |
-| `2026.5.18-beta.1` | - | - | `604MB` | `604MB` | logged out: relink required |
+| `2026.5.20` | `7,506ms` | `8,789ms` | `924MB` | `1,582MB` | ok |
+| `2026.5.20-beta.2` | `7,515ms` | `9,050ms` | `1,074MB` | `1,579MB` | ok |
+| `2026.5.20-beta.1` | `8,336ms` | `9,779ms` | `1,076MB` | `1,591MB` | ok |
+| `2026.5.19` | `7,666ms` | `8,191ms` | `887MB` | `1,524MB` | ok |
+| `2026.5.19-beta.2` | `7,769ms` | `8,881ms` | `901MB` | `1,115MB` | ok |
+| `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
+| `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
+| `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
 | `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `838MB` | `2,714MB` | partial: 13/14 samples passed; blocked: credential pool exhausted |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
