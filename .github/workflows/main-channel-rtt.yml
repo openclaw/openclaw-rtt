@@ -31,6 +31,16 @@ on:
         required: false
         default: ""
         type: string
+      openclaw_ref:
+        description: OpenClaw ref or SHA to measure
+        required: false
+        default: "main"
+        type: string
+      import_results:
+        description: Import successful results into the RTT ledger
+        required: false
+        default: "true"
+        type: boolean
 
 permissions:
   actions: read
@@ -116,11 +126,11 @@ jobs:
           path: openclaw-rtt
           fetch-depth: 0
 
-      - name: Checkout OpenClaw main
+      - name: Checkout OpenClaw target
         uses: actions/checkout@v6
         with:
           repository: openclaw/openclaw
-          ref: main
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.openclaw_ref || 'main' }}
           path: openclaw
           fetch-depth: 1
           persist-credentials: false
@@ -310,6 +320,7 @@ jobs:
             echo "summary=${{ matrix.summary }}"
             echo "observed=${{ matrix.observed }}"
             echo "version=${{ steps.openclaw_ref.outputs.version }}"
+            echo "openclaw_ref=${{ github.event_name == 'workflow_dispatch' && inputs.openclaw_ref || 'main' }}"
           } >"$import_dir/metadata.env"
 
       - name: Upload ${{ matrix.label }} import artifact
@@ -334,7 +345,7 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && !cancelled() && needs.resolve.outputs.should_run == 'true'
+    if: always() && !cancelled() && needs.resolve.outputs.should_run == 'true' && (github.event_name != 'workflow_dispatch' || inputs.import_results)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
