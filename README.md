@@ -29,12 +29,12 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-05-28T07:35:02.004Z` · latest `2026.5.28` / `8d5f6c8ae4`
+Latest imported channel run: `2026-05-28T07:51:45.757Z` · latest `2026.5.28` / `744da7e6bd`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,406ms` | `2,013ms` | `137MB` | `137MB` | ok |
-| Discord | `5,457ms` | `5,854ms` | `2,645MB` | `2,666MB` | ok |
+| Discord | `5,537ms` | `5,819ms` | `914MB` | `944MB` | ok |
 | Slack | `4,438ms` | `4,492ms` | `2,954MB` | `2,973MB` | ok |
 | WhatsApp | `4,500ms` | `5,580ms` | `2,940MB` | `2,978MB` | ok |
 
@@ -50,10 +50,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-27T14:25:22.380Z`
+Latest imported channel run: `2026-05-28T07:41:25.882Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
+| `2026.5.27-beta.1` | - | fail | - | - | - |
 | `2026.5.26` | `1,520ms` | `1,017ms` | `4,649ms` | `4,432ms` | `4,486ms` |
 | `2026.5.26-beta.2` | `1,537ms` | `1,050ms` | `4,682ms` | `4,525ms` | `4,584ms` |
 | `2026.5.26-beta.1` | `1,380ms` | `1,417ms` | `4,557ms` | `4,934ms` | `4,102ms` |
@@ -104,6 +105,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.5.27-beta.1` | - | - | `147MB` | `147MB` | failed |
 | `2026.5.26` | `1,017ms` | `2,035ms` | `155MB` | `155MB` | ok |
 | `2026.5.26-beta.2` | `1,050ms` | `2,099ms` | `146MB` | `146MB` | ok |
 | `2026.5.26-beta.1` | `1,417ms` | `2,406ms` | `147MB` | `147MB` | ok |
@@ -157,6 +159,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.5.27-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.5.26` | `4,649ms` | `5,155ms` | `840MB` | `854MB` | ok |
 | `2026.5.26-beta.2` | `4,682ms` | `4,991ms` | `849MB` | `857MB` | ok |
 | `2026.5.26-beta.1` | `4,557ms` | `4,948ms` | `820MB` | `838MB` | ok |
@@ -205,6 +208,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.5.27-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.5.26` | `4,432ms` | `4,665ms` | `725MB` | `814MB` | ok |
 | `2026.5.26-beta.2` | `4,525ms` | `5,840ms` | `725MB` | `813MB` | ok |
 | `2026.5.26-beta.1` | `4,934ms` | `4,964ms` | `741MB` | `770MB` | ok |
@@ -253,6 +257,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.5.27-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.5.26` | `4,486ms` | `6,203ms` | `752MB` | `783MB` | ok |
 | `2026.5.26-beta.2` | `4,584ms` | `5,543ms` | `759MB` | `778MB` | ok |
 | `2026.5.26-beta.1` | `4,102ms` | `5,202ms` | `741MB` | `758MB` | ok |
