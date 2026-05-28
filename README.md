@@ -1,3 +1,5 @@
+![OpenClaw RTT banner](docs/assets/readme-banner.jpg)
+
 # OpenClaw RTT
 
 **Channel round-trip timing data for OpenClaw.** This repo stores normalized QA results and publishes the dashboard below; the harness itself lives in `openclaw/openclaw`.
