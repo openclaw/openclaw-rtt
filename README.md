@@ -31,14 +31,14 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-05-30T01:25:45.686Z` · latest `2026.5.28` / `6f3f4f7420`
+Latest imported channel run: `2026-05-30T01:31:54.549Z` · latest `2026.5.28` / `b3b962a051`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,018ms` | `2,021ms` | `136MB` | `136MB` | ok |
 | Discord | `3,163ms` | `3,274ms` | `988MB` | `1,038MB` | ok |
-| Slack | `2,916ms` | `4,178ms` | `895MB` | `934MB` | stale: latest failed; showing last pass (failed: slack account "sut" did not become ready; last status: {"lastError":null,"restartPending":false,"running":true}) |
-| WhatsApp | `3,179ms` | `3,857ms` | `955MB` | `987MB` | ok |
+| Slack | `3,151ms` | `5,417ms` | `926MB` | `961MB` | ok |
+| WhatsApp | `2,904ms` | `3,808ms` | `967MB` | `990MB` | ok |
 
 <!-- latest-main:end -->
 
@@ -52,11 +52,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-30T01:15:24.741Z`
+Latest imported channel run: `2026-05-30T01:33:31.908Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.28-beta.4` | - | `994ms` | - | - | - |
+| `2026.5.28-beta.4` | `836ms` | `994ms` | `2,665ms` | - | - |
 | `2026.5.28-beta.3` | `788ms` | `1,165ms` | `2,709ms` | `2,900ms` | `3,205ms` |
 | `2026.5.28-beta.1` | `882ms` | `991ms` | `2,280ms` | `3,223ms` | `3,061ms` |
 | `2026.5.27` | `1,186ms` | `1,487ms` | `4,340ms` | `4,427ms` | `3,630ms` |
@@ -169,7 +169,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.28-beta.4` | - | - | - | - | missing: no imported run |
+| `2026.5.28-beta.4` | `2,665ms` | `2,827ms` | `955MB` | `1,029MB` | ok |
 | `2026.5.28-beta.3` | `2,709ms` | `6,026ms` | `945MB` | `1,012MB` | failed: reply matched |
 | `2026.5.28-beta.1` | `2,280ms` | `2,450ms` | `892MB` | `1,003MB` | ok |
 | `2026.5.27` | `4,340ms` | `4,709ms` | `804MB` | `818MB` | ok |
