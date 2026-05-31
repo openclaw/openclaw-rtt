@@ -52,11 +52,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-31T01:24:40.808Z`
+Latest imported channel run: `2026-05-31T02:01:35.480Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
 |---|---:|---:|---:|---:|---:|
-| `2026.5.28` | - | `993ms` | - | - | - |
+| `2026.5.28` | `887ms` | `993ms` | `2,728ms` | `3,143ms` | `3,140ms` |
 | `2026.5.28-beta.4` | `889ms` | `994ms` | `2,665ms` | `3,183ms` | `3,133ms` |
 | `2026.5.28-beta.3` | `788ms` | `1,165ms` | `2,709ms` | `2,900ms` | `3,205ms` |
 | `2026.5.28-beta.1` | `882ms` | `991ms` | `2,280ms` | `3,223ms` | `3,061ms` |
@@ -171,7 +171,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.28` | - | - | - | - | missing: no imported run |
+| `2026.5.28` | `2,728ms` | `2,967ms` | `958MB` | `967MB` | ok |
 | `2026.5.28-beta.4` | `2,665ms` | `2,827ms` | `955MB` | `1,029MB` | ok |
 | `2026.5.28-beta.3` | `2,709ms` | `6,026ms` | `945MB` | `1,012MB` | failed: reply matched |
 | `2026.5.28-beta.1` | `2,280ms` | `2,450ms` | `892MB` | `1,003MB` | ok |
@@ -225,7 +225,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.28` | - | - | - | - | missing: no imported run |
+| `2026.5.28` | `3,143ms` | `4,390ms` | `917MB` | `937MB` | ok |
 | `2026.5.28-beta.4` | `3,183ms` | `4,488ms` | `896MB` | `930MB` | ok |
 | `2026.5.28-beta.3` | `2,900ms` | `4,207ms` | `913MB` | `999MB` | ok |
 | `2026.5.28-beta.1` | `3,223ms` | `4,570ms` | `906MB` | `935MB` | ok |
@@ -279,7 +279,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.28` | - | - | - | - | missing: no imported run |
+| `2026.5.28` | `3,140ms` | `3,790ms` | `953MB` | `985MB` | ok |
 | `2026.5.28-beta.4` | `3,133ms` | `3,906ms` | `938MB` | `990MB` | ok |
 | `2026.5.28-beta.3` | `3,205ms` | `4,426ms` | `950MB` | `1,008MB` | ok |
 | `2026.5.28-beta.1` | `3,061ms` | `4,186ms` | `941MB` | `966MB` | ok |
