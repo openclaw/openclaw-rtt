@@ -19,7 +19,9 @@ Treat cross-channel numbers as coverage and regression signal, not a pure transp
 Reports:
 
 - [Dashboard](#dashboard)
+- [Surface Dashboard](#surface-dashboard)
 - [Release Coverage Matrix](#release-coverage-matrix)
+- [Surface Release Coverage](#surface-release-coverage)
 - [Telegram Release Runs](#telegram-release-runs)
 - [Discord Release Runs](#discord-release-runs)
 - [Slack Release Runs](#slack-release-runs)
@@ -43,6 +45,20 @@ Latest imported channel run: `2026-05-31T19:14:20.698Z` · latest `2026.5.31` / 
 <!-- latest-main:end -->
 
 Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expansion](docs/channel-expansion.md).
+
+## Surface Dashboard
+
+RPC and Control UI rows use the same normalized RTT shape as channel rows, but they are not transport channels. RPC backfill rows are explicitly derived from existing channel-observed request/reply samples until a direct gateway RPC lane imports native measurements. Control UI rows should come from mocked browser/Gateway flows with explicit `control-ui.*` performance events or scenario RTT measurements.
+
+<!-- surface-latest:start -->
+
+Latest imported surface run: `2026-05-31T19:14:03.830Z` · latest `2026.5.31` / `7c5a412b38`
+
+| Surface | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
+|---|---:|---:|---:|---:|---|
+| RPC | `3,156ms` | `4,471ms` | `942MB` | `980MB` | ok |
+
+<!-- surface-latest:end -->
 
 ## Release Coverage Matrix
 
@@ -105,6 +121,66 @@ Latest imported channel run: `2026-05-31T21:03:47.671Z`
 | `2026.4.24` | `15,325ms` | `2,679ms` | `33,328ms` | n/a | n/a |
 
 <!-- release-coverage:end -->
+
+## Surface Release Coverage
+
+The surface matrix tracks non-channel coverage separately so channel regressions do not get mixed with Gateway RPC or Control UI browser timing. RPC cells may be backfilled from existing channel-observed measurements; Control UI cells require explicit surface measurements.
+
+<!-- surface-release-coverage:start -->
+
+Latest imported surface run: `2026-05-31T20:54:46.859Z`
+
+| Version | RPC | Control UI |
+|---|---:|---:|
+| `2026.5.31-beta.3` | `2,035ms` | - |
+| `2026.5.31-beta.2` | `2,590ms` | - |
+| `2026.5.31-beta.1` | `3,103ms` | - |
+| `2026.5.30-beta.1` | `3,291ms` | - |
+| `2026.5.28` | `2,815ms` | - |
+| `2026.5.28-beta.4` | `2,785ms` | - |
+| `2026.5.28-beta.3` | `2,869ms` | - |
+| `2026.5.28-beta.1` | `2,654ms` | - |
+| `2026.5.27` | `4,247ms` | - |
+| `2026.5.27-beta.1` | `4,306ms` | - |
+| `2026.5.26` | `4,437ms` | - |
+| `2026.5.26-beta.2` | `4,527ms` | - |
+| `2026.5.26-beta.1` | `4,535ms` | - |
+| `2026.5.25-beta.1` | `4,441ms` | - |
+| `2026.5.24-beta.2` | `9,066ms` | - |
+| `2026.5.24-beta.1` | `7,794ms` | - |
+| `2026.5.22` | `7,905ms` | - |
+| `2026.5.22-beta.1` | `7,650ms` | - |
+| `2026.5.20` | `5,082ms` | - |
+| `2026.5.20-beta.2` | `6,845ms` | - |
+| `2026.5.20-beta.1` | `6,814ms` | - |
+| `2026.5.19` | `6,563ms` | - |
+| `2026.5.19-beta.2` | `6,938ms` | - |
+| `2026.5.19-beta.1` | `5,071ms` | - |
+| `2026.5.18` | `6,758ms` | - |
+| `2026.5.18-beta.1` | `5,977ms` | - |
+| `2026.5.16-beta.7` | `6,055ms` | - |
+| `2026.5.16-beta.6` | `4,732ms` | - |
+| `2026.5.16-beta.5` | `4,740ms` | - |
+| `2026.5.16-beta.4` | `6,975ms` | - |
+| `2026.5.16-beta.3` | `8,644ms` | - |
+| `2026.5.16-beta.2` | `7,308ms` | - |
+| `2026.5.16-beta.1` | `6,087ms` | - |
+| `2026.5.14-beta.2` | `5,873ms` | - |
+| `2026.5.14-beta.1` | `5,929ms` | - |
+| `2026.5.12` | `4,239ms` | - |
+| `2026.5.9-beta.1` | `4,565ms` | - |
+| `2026.5.7` | `4,891ms` | - |
+| `2026.5.6` | `4,905ms` | - |
+| `2026.5.4` | `5,135ms` | - |
+| `2026.5.3` | `3,840ms` | - |
+| `2026.5.2` | `16,769ms` | - |
+| `2026.4.29` | `17,936ms` | - |
+| `2026.4.27` | `15,458ms` | - |
+| `2026.4.26` | `25,305ms` | - |
+| `2026.4.25` | `27,988ms` | - |
+| `2026.4.24` | `8,454ms` | - |
+
+<!-- surface-release-coverage:end -->
 
 ## Telegram Release Runs
 

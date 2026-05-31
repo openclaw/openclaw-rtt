@@ -1,5 +1,6 @@
 import { readChannelRows } from "./channel-storage.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
+import { readSurfaceRttRows } from "./read-surface-rtt-rows.mjs";
 
 function assertRun(row, index) {
   if (typeof row !== "object" || row === null) {
@@ -183,6 +184,41 @@ function assertChannelRttRun(row, index) {
   assertResources(row, index, "Channel RTT row");
 }
 
+function assertSurfaceRttRun(row, index) {
+  if (typeof row !== "object" || row === null) {
+    throw new Error(`Surface RTT row ${index} must be an object`);
+  }
+  if (typeof row.surface?.id !== "string") {
+    throw new Error(`Surface RTT row ${index} missing surface.id`);
+  }
+  if (typeof row.surface?.label !== "string") {
+    throw new Error(`Surface RTT row ${index} missing surface.label`);
+  }
+  if (typeof row.surface?.scenario !== "string") {
+    throw new Error(`Surface RTT row ${index} missing surface.scenario`);
+  }
+  if (typeof row.package?.spec !== "string") {
+    throw new Error(`Surface RTT row ${index} missing package.spec`);
+  }
+  if (typeof row.package?.version !== "string") {
+    throw new Error(`Surface RTT row ${index} missing package.version`);
+  }
+  if (typeof row.run?.id !== "string") {
+    throw new Error(`Surface RTT row ${index} missing run.id`);
+  }
+  if (row.run.status !== "pass" && row.run.status !== "fail") {
+    throw new Error(`Surface RTT row ${index} has invalid run.status`);
+  }
+  if (!Array.isArray(row.rtt?.warmSamples)) {
+    throw new Error(`Surface RTT row ${index} missing rtt.warmSamples`);
+  }
+  if (row.rtt.warmSamples.some((sample) => typeof sample !== "number" || !Number.isFinite(sample))) {
+    throw new Error(`Surface RTT row ${index} has invalid rtt.warmSamples`);
+  }
+  assertRttSources(row, index, "Surface RTT row");
+  assertResources(row, index, "Surface RTT row");
+}
+
 function validateRows(rows, label, assertRow) {
   const seen = new Set();
   rows.forEach((row, index) => {
@@ -208,10 +244,15 @@ async function validateChannelRttRows() {
   process.stdout.write(`ok: ${rows.length} Channel RTT rows\n`);
 }
 
+async function validateSurfaceRttRows() {
+  validateRows(await readSurfaceRttRows(), "Surface RTT", assertSurfaceRttRun);
+}
+
 async function main() {
   validateRows(await readChannelRows("telegram"), "RTT", assertRun);
   validateRows(await readChannelRows("discord"), "Discord RTT", assertDiscordRttRun);
   await validateChannelRttRows();
+  await validateSurfaceRttRows();
 }
 
 main().catch((error) => {

@@ -1,0 +1,193 @@
+name: Main Surface RTT
+
+on:
+  schedule:
+    - cron: "25 */6 * * *"
+  pull_request:
+    paths:
+      - ".github/workflows/main-surface-rtt.yml"
+      - "scripts/import-surface-rtt.mjs"
+      - "scripts/measure-control-ui-rtt.mjs"
+      - "scripts/read-surface-rtt-rows.mjs"
+      - "scripts/surface-rtt-config.mjs"
+      - "scripts/surface-rtt-summary.mjs"
+      - "scripts/surface-storage.mjs"
+      - "scripts/update-readme.mjs"
+      - "scripts/validate.mjs"
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Number of RTT samples
+        required: false
+        default: "10"
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "11.2.2"
+  SURFACE_RTT_PR_SAMPLES: "3"
+
+jobs:
+  measure-control-ui:
+    name: Measure OpenClaw main Control UI RTT
+    runs-on: blacksmith-32vcpu-ubuntu-2404
+    timeout-minutes: 45
+    concurrency:
+      group: surface-rtt-measure-control-ui-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v6
+        with:
+          path: openclaw-rtt
+          fetch-depth: 0
+
+      - name: Checkout OpenClaw main
+        uses: actions/checkout@v6
+        with:
+          repository: openclaw/openclaw
+          ref: main
+          path: openclaw
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+
+      - name: Locate pnpm store
+        id: pnpm-store
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
+
+      - name: Restore pnpm store
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: openclaw-main-surface-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml') }}
+          restore-keys: |
+            openclaw-main-surface-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Install OpenClaw dependencies
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+
+      - name: Install Playwright Chromium
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/ensure-playwright-chromium.mjs
+
+      - name: Resolve OpenClaw ref
+        id: openclaw_ref
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          revision="$(git rev-parse --short=10 HEAD)"
+          echo "version=${version}+${revision}" >>"$GITHUB_OUTPUT"
+
+      - name: Run Control UI RTT samples
+        id: surface_rtt
+        working-directory: openclaw
+        env:
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            samples="${INPUT_SAMPLES:-$SURFACE_RTT_PR_SAMPLES}"
+          else
+            samples="${INPUT_SAMPLES:-10}"
+          fi
+          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
+            echo "samples must be a positive integer, got: $samples" >&2
+            exit 1
+          fi
+
+          output_root=".artifacts/control-ui-rtt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sample_paths="$RUNNER_TEMP/openclaw-control-ui-rtt-samples.tsv"
+          : >"$sample_paths"
+          echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
+          echo "sample_paths=${sample_paths}" >>"$GITHUB_OUTPUT"
+
+          for sample in $(seq 1 "$samples"); do
+            output_dir="${output_root}/sample-${sample}"
+            metrics_path="${output_dir}/resource-metrics.env"
+            rm -rf "$output_dir"
+            mkdir -p "$output_dir"
+            echo "SURFACE_RTT_PHASE:control-ui sample=${sample}/${samples}"
+            /usr/bin/time \
+              -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+              -o "$metrics_path" \
+              node --import tsx ../openclaw-rtt/scripts/measure-control-ui-rtt.mjs \
+              --output-dir "$output_dir"
+            echo "attempts=1" >>"$metrics_path"
+            printf '%s\t%s\t%s\n' \
+              "${PWD}/${output_dir}/qa-suite-summary.json" \
+              "${PWD}/${metrics_path}" \
+              "${PWD}/${output_dir}/control-ui-events.json" >>"$sample_paths"
+          done
+
+      - name: Upload Control UI RTT artifacts
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: control-ui-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/${{ steps.surface_rtt.outputs.output_root }}
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Import Control UI RTT
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/import-surface-rtt.mjs \
+            "${{ steps.surface_rtt.outputs.sample_paths }}" \
+            --surface control-ui \
+            --spec openclaw@main \
+            --version "${{ steps.openclaw_ref.outputs.version }}" \
+            --provider-mode mock-openai \
+            --require-pass
+          node scripts/update-readme.mjs --latest-main-only
+          node scripts/validate.mjs
+          node scripts/surface-rtt-summary.mjs
+
+      - name: Commit imported Control UI RTT
+        if: github.event_name != 'pull_request'
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet --exit-code data/surfaces runs/surfaces README.md; then
+            echo "No Control UI RTT changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/surfaces runs/surfaces README.md
+          git commit -m "data: import main control-ui rtt"
+          git push

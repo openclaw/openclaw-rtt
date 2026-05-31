@@ -3,6 +3,7 @@ import { listChannelRttChannels } from "./channel-rtt-config.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
+import { readSurfaceRttRows } from "./read-surface-rtt-rows.mjs";
 import {
   channelReleaseSkipReason,
   discordReleaseGapReason,
@@ -21,6 +22,10 @@ const SLACK_RELEASE_START = "<!-- slack-release-sweep:start -->";
 const SLACK_RELEASE_END = "<!-- slack-release-sweep:end -->";
 const WHATSAPP_RELEASE_START = "<!-- whatsapp-release-sweep:start -->";
 const WHATSAPP_RELEASE_END = "<!-- whatsapp-release-sweep:end -->";
+const SURFACE_LATEST_START = "<!-- surface-latest:start -->";
+const SURFACE_LATEST_END = "<!-- surface-latest:end -->";
+const SURFACE_RELEASE_COVERAGE_START = "<!-- surface-release-coverage:start -->";
+const SURFACE_RELEASE_COVERAGE_END = "<!-- surface-release-coverage:end -->";
 const MAIN_SPEC = "openclaw@main";
 const MAIN_DASHBOARD_ORDER = new Map([
   ["Telegram", 0],
@@ -29,6 +34,11 @@ const MAIN_DASHBOARD_ORDER = new Map([
   ["WhatsApp", 3],
 ]);
 const RELEASE_COVERAGE_CHANNELS = ["Telegram", "Discord", "Slack", "WhatsApp"];
+const SURFACE_COVERAGE_SURFACES = ["RPC", "Control UI"];
+const SURFACE_DASHBOARD_ORDER = new Map([
+  ["RPC", 0],
+  ["Control UI", 1],
+]);
 const CHANNEL_CONFIG_BY_LABEL = new Map(
   listChannelRttChannels().map((channel) => [channel.label, channel]),
 );
@@ -170,6 +180,17 @@ function channelRttRowGroups(rows) {
   return [...byKey.values()];
 }
 
+function surfaceRttRowGroups(rows) {
+  const byKey = new Map();
+  for (const row of rows) {
+    const key = `${row.surface.id}\0${row.surface.scenario}\0${row.package.spec}`;
+    const existing = byKey.get(key) ?? [];
+    existing.push(row);
+    byKey.set(key, existing);
+  }
+  return [...byKey.values()];
+}
+
 function channelRttRows(rows) {
   return channelRttRowGroups(rows).map(latestDashboardRow).filter(Boolean).sort((left, right) => {
     const channelDiff = String(left.channel.label).localeCompare(String(right.channel.label));
@@ -214,6 +235,20 @@ function mainChannelDashboardRows(rows) {
     .map((group) => mainDashboardEntry(group[0].channel.label, group[0].channel.scenario, group));
 }
 
+function mainSurfaceDashboardRows(rows) {
+  return surfaceRttRowGroups(rows)
+    .filter((group) => group[0]?.package?.spec === MAIN_SPEC)
+    .map((group) => mainDashboardEntry(group[0].surface.label, group[0].surface.scenario, group))
+    .sort((left, right) => {
+      const leftOrder = SURFACE_DASHBOARD_ORDER.get(left.label) ?? Number.MAX_SAFE_INTEGER;
+      const rightOrder = SURFACE_DASHBOARD_ORDER.get(right.label) ?? Number.MAX_SAFE_INTEGER;
+      if (leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
+      return String(left.label).localeCompare(String(right.label));
+    });
+}
+
 function mainDashboardRows(telegramRows, discordRows, channelRows) {
   return [
     mainDashboardEntry("Telegram", "telegram-mentioned-message-reply", telegramRows),
@@ -255,6 +290,31 @@ function mainTableFor(telegramRows, discordRows, channelRows) {
     ...tableRows.map((row) => latestMainRow(row)),
     "",
     LATEST_MAIN_END,
+  ].join("\n");
+}
+
+function surfaceLatestTableFor(surfaceRows) {
+  const tableRows = mainSurfaceDashboardRows(surfaceRows);
+  const rows = tableRows.flatMap((entry) => [entry.row, entry.latest]).filter(Boolean);
+  if (rows.length === 0) {
+    return [
+      SURFACE_LATEST_START,
+      "",
+      "No `openclaw@main` surface RTT run has been imported yet.",
+      "",
+      SURFACE_LATEST_END,
+    ].join("\n");
+  }
+  return [
+    SURFACE_LATEST_START,
+    "",
+    `Latest imported surface run: \`${latestStartedAt(rows)}\` · latest ${versionAndRef(latestRow(rows).package.version)}`,
+    "",
+    "| Surface | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |",
+    "|---|---:|---:|---:|---:|---|",
+    ...tableRows.map((row) => latestMainRow(row)),
+    "",
+    SURFACE_LATEST_END,
   ].join("\n");
 }
 
@@ -486,9 +546,62 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
   ].join("\n");
 }
 
+function surfaceReleaseCoverageTableFor(surfaceRows) {
+  const rowsBySurface = new Map(
+    SURFACE_COVERAGE_SURFACES.map((label) => [
+      label,
+      releaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
+    ]),
+  );
+  const versions = [
+    ...new Set([...rowsBySurface.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
+  ]
+    .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
+    .sort((left, right) => compareVersions(right, left));
+  if (versions.length === 0) {
+    return [
+      SURFACE_RELEASE_COVERAGE_START,
+      "",
+      "No release surface RTT runs have been imported yet.",
+      "",
+      SURFACE_RELEASE_COVERAGE_END,
+    ].join("\n");
+  }
+  return [
+    SURFACE_RELEASE_COVERAGE_START,
+    "",
+    `Latest imported surface run: \`${latestStartedAt(
+      versions.flatMap((version) => SURFACE_COVERAGE_SURFACES.map((label) => rowsBySurface.get(label)?.get(version))),
+    )}\``,
+    "",
+    "| Version | RPC | Control UI |",
+    "|---|---:|---:|",
+    ...versions.map((version) => {
+      const cells = SURFACE_COVERAGE_SURFACES.map((label) =>
+        releaseMatrixCell(rowsBySurface.get(label)?.get(version), label, version),
+      );
+      return `| \`${version}\` | ${cells.join(" | ")} |`;
+    }),
+    "",
+    SURFACE_RELEASE_COVERAGE_END,
+  ].join("\n");
+}
+
 function replaceMarked(readme, start, end, replacement) {
   const startIndex = readme.indexOf(start);
   const endIndex = readme.indexOf(end);
+  if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+    throw new Error(`README.md must contain ${start} and ${end} markers.`);
+  }
+  return `${readme.slice(0, startIndex)}${replacement}${readme.slice(endIndex + end.length)}`;
+}
+
+function replaceOptionalMarked(readme, start, end, replacement) {
+  const startIndex = readme.indexOf(start);
+  const endIndex = readme.indexOf(end);
+  if (startIndex === -1 && endIndex === -1) {
+    return readme;
+  }
   if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
     throw new Error(`README.md must contain ${start} and ${end} markers.`);
   }
@@ -499,6 +612,7 @@ async function main() {
   const rows = await readRows();
   const discordRows = await readDiscordRttRows();
   const channelRows = await readChannelRttRows();
+  const surfaceRows = await readSurfaceRttRows();
   const releaseAxis = releaseVersionAxis(rows, discordRows, channelRows);
   const mainRows = rows.filter((row) => row.package.spec === MAIN_SPEC);
   const mainDiscordRows = discordRows.filter((row) => row.package.spec === MAIN_SPEC);
@@ -509,13 +623,19 @@ async function main() {
     LATEST_MAIN_END,
     mainTableFor(mainRows, mainDiscordRows, channelRows),
   );
+  const withSurfaceLatest = replaceOptionalMarked(
+    withLatestMain,
+    SURFACE_LATEST_START,
+    SURFACE_LATEST_END,
+    surfaceLatestTableFor(surfaceRows),
+  );
   const next = UPDATE_LATEST_MAIN_ONLY
-    ? withLatestMain
+    ? withSurfaceLatest
     : replaceMarked(
         replaceMarked(
           replaceMarked(
             replaceMarked(
-              withLatestMain,
+              withSurfaceLatest,
               RELEASE_COVERAGE_START,
               RELEASE_COVERAGE_END,
               releaseCoverageTableFor(rows, discordRows, channelRows),
@@ -552,7 +672,15 @@ async function main() {
           versionAxis: releaseAxis,
         }),
       );
-  await fs.writeFile(README_PATH, nextWithWhatsAppRelease);
+  const nextWithSurfaceReleases = UPDATE_LATEST_MAIN_ONLY
+    ? nextWithWhatsAppRelease
+    : replaceOptionalMarked(
+        nextWithWhatsAppRelease,
+        SURFACE_RELEASE_COVERAGE_START,
+        SURFACE_RELEASE_COVERAGE_END,
+        surfaceReleaseCoverageTableFor(surfaceRows),
+      );
+  await fs.writeFile(README_PATH, nextWithSurfaceReleases);
 }
 
 main().catch((error) => {

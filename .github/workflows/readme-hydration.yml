@@ -6,19 +6,23 @@ on:
       - main
     paths:
       - "data/channels/**"
+      - "data/surfaces/**"
       - "runs/**"
       - "scripts/channel-rtt-summary.mjs"
       - "scripts/discord-rtt-summary.mjs"
       - "scripts/read-channel-rtt-rows.mjs"
       - "scripts/read-discord-rtt-rows.mjs"
       - "scripts/read-rows.mjs"
+      - "scripts/read-surface-rtt-rows.mjs"
       - "scripts/summary.mjs"
+      - "scripts/surface-rtt-summary.mjs"
       - "scripts/update-readme.mjs"
   workflow_run:
     workflows:
       - Main RTT
       - Main Discord RTT
       - Main Channel RTT
+      - Main Surface RTT
       - Stable Release RTT
       - Stable Release Discord RTT
       - Release Channel RTT
@@ -64,6 +68,7 @@ jobs:
           node scripts/summary.mjs
           node scripts/discord-rtt-summary.mjs
           node scripts/channel-rtt-summary.mjs
+          node scripts/surface-rtt-summary.mjs
 
       - name: Commit README
         shell: bash
