@@ -62,63 +62,63 @@ Latest imported surface run: `2026-05-31T19:14:03.830Z` · latest `2026.5.31` / 
 
 ## Release Coverage Matrix
 
-Version-by-version RTT coverage for release canaries. The matrix and per-channel release tables follow the same imported release-version axis from `2026.4.24` onward. A `-` cell means no row has been imported for that channel/version yet; `n/a` means the release predates the channel harness or has a known protocol gap; `blocked`, `timeout`, `logged out`, and `auth 401` name imported failed runs without usable RTT.
+Version-by-version RTT coverage for release canaries and non-channel surfaces. The matrix, per-channel release tables, and surface coverage table follow the same imported release-version axis from `2026.4.24` onward. A `-` cell means no row has been imported for that target/version yet; `n/a` means the release predates the channel harness or has a known protocol gap; `blocked`, `timeout`, `logged out`, and `auth 401` name imported failed runs without usable RTT.
 
-Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; `p50 σ` is the standard deviation across channel p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
+Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; surface cells show RTT `p50` for that surface's imported measurement or backfill. `p50 σ` is the standard deviation across populated target p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
 
 <!-- release-coverage:start -->
 
-Latest imported channel run: `2026-05-31T23:27:30.363Z`
+Latest imported release coverage run: `2026-05-31T23:27:30.363Z`
 
-| Version | p50 σ | Telegram | Discord | Slack | WhatsApp |
-|---|---:|---:|---:|---:|---:|
-| `2026.5.31-beta.3` | `1,308ms` | `998ms` | `2,030ms` | `4,473ms` | `3,293ms` |
-| `2026.5.31-beta.2` | `936ms` | `993ms` | `1,829ms` | `3,355ms` | `2,977ms` |
-| `2026.5.31-beta.1` | `1,029ms` | `1,003ms` | - | `3,251ms` | `3,113ms` |
-| `2026.5.30-beta.1` | `1,055ms` | `998ms` | `3,344ms` | `3,500ms` | `3,446ms` |
-| `2026.5.28` | `887ms` | `993ms` | `2,728ms` | `3,143ms` | `3,140ms` |
-| `2026.5.28-beta.4` | `889ms` | `994ms` | `2,665ms` | `3,183ms` | `3,133ms` |
-| `2026.5.28-beta.3` | `788ms` | `1,165ms` | `2,709ms` | `2,900ms` | `3,205ms` |
-| `2026.5.28-beta.1` | `882ms` | `991ms` | `2,280ms` | `3,223ms` | `3,061ms` |
-| `2026.5.27` | `1,186ms` | `1,487ms` | `4,340ms` | `4,427ms` | `3,630ms` |
-| `2026.5.27-beta.1` | `94ms` | fail | `4,308ms` | `4,410ms` | `4,181ms` |
-| `2026.5.26` | `1,520ms` | `1,017ms` | `4,649ms` | `4,432ms` | `4,486ms` |
-| `2026.5.26-beta.2` | `1,537ms` | `1,050ms` | `4,682ms` | `4,525ms` | `4,584ms` |
-| `2026.5.26-beta.1` | `1,380ms` | `1,417ms` | `4,557ms` | `4,934ms` | `4,102ms` |
-| `2026.5.25-beta.1` | `1,338ms` | `1,348ms` | `4,502ms` | `4,603ms` | `4,126ms` |
-| `2026.5.24-beta.2` | `4,180ms` | `2,927ms` | `14,617ms` | `8,610ms` | `10,153ms` |
-| `2026.5.24-beta.1` | `5,671ms` | `2,318ms` | `17,943ms` | `7,152ms` | `8,215ms` |
-| `2026.5.22` | `5,723ms` | `2,281ms` | `17,987ms` | `6,835ms` | `8,301ms` |
-| `2026.5.22-beta.1` | `5,543ms` | `2,265ms` | `17,559ms` | `7,071ms` | `8,090ms` |
-| `2026.5.20` | `2,336ms` | `1,004ms` | `5,189ms` | `4,957ms` | `7,506ms` |
-| `2026.5.20-beta.2` | `2,635ms` | `1,002ms` | `7,346ms` | `5,813ms` | `7,515ms` |
-| `2026.5.20-beta.1` | `2,774ms` | `1,054ms` | `7,047ms` | `4,609ms` | `8,336ms` |
-| `2026.5.19` | `2,423ms` | `1,444ms` | `6,951ms` | `4,727ms` | `7,666ms` |
-| `2026.5.19-beta.2` | `2,669ms` | `1,036ms` | `7,279ms` | `4,713ms` | `7,769ms` |
-| `2026.5.19-beta.1` | `2,355ms` | `1,224ms` | `5,092ms` | `4,551ms` | `7,852ms` |
-| `2026.5.18` | `2,659ms` | `1,061ms` | `7,318ms` | `4,253ms` | `7,618ms` |
-| `2026.5.18-beta.1` | `2,889ms` | `1,017ms` | `5,957ms` | blocked | `7,875ms` |
-| `2026.5.16-beta.7` | `2,425ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` |
-| `2026.5.16-beta.6` | `2,469ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` |
-| `2026.5.16-beta.5` | `2,640ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` |
-| `2026.5.16-beta.4` | `9,795ms` | `1,221ms` | `26,263ms` | `4,255ms` | `6,888ms` |
-| `2026.5.16-beta.3` | `9,873ms` | `1,112ms` | `26,771ms` | `4,690ms` | `8,644ms` |
-| `2026.5.16-beta.2` | `9,836ms` | `1,050ms` | `26,639ms` | `4,751ms` | `8,377ms` |
-| `2026.5.16-beta.1` | `7,659ms` | `1,196ms` | `21,140ms` | `4,205ms` | `6,714ms` |
-| `2026.5.14-beta.2` | `7,725ms` | `990ms` | `21,273ms` | `4,621ms` | `6,439ms` |
-| `2026.5.14-beta.1` | `8,082ms` | `1,004ms` | `22,035ms` | `4,211ms` | `6,636ms` |
-| `2026.5.12` | `7,071ms` | `2,858ms` | `20,640ms` | `4,170ms` | `7,035ms` |
-| `2026.5.9-beta.1` | `5,604ms` | `2,517ms` | `16,759ms` | `4,488ms` | `4,971ms` |
-| `2026.5.7` | `6,981ms` | `3,499ms` | `18,948ms` | `4,877ms` | n/a |
-| `2026.5.6` | `6,537ms` | `3,497ms` | `18,001ms` | `4,876ms` | n/a |
-| `2026.5.4` | `6,926ms` | `3,504ms` | `18,937ms` | `5,121ms` | n/a |
-| `2026.5.3` | `738ms` | `3,505ms` | n/a | `4,980ms` | n/a |
-| `2026.5.2` | `8,323ms` | `3,501ms` | `20,146ms` | n/a | n/a |
-| `2026.4.29` | - | `17,936ms` | n/a | n/a | n/a |
-| `2026.4.27` | `16,110ms` | `4,639ms` | `36,858ms` | n/a | n/a |
-| `2026.4.26` | `13,405ms` | `5,880ms` | `32,689ms` | n/a | n/a |
-| `2026.4.25` | `20,925ms` | `7,508ms` | `49,357ms` | n/a | n/a |
-| `2026.4.24` | `15,325ms` | `2,679ms` | `33,328ms` | n/a | n/a |
+| Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `2026.5.31-beta.3` | `1,199ms` | `998ms` | `2,030ms` | `4,473ms` | `3,293ms` | `2,035ms` | - |
+| `2026.5.31-beta.2` | `845ms` | `993ms` | `1,829ms` | `3,355ms` | `2,977ms` | `2,590ms` | - |
+| `2026.5.31-beta.1` | `934ms` | `1,003ms` | - | `3,251ms` | `3,113ms` | `3,103ms` | - |
+| `2026.5.30-beta.1` | `962ms` | `998ms` | `3,344ms` | `3,500ms` | `3,446ms` | `3,291ms` | - |
+| `2026.5.28` | `803ms` | `993ms` | `2,728ms` | `3,143ms` | `3,140ms` | `2,815ms` | - |
+| `2026.5.28-beta.4` | `804ms` | `994ms` | `2,665ms` | `3,183ms` | `3,133ms` | `2,785ms` | - |
+| `2026.5.28-beta.3` | `720ms` | `1,165ms` | `2,709ms` | `2,900ms` | `3,205ms` | `2,869ms` | - |
+| `2026.5.28-beta.1` | `796ms` | `991ms` | `2,280ms` | `3,223ms` | `3,061ms` | `2,654ms` | - |
+| `2026.5.27` | `1,106ms` | `1,487ms` | `4,340ms` | `4,427ms` | `3,630ms` | `4,247ms` | - |
+| `2026.5.27-beta.1` | `81ms` | fail | `4,308ms` | `4,410ms` | `4,181ms` | `4,306ms` | - |
+| `2026.5.26` | `1,396ms` | `1,017ms` | `4,649ms` | `4,432ms` | `4,486ms` | `4,437ms` | - |
+| `2026.5.26-beta.2` | `1,413ms` | `1,050ms` | `4,682ms` | `4,525ms` | `4,584ms` | `4,527ms` | - |
+| `2026.5.26-beta.1` | `1,274ms` | `1,417ms` | `4,557ms` | `4,934ms` | `4,102ms` | `4,535ms` | - |
+| `2026.5.25-beta.1` | `1,238ms` | `1,348ms` | `4,502ms` | `4,603ms` | `4,126ms` | `4,441ms` | - |
+| `2026.5.24-beta.2` | `3,739ms` | `2,927ms` | `14,617ms` | `8,610ms` | `10,153ms` | `9,066ms` | - |
+| `2026.5.24-beta.1` | `5,091ms` | `2,318ms` | `17,943ms` | `7,152ms` | `8,215ms` | `7,794ms` | - |
+| `2026.5.22` | `5,133ms` | `2,281ms` | `17,987ms` | `6,835ms` | `8,301ms` | `7,905ms` | - |
+| `2026.5.22-beta.1` | `4,977ms` | `2,265ms` | `17,559ms` | `7,071ms` | `8,090ms` | `7,650ms` | - |
+| `2026.5.20` | `2,096ms` | `1,004ms` | `5,189ms` | `4,957ms` | `7,506ms` | `5,082ms` | - |
+| `2026.5.20-beta.2` | `2,425ms` | `1,002ms` | `7,346ms` | `5,813ms` | `7,515ms` | `6,845ms` | - |
+| `2026.5.20-beta.1` | `2,557ms` | `1,054ms` | `7,047ms` | `4,609ms` | `8,336ms` | `6,814ms` | - |
+| `2026.5.19` | `2,235ms` | `1,444ms` | `6,951ms` | `4,727ms` | `7,666ms` | `6,563ms` | - |
+| `2026.5.19-beta.2` | `2,487ms` | `1,036ms` | `7,279ms` | `4,713ms` | `7,769ms` | `6,938ms` | - |
+| `2026.5.19-beta.1` | `2,113ms` | `1,224ms` | `5,092ms` | `4,551ms` | `7,852ms` | `5,071ms` | - |
+| `2026.5.18` | `2,473ms` | `1,061ms` | `7,318ms` | `4,253ms` | `7,618ms` | `6,758ms` | - |
+| `2026.5.18-beta.1` | `2,541ms` | `1,017ms` | `5,957ms` | blocked | `7,875ms` | `5,977ms` | - |
+| `2026.5.16-beta.7` | `2,190ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` | `6,055ms` | - |
+| `2026.5.16-beta.6` | `2,216ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` | `4,732ms` | - |
+| `2026.5.16-beta.5` | `2,287ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` | `4,740ms` | - |
+| `2026.5.16-beta.4` | `8,826ms` | `1,221ms` | `26,263ms` | `4,255ms` | `6,888ms` | `6,975ms` | - |
+| `2026.5.16-beta.3` | `8,856ms` | `1,112ms` | `26,771ms` | `4,690ms` | `8,644ms` | `8,644ms` | - |
+| `2026.5.16-beta.2` | `8,873ms` | `1,050ms` | `26,639ms` | `4,751ms` | `8,377ms` | `7,308ms` | - |
+| `2026.5.16-beta.1` | `6,908ms` | `1,196ms` | `21,140ms` | `4,205ms` | `6,714ms` | `6,087ms` | - |
+| `2026.5.14-beta.2` | `6,979ms` | `990ms` | `21,273ms` | `4,621ms` | `6,439ms` | `5,873ms` | - |
+| `2026.5.14-beta.1` | `7,300ms` | `1,004ms` | `22,035ms` | `4,211ms` | `6,636ms` | `5,929ms` | - |
+| `2026.5.12` | `6,569ms` | `2,858ms` | `20,640ms` | `4,170ms` | `7,035ms` | `4,239ms` | - |
+| `2026.5.9-beta.1` | `5,121ms` | `2,517ms` | `16,759ms` | `4,488ms` | `4,971ms` | `4,565ms` | - |
+| `2026.5.7` | `6,315ms` | `3,499ms` | `18,948ms` | `4,877ms` | n/a | `4,891ms` | - |
+| `2026.5.6` | `5,906ms` | `3,497ms` | `18,001ms` | `4,876ms` | n/a | `4,905ms` | - |
+| `2026.5.4` | `6,249ms` | `3,504ms` | `18,937ms` | `5,121ms` | n/a | `5,135ms` | - |
+| `2026.5.3` | `631ms` | `3,505ms` | n/a | `4,980ms` | n/a | `3,840ms` | - |
+| `2026.5.2` | `7,184ms` | `3,501ms` | `20,146ms` | n/a | n/a | `16,769ms` | - |
+| `2026.4.29` | `0ms` | `17,936ms` | n/a | n/a | n/a | `17,936ms` | - |
+| `2026.4.27` | `13,388ms` | `4,639ms` | `36,858ms` | n/a | n/a | `15,458ms` | - |
+| `2026.4.26` | `11,307ms` | `5,880ms` | `32,689ms` | n/a | n/a | `25,305ms` | - |
+| `2026.4.25` | `17,086ms` | `7,508ms` | `49,357ms` | n/a | n/a | `27,988ms` | - |
+| `2026.4.24` | `13,298ms` | `2,679ms` | `33,328ms` | n/a | n/a | `8,454ms` | - |
 
 <!-- release-coverage:end -->
 

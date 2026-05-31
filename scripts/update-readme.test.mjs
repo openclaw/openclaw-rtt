@@ -157,7 +157,6 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
       resources: { maxRssKb: { p50: 409600, p95: 512000, max: 512000 } },
     },
   ]);
-
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
   const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
@@ -228,7 +227,7 @@ test("keeps latest passing main rows visible when a newer run fails", async () =
   );
 });
 
-test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", async () => {
+test("renders release coverage across channels and surfaces", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
@@ -281,6 +280,26 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
       resources: { maxRssKb: { p50: 409600, p95: 512000, max: 512000 } },
     },
   ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16-beta.1.jsonl"), [
+    {
+      surface: { id: "rpc", label: "RPC", scenario: "channel-rtt-backfill" },
+      ...rttRow({
+        package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+        run: { id: "rpc-2026.5.16-beta.1", startedAt: "2026-05-16T00:04:30.000Z", status: "pass" },
+        rtt: { warmSamples: [2500, 3500], p50Ms: 2500, p95Ms: 3500 },
+      }),
+    },
+  ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/control-ui/2026.5.16-beta.1.jsonl"), [
+    {
+      surface: { id: "control-ui", label: "Control UI", scenario: "control-ui-qa-channel-image-roundtrip" },
+      ...rttRow({
+        package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+        run: { id: "control-ui-2026.5.16-beta.1", startedAt: "2026-05-16T00:04:45.000Z", status: "pass" },
+        rtt: { warmSamples: [700, 900], p50Ms: 700, p95Ms: 900 },
+      }),
+    },
+  ]);
 
   await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
 
@@ -290,21 +309,21 @@ test("renders release coverage across Telegram, Discord, Slack, and WhatsApp", a
     readme.indexOf("<!-- release-coverage:end -->"),
   );
   assert.doesNotMatch(coverageSection, /Discord release gap:/u);
-  assert.match(coverageSection, /Latest imported channel run: `2026-05-16T00:05:00\.000Z`/u);
-  assert.match(coverageSection, /\| Version \| p50 σ \| Telegram \| Discord \| Slack \| WhatsApp \|/u);
+  assert.match(coverageSection, /Latest imported release coverage run: `2026-05-16T00:05:00\.000Z`/u);
+  assert.match(coverageSection, /\| Version \| p50 σ \| Telegram \| Discord \| Slack \| WhatsApp \| RPC \| Control UI \|/u);
   assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.1` \| `2,660ms` \| `1,100ms` \| `6,000ms` \| `3,000ms` \| `8,000ms` \|/u,
+    /\| `2026\.5\.16-beta\.1` \| `2,625ms` \| `1,100ms` \| `6,000ms` \| `3,000ms` \| `8,000ms` \| `2,500ms` \| `700ms` \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \|/u,
+    /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \| - \| - \|/u,
   );
   assert.doesNotMatch(coverageSection, /2026\.4\.15/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| - \| `950ms` \| n\/a \| - \| n\/a \|/u,
+    /\| `2026\.5\.3` \| - \| `950ms` \| n\/a \| - \| n\/a \| - \| - \|/u,
   );
 
   const telegramSection = readme.slice(
@@ -423,11 +442,11 @@ test("renders release coverage failure cells without verbose labels", async () =
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| logged out \|/u,
+    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| logged out \| - \| - \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.5` \| - \| - \| timeout \| - \| - \|/u,
+    /\| `2026\.5\.16-beta\.5` \| - \| - \| timeout \| - \| - \| - \| - \|/u,
   );
   assert.doesNotMatch(coverageSection, /failed:/u);
 
@@ -494,7 +513,7 @@ test("keeps prior release RTT visible when a newer import has only RSS", async (
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \|/u,
+    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \| - \| - \|/u,
   );
 
   const discordSection = readme.slice(

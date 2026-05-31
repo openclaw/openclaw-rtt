@@ -35,6 +35,7 @@ const MAIN_DASHBOARD_ORDER = new Map([
 ]);
 const RELEASE_COVERAGE_CHANNELS = ["Telegram", "Discord", "Slack", "WhatsApp"];
 const SURFACE_COVERAGE_SURFACES = ["RPC", "Control UI"];
+const RELEASE_COVERAGE_TARGETS = [...RELEASE_COVERAGE_CHANNELS, ...SURFACE_COVERAGE_SURFACES];
 const SURFACE_DASHBOARD_ORDER = new Map([
   ["RPC", 0],
   ["Control UI", 1],
@@ -502,17 +503,21 @@ function releaseP50StdDev(rows) {
   return formatMs(Math.sqrt(variance));
 }
 
-function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
-  const rowsByChannel = new Map([
+function releaseCoverageTableFor(telegramRows, discordRows, channelRows, surfaceRows) {
+  const rowsByTarget = new Map([
     ["Telegram", releaseRowByVersion(telegramRows)],
     ["Discord", releaseRowByVersion(discordRows)],
     ...["Slack", "WhatsApp"].map((label) => [
       label,
       releaseRowByVersion(channelRows.filter((row) => row.channel.label === label)),
     ]),
+    ...SURFACE_COVERAGE_SURFACES.map((label) => [
+      label,
+      releaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
+    ]),
   ]);
   const versions = [
-    ...new Set([...rowsByChannel.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
+    ...new Set([...rowsByTarget.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
   ]
     .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
     .sort((left, right) => compareVersions(right, left));
@@ -528,18 +533,18 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows) {
   return [
     RELEASE_COVERAGE_START,
     "",
-    `Latest imported channel run: \`${latestStartedAt(
-      versions.flatMap((version) => RELEASE_COVERAGE_CHANNELS.map((label) => rowsByChannel.get(label)?.get(version))),
+    `Latest imported release coverage run: \`${latestStartedAt(
+      versions.flatMap((version) => RELEASE_COVERAGE_TARGETS.map((label) => rowsByTarget.get(label)?.get(version))),
     )}\``,
     "",
-    "| Version | p50 σ | Telegram | Discord | Slack | WhatsApp |",
-    "|---|---:|---:|---:|---:|---:|",
+    "| Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |",
+    "|---|---:|---:|---:|---:|---:|---:|---:|",
     ...versions.map((version) => {
-      const channelRowsForVersion = RELEASE_COVERAGE_CHANNELS.map((label) => rowsByChannel.get(label)?.get(version));
-      const cells = channelRowsForVersion.map((row, index) =>
-        releaseMatrixCell(row, RELEASE_COVERAGE_CHANNELS[index], version),
+      const targetRowsForVersion = RELEASE_COVERAGE_TARGETS.map((label) => rowsByTarget.get(label)?.get(version));
+      const cells = targetRowsForVersion.map((row, index) =>
+        releaseMatrixCell(row, RELEASE_COVERAGE_TARGETS[index], version),
       );
-      return `| \`${version}\` | ${releaseP50StdDev(channelRowsForVersion)} | ${cells.join(" | ")} |`;
+      return `| \`${version}\` | ${releaseP50StdDev(targetRowsForVersion)} | ${cells.join(" | ")} |`;
     }),
     "",
     RELEASE_COVERAGE_END,
@@ -638,7 +643,7 @@ async function main() {
               withSurfaceLatest,
               RELEASE_COVERAGE_START,
               RELEASE_COVERAGE_END,
-              releaseCoverageTableFor(rows, discordRows, channelRows),
+              releaseCoverageTableFor(rows, discordRows, channelRows, surfaceRows),
             ),
             RELEASE_START,
             RELEASE_END,
