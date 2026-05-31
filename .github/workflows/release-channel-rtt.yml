@@ -34,6 +34,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "24.x"
   PNPM_VERSION: "10.33.0"
+  CHANNEL_RTT_BUILD_NODE_OPTIONS: "--max-old-space-size=16384"
   CHANNEL_RTT_MAX_ATTEMPTS: "3"
   CHANNEL_RTT_RETRY_BASE_SECONDS: "15"
   CHANNEL_RTT_RETRY_MAX_SECONDS: "60"
@@ -198,7 +199,7 @@ jobs:
       - name: Build OpenClaw release
         working-directory: openclaw
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
+          NODE_OPTIONS: ${{ env.CHANNEL_RTT_BUILD_NODE_OPTIONS }}
           OPENCLAW_BUILD_PRIVATE_QA: "1"
           OPENCLAW_ENABLE_PRIVATE_QA_CLI: "1"
         shell: bash
@@ -209,7 +210,7 @@ jobs:
       - name: Build OpenClaw QA harness
         working-directory: openclaw-qa
         env:
-          NODE_OPTIONS: --max-old-space-size=8192
+          NODE_OPTIONS: ${{ env.CHANNEL_RTT_BUILD_NODE_OPTIONS }}
           OPENCLAW_BUILD_PRIVATE_QA: "1"
           OPENCLAW_ENABLE_PRIVATE_QA_CLI: "1"
         shell: bash
