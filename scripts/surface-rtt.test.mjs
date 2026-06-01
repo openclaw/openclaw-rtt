@@ -85,6 +85,64 @@ test("imports Control UI surface RTT from performance events", async () => {
   assert.equal(row.polling.retryCount, 1);
 });
 
+test("imports native Gateway RPC surface RTT from scenario measurements", async () => {
+  const workspace = await makeWorkspace();
+  const summaryPath = path.join(workspace, "sample-1", "qa-suite-summary.json");
+  await writeJson(summaryPath, {
+    counts: { total: 1, passed: 1, failed: 0 },
+    run: {
+      startedAt: "2026-05-16T00:00:00.000Z",
+      finishedAt: "2026-05-16T00:00:02.000Z",
+      providerMode: "gateway-rpc",
+    },
+    scenarios: [
+      {
+        id: "rpc-gateway-smoke",
+        title: "Gateway RPC loopback smoke",
+        status: "pass",
+        rttMeasurement: {
+          finalMatchedReplyRttMs: 45,
+          method: "health,config.get",
+          source: "gateway-rpc",
+        },
+      },
+    ],
+  });
+  const samplesPath = path.join(workspace, "samples.tsv");
+  await fs.writeFile(samplesPath, `${summaryPath}\n`);
+
+  await execFileAsync(
+    process.execPath,
+    [
+      IMPORT_SCRIPT,
+      samplesPath,
+      "--surface",
+      "rpc",
+      "--spec",
+      "openclaw@main",
+      "--version",
+      "2026.5.16+abcdef1234",
+      "--provider-mode",
+      "gateway-rpc",
+      "--scenario",
+      "rpc-gateway-smoke",
+      "--require-pass",
+    ],
+    { cwd: workspace },
+  );
+
+  const [row] = await readJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16+abcdef1234.jsonl"));
+  assert.equal(row.surface.id, "rpc");
+  assert.equal(row.surface.scenario, "rpc-gateway-smoke");
+  assert.equal(row.run.status, "pass");
+  assert.equal(row.mode.providerMode, "gateway-rpc");
+  assert.equal(row.mode.source, "surface-import");
+  assert.deepEqual(row.rtt.warmSamples, [45]);
+  assert.deepEqual(row.rtt.sources, ["gateway-rpc"]);
+  assert.equal(row.rtt.p50Ms, 45);
+  assert.equal(row.samples[0].rttMeasurement.method, "health,config.get");
+});
+
 test("backfills RPC surface RTT from existing channel rows", async () => {
   const workspace = await makeWorkspace();
   const channelRow = {

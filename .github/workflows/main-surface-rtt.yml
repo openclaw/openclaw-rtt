@@ -8,6 +8,7 @@ on:
       - ".github/workflows/main-surface-rtt.yml"
       - "scripts/import-surface-rtt.mjs"
       - "scripts/measure-control-ui-rtt.mjs"
+      - "scripts/measure-rpc-rtt.mjs"
       - "scripts/read-surface-rtt-rows.mjs"
       - "scripts/surface-rtt-config.mjs"
       - "scripts/surface-rtt-summary.mjs"
@@ -33,12 +34,12 @@ env:
   SURFACE_RTT_PR_SAMPLES: "3"
 
 jobs:
-  measure-control-ui:
-    name: Measure OpenClaw main Control UI RTT
+  measure-surface-rtt:
+    name: Measure OpenClaw main surface RTT
     runs-on: blacksmith-32vcpu-ubuntu-2404
     timeout-minutes: 45
     concurrency:
-      group: surface-rtt-measure-control-ui-${{ github.ref }}
+      group: surface-rtt-measure-main-${{ github.ref }}
       cancel-in-progress: false
     steps:
       - name: Checkout RTT tracker
@@ -108,6 +109,48 @@ jobs:
           revision="$(git rev-parse --short=10 HEAD)"
           echo "version=${version}+${revision}" >>"$GITHUB_OUTPUT"
 
+      - name: Run RPC RTT samples
+        id: rpc_surface_rtt
+        working-directory: openclaw
+        env:
+          INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            samples="${INPUT_SAMPLES:-$SURFACE_RTT_PR_SAMPLES}"
+          else
+            samples="${INPUT_SAMPLES:-10}"
+          fi
+          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
+            echo "samples must be a positive integer, got: $samples" >&2
+            exit 1
+          fi
+
+          output_root=".artifacts/rpc-rtt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sample_paths="$RUNNER_TEMP/openclaw-rpc-rtt-samples.tsv"
+          : >"$sample_paths"
+          echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
+          echo "sample_paths=${sample_paths}" >>"$GITHUB_OUTPUT"
+
+          for sample in $(seq 1 "$samples"); do
+            output_dir="${output_root}/sample-${sample}"
+            metrics_path="${output_dir}/resource-metrics.env"
+            rm -rf "$output_dir"
+            mkdir -p "$output_dir"
+            echo "SURFACE_RTT_PHASE:rpc sample=${sample}/${samples}"
+            /usr/bin/time \
+              -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+              -o "$metrics_path" \
+              node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs \
+              --output-dir "$output_dir"
+            echo "attempts=1" >>"$metrics_path"
+            printf '%s\t%s\n' \
+              "${PWD}/${output_dir}/qa-suite-summary.json" \
+              "${PWD}/${metrics_path}" >>"$sample_paths"
+          done
+
       - name: Run Control UI RTT samples
         id: surface_rtt
         working-directory: openclaw
@@ -160,11 +203,28 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Import Control UI RTT
+      - name: Upload RPC RTT artifacts
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rpc-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/${{ steps.rpc_surface_rtt.outputs.output_root }}
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Import Surface RTT
         working-directory: openclaw-rtt
         shell: bash
         run: |
           set -euo pipefail
+          node scripts/import-surface-rtt.mjs \
+            "${{ steps.rpc_surface_rtt.outputs.sample_paths }}" \
+            --surface rpc \
+            --spec openclaw@main \
+            --version "${{ steps.openclaw_ref.outputs.version }}" \
+            --provider-mode gateway-rpc \
+            --scenario rpc-gateway-smoke \
+            --require-pass
           node scripts/import-surface-rtt.mjs \
             "${{ steps.surface_rtt.outputs.sample_paths }}" \
             --surface control-ui \
@@ -176,18 +236,18 @@ jobs:
           node scripts/validate.mjs
           node scripts/surface-rtt-summary.mjs
 
-      - name: Commit imported Control UI RTT
+      - name: Commit imported Surface RTT
         if: github.event_name != 'pull_request'
         working-directory: openclaw-rtt
         shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet --exit-code data/surfaces runs/surfaces README.md; then
-            echo "No Control UI RTT changes to commit."
+            echo "No Surface RTT changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/surfaces runs/surfaces README.md
-          git commit -m "data: import main control-ui rtt"
+          git commit -m "data: import main surface rtt"
           git push

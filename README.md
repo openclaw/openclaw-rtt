@@ -33,14 +33,14 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-06-01T01:37:25.007Z` · latest `2026.5.31` / `cc97eca9b1`
+Latest imported channel run: `2026-06-01T01:39:15.803Z` · latest `2026.5.31` / `72bc9ae952`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,002ms` | `3,356ms` | `136MB` | `136MB` | ok |
 | Discord | `1,885ms` | `2,024ms` | `940MB` | `1,104MB` | ok |
 | Slack | `3,156ms` | `4,497ms` | `942MB` | `970MB` | ok |
-| WhatsApp | `3,035ms` | `4,141ms` | `980MB` | `1,005MB` | ok |
+| WhatsApp | `3,082ms` | `3,854ms` | `987MB` | `1,008MB` | ok |
 
 <!-- latest-main:end -->
 
@@ -48,7 +48,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 ## Surface Dashboard
 
-RPC and Control UI rows use the same normalized RTT shape as channel rows, but they are not transport channels. RPC backfill rows are explicitly derived from existing channel-observed request/reply samples until a direct gateway RPC lane imports native measurements. Control UI rows should come from mocked browser/Gateway flows with explicit `control-ui.*` performance events or scenario RTT measurements.
+RPC and Control UI rows use the same normalized RTT shape as channel rows, but they are not transport channels. Native RPC rows come from direct loopback Gateway WebSocket calls in `rpc-gateway-smoke`; historical RPC backfills stay marked as channel-derived continuity rows. Control UI rows come from mocked browser/Gateway flows with explicit `control-ui.*` performance events or scenario RTT measurements.
 
 <!-- surface-latest:start -->
 
@@ -56,7 +56,7 @@ Latest imported surface run: `2026-05-31T19:14:03.830Z` · latest `2026.5.31` / 
 
 | Surface | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| RPC | `3,156ms` | `4,471ms` | `942MB` | `980MB` | ok |
+| RPC | `3,156ms` | `4,471ms` | `942MB` | `980MB` | backfill: channel RTT |
 
 <!-- surface-latest:end -->
 
@@ -68,13 +68,13 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-01T00:09:12.770Z`
+Latest imported release coverage run: `2026-06-01T01:44:48.382Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.5.31-beta.3` | `886ms` | `998ms` | `2,030ms` | `3,353ms` | `3,293ms` | `2,035ms` | - |
 | `2026.5.31-beta.2` | `845ms` | `993ms` | `1,829ms` | `3,355ms` | `2,977ms` | `2,590ms` | - |
-| `2026.5.31-beta.1` | `934ms` | `1,003ms` | - | `3,251ms` | `3,113ms` | `3,103ms` | - |
+| `2026.5.31-beta.1` | `900ms` | `1,003ms` | `1,779ms` | `3,251ms` | `3,113ms` | `3,103ms` | - |
 | `2026.5.30-beta.1` | `962ms` | `998ms` | `3,344ms` | `3,500ms` | `3,446ms` | `3,291ms` | - |
 | `2026.5.28` | `803ms` | `993ms` | `2,728ms` | `3,143ms` | `3,140ms` | `2,815ms` | - |
 | `2026.5.28-beta.4` | `804ms` | `994ms` | `2,665ms` | `3,183ms` | `3,133ms` | `2,785ms` | - |
@@ -124,7 +124,7 @@ Latest imported release coverage run: `2026-06-01T00:09:12.770Z`
 
 ## Surface Release Coverage
 
-The surface matrix tracks non-channel coverage separately so channel regressions do not get mixed with Gateway RPC or Control UI browser timing. RPC cells may be backfilled from existing channel-observed measurements; Control UI cells require explicit surface measurements.
+The surface matrix tracks non-channel coverage separately so channel regressions do not get mixed with Gateway RPC or Control UI browser timing. Native RPC rows are preferred over backfilled channel-observed rows for the same version; Control UI cells require explicit surface measurements.
 
 <!-- surface-release-coverage:start -->
 
@@ -257,7 +257,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 |---|---:|---:|---:|---:|---|
 | `2026.5.31-beta.3` | `2,030ms` | `2,136ms` | `887MB` | `1,094MB` | ok |
 | `2026.5.31-beta.2` | `1,829ms` | `1,999ms` | `895MB` | `1,106MB` | ok |
-| `2026.5.31-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.5.31-beta.1` | `1,779ms` | `1,966ms` | `889MB` | `1,053MB` | ok |
 | `2026.5.30-beta.1` | `3,344ms` | `4,956ms` | `1,055MB` | `1,106MB` | ok |
 | `2026.5.28` | `2,728ms` | `2,967ms` | `958MB` | `967MB` | ok |
 | `2026.5.28-beta.4` | `2,665ms` | `2,827ms` | `955MB` | `1,029MB` | ok |

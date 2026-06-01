@@ -2,7 +2,7 @@ import { surfaceDataPath, surfaceRunsDir } from "./surface-storage.mjs";
 
 export const SURFACE_RTT_SURFACES = {
   rpc: {
-    command: "pnpm openclaw qa suite --scenario rpc-gateway-smoke",
+    command: "node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs --output-dir <dir>",
     defaultScenario: "rpc-gateway-smoke",
     description: "Gateway RPC request/response timing",
     label: "RPC",

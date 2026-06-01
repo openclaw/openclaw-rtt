@@ -30,9 +30,17 @@ async function writeReadme(workspace) {
       "old main",
       "<!-- latest-main:end -->",
       "",
+      "<!-- surface-latest:start -->",
+      "old surface",
+      "<!-- surface-latest:end -->",
+      "",
       "<!-- release-coverage:start -->",
       "old release coverage",
       "<!-- release-coverage:end -->",
+      "",
+      "<!-- surface-release-coverage:start -->",
+      "old surface release coverage",
+      "<!-- surface-release-coverage:end -->",
       "",
       "<!-- release-sweep:start -->",
       "old release",
@@ -227,6 +235,45 @@ test("keeps latest passing main rows visible when a newer run fails", async () =
   );
 });
 
+test("prefers native RPC surface rows over channel backfills", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  await writeJsonl(path.join(workspace, "data/surfaces/rpc/main.jsonl"), [
+    {
+      surface: { id: "rpc", label: "RPC", scenario: "rpc-gateway-smoke" },
+      ...rttRow({
+        package: { spec: "openclaw@main", version: "2026.5.16+native1234" },
+        run: { id: "rpc-native", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
+        rtt: { warmSamples: [45, 60], p50Ms: 45, p95Ms: 60 },
+      }),
+      mode: { providerMode: "gateway-rpc", source: "surface-import" },
+      resources: { maxRssKb: { p50: 102400, p95: 153600, max: 153600 } },
+    },
+    {
+      surface: { id: "rpc", label: "RPC", scenario: "channel-rtt-backfill" },
+      ...rttRow({
+        package: { spec: "openclaw@main", version: "2026.5.16+backfill1234" },
+        run: { id: "rpc-backfill", startedAt: "2026-05-16T00:05:00.000Z", status: "pass" },
+        rtt: { warmSamples: [3000, 4000], p50Ms: 3000, p95Ms: 4000 },
+      }),
+      mode: { source: "channel-rtt-backfill" },
+      resources: { maxRssKb: { p50: 409600, p95: 512000, max: 512000 } },
+    },
+  ]);
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const surfaceSection = readme.slice(
+    readme.indexOf("<!-- surface-latest:start -->"),
+    readme.indexOf("<!-- surface-latest:end -->"),
+  );
+  assert.match(surfaceSection, /Latest imported surface run: `2026-05-16T00:05:00\.000Z`/u);
+  assert.match(surfaceSection, /\| RPC \| `45ms` \| `60ms` \| `100MB` \| `150MB` \| ok: gateway RPC \|/u);
+  assert.doesNotMatch(surfaceSection, /\| RPC \| `3,000ms`/u);
+  assert.equal((surfaceSection.match(/\| RPC \|/gu) ?? []).length, 1);
+});
+
 test("renders release coverage across channels and surfaces", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
@@ -288,6 +335,16 @@ test("renders release coverage across channels and surfaces", async () => {
         run: { id: "rpc-2026.5.16-beta.1", startedAt: "2026-05-16T00:04:30.000Z", status: "pass" },
         rtt: { warmSamples: [2500, 3500], p50Ms: 2500, p95Ms: 3500 },
       }),
+      mode: { source: "channel-rtt-backfill" },
+    },
+    {
+      surface: { id: "rpc", label: "RPC", scenario: "rpc-gateway-smoke" },
+      ...rttRow({
+        package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
+        run: { id: "rpc-native-2026.5.16-beta.1", startedAt: "2026-05-16T00:01:30.000Z", status: "pass" },
+        rtt: { warmSamples: [80, 100], p50Ms: 80, p95Ms: 100 },
+      }),
+      mode: { providerMode: "gateway-rpc", source: "surface-import" },
     },
   ]);
   await writeJsonl(path.join(workspace, "data/surfaces/control-ui/2026.5.16-beta.1.jsonl"), [
@@ -314,7 +371,7 @@ test("renders release coverage across channels and surfaces", async () => {
   assert.doesNotMatch(coverageSection, /\| Version \| Telegram \| Discord \| Updated \|/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.1` \| `2,625ms` \| `1,100ms` \| `6,000ms` \| `3,000ms` \| `8,000ms` \| `2,500ms` \| `700ms` \|/u,
+    /\| `2026\.5\.16-beta\.1` \| `2,924ms` \| `1,100ms` \| `6,000ms` \| `3,000ms` \| `8,000ms` \| `80ms` \| `700ms` \|/u,
   );
   assert.match(
     coverageSection,
@@ -370,6 +427,12 @@ test("renders release coverage across channels and surfaces", async () => {
   assert.match(whatsappSection, /\| `2026\.5\.12` \| - \| - \| - \| - \| missing: no imported run \|/u);
   assert.match(whatsappSection, /\| `2026\.5\.3` \| - \| - \| - \| - \| not supported: release predates the WhatsApp QA canary \|/u);
   assert.doesNotMatch(whatsappSection, /2026\.4\.15/u);
+
+  const surfaceCoverageSection = readme.slice(
+    readme.indexOf("<!-- surface-release-coverage:start -->"),
+    readme.indexOf("<!-- surface-release-coverage:end -->"),
+  );
+  assert.match(surfaceCoverageSection, /\| `2026\.5\.16-beta\.1` \| `80ms` \| `700ms` \|/u);
 });
 
 test("renders release coverage failure cells without verbose labels", async () => {

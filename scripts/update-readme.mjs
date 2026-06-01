@@ -131,6 +131,20 @@ function latestDashboardRow(rows) {
   return latestPassingRow(rows) ?? latestRow(rows);
 }
 
+function isSurfaceBackfillRow(row) {
+  return row?.mode?.source === "channel-rtt-backfill" || row?.surface?.scenario === "channel-rtt-backfill";
+}
+
+function latestPreferredSurfaceRow(rows) {
+  const nativeRows = rows.filter((row) => !isSurfaceBackfillRow(row));
+  return (
+    latestPassingRow(nativeRows) ??
+    latestPassingRow(rows) ??
+    latestRow(nativeRows) ??
+    latestRow(rows)
+  );
+}
+
 function hasRttMetric(row) {
   return typeof row?.rtt?.p50Ms === "number" || typeof row?.rtt?.p95Ms === "number";
 }
@@ -184,7 +198,7 @@ function channelRttRowGroups(rows) {
 function surfaceRttRowGroups(rows) {
   const byKey = new Map();
   for (const row of rows) {
-    const key = `${row.surface.id}\0${row.surface.scenario}\0${row.package.spec}`;
+    const key = `${row.surface.id}\0${row.package.spec}`;
     const existing = byKey.get(key) ?? [];
     existing.push(row);
     byKey.set(key, existing);
@@ -216,6 +230,23 @@ function mainEntryStatus(row, latest) {
   return "ok";
 }
 
+function mainSurfaceEntryStatus(row, latest) {
+  const status = mainEntryStatus(row, latest);
+  if (status !== "ok") {
+    return status;
+  }
+  if (isSurfaceBackfillRow(row)) {
+    return "backfill: channel RTT";
+  }
+  if (row?.surface?.id === "rpc") {
+    return "ok: gateway RPC";
+  }
+  if (row?.surface?.id === "control-ui") {
+    return "ok: browser/Gateway";
+  }
+  return status;
+}
+
 function mainDashboardEntry(label, scenario, rows) {
   const row = latestDashboardRow(rows);
   const latest = latestRow(rows);
@@ -239,7 +270,19 @@ function mainChannelDashboardRows(rows) {
 function mainSurfaceDashboardRows(rows) {
   return surfaceRttRowGroups(rows)
     .filter((group) => group[0]?.package?.spec === MAIN_SPEC)
-    .map((group) => mainDashboardEntry(group[0].surface.label, group[0].surface.scenario, group))
+    .map((group) => {
+      const entry = mainDashboardEntry(group[0].surface.label, group[0].surface.scenario, group);
+      const preferred = latestPreferredSurfaceRow(group);
+      const latest = latestRow(group);
+      return {
+        ...entry,
+        row: preferred,
+        latest,
+        rssP50: formatRssKb(preferred?.resources?.maxRssKb?.p50),
+        rssP95: formatRssKb(preferred?.resources?.maxRssKb?.p95),
+        status: mainSurfaceEntryStatus(preferred, latest),
+      };
+    })
     .sort((left, right) => {
       const leftOrder = SURFACE_DASHBOARD_ORDER.get(left.label) ?? Number.MAX_SAFE_INTEGER;
       const rightOrder = SURFACE_DASHBOARD_ORDER.get(right.label) ?? Number.MAX_SAFE_INTEGER;
@@ -491,6 +534,12 @@ function releaseRowByVersion(rows) {
   return byVersion;
 }
 
+function surfaceReleaseRowByVersion(rows) {
+  const backfilledRowsByVersion = releaseRowByVersion(rows);
+  const nativeRowsByVersion = releaseRowByVersion(rows.filter((row) => !isSurfaceBackfillRow(row)));
+  return new Map([...backfilledRowsByVersion, ...nativeRowsByVersion]);
+}
+
 function releaseP50StdDev(rows) {
   const p50s = rows
     .map((row) => row?.rtt.p50Ms)
@@ -513,7 +562,7 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows, surface
     ]),
     ...SURFACE_COVERAGE_SURFACES.map((label) => [
       label,
-      releaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
+      surfaceReleaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
     ]),
   ]);
   const versions = [
@@ -555,7 +604,7 @@ function surfaceReleaseCoverageTableFor(surfaceRows) {
   const rowsBySurface = new Map(
     SURFACE_COVERAGE_SURFACES.map((label) => [
       label,
-      releaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
+      surfaceReleaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
     ]),
   );
   const versions = [

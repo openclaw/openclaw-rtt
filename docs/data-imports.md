@@ -10,6 +10,8 @@ Run importers from the repo root:
 node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
 node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json --resource-metrics resource-metrics.env
 node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
+(cd ../openclaw && node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs --output-dir ../openclaw-rtt/.artifacts/rpc-rtt/sample-1)
+node scripts/import-surface-rtt.mjs rpc-samples.tsv --surface rpc --spec openclaw@main --version <ref> --provider-mode gateway-rpc --scenario rpc-gateway-smoke --require-pass
 node scripts/import-surface-rtt.mjs samples.tsv --surface control-ui --spec openclaw@main --version <ref>
 node scripts/backfill-rpc-surface-rtt.mjs
 node scripts/backfill-release-rss.mjs --family discord --spec openclaw@2026.5.16 --version 2026.5.16 --sample-paths samples.tsv
@@ -38,4 +40,4 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 
 Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it rewrites that version's JSONL file. RSS is process-level data around the sampled command, not isolated channel transport memory.
 
-RPC backfill rows are derived from existing channel-observed request/reply samples. They are coverage continuity rows, not pure Gateway WebSocket timings. Direct RPC or Control UI rows should be imported with explicit scenario RTT measurements or `control-ui.*` performance events.
+Native RPC rows come from `scripts/measure-rpc-rtt.mjs`, which starts an isolated loopback Gateway, warms each method once, and measures persistent WebSocket calls such as `health` and `config.get`. RPC backfill rows are derived from existing channel-observed request/reply samples; they are coverage continuity rows, not pure Gateway WebSocket timings. Control UI rows should be imported with explicit scenario RTT measurements or `control-ui.*` performance events.
