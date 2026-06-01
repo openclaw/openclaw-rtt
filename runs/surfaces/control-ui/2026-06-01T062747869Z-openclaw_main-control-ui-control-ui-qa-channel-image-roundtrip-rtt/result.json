@@ -1,0 +1,131 @@
+{
+  "surface": {
+    "id": "control-ui",
+    "label": "Control UI",
+    "scenario": "control-ui-qa-channel-image-roundtrip"
+  },
+  "package": {
+    "spec": "openclaw@main",
+    "version": "2026.5.31+c429a3c472"
+  },
+  "run": {
+    "id": "2026-06-01T062747869Z-openclaw_main-control-ui-control-ui-qa-channel-image-roundtrip-rtt",
+    "startedAt": "2026-06-01T06:27:47.869Z",
+    "finishedAt": "2026-06-01T06:27:53.526Z",
+    "durationMs": 5657,
+    "status": "pass"
+  },
+  "polling": {
+    "attemptSamples": [
+      1,
+      1,
+      1
+    ],
+    "retryCount": 0,
+    "maxAttempts": 1
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "source": "surface-import"
+  },
+  "rtt": {
+    "warmSamples": [
+      414,
+      294,
+      402
+    ],
+    "failedSamples": 0,
+    "sources": [
+      "control-ui-visible-final"
+    ],
+    "avgMs": 370,
+    "p50Ms": 402,
+    "p95Ms": 414,
+    "maxMs": 414
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa suite --scenario control-ui-qa-channel-image-roundtrip"
+    },
+    "maxRssKbSamples": [
+      1082604,
+      428508,
+      455972
+    ],
+    "elapsedSecondsSamples": [
+      2.53,
+      1.57,
+      1.61
+    ],
+    "maxRssKb": {
+      "avg": 655694.6666666666,
+      "p50": 455972,
+      "p95": 1082604,
+      "max": 1082604
+    },
+    "elapsedSeconds": {
+      "avg": 1.9033333333333333,
+      "p50": 1.61,
+      "p95": 2.53,
+      "max": 2.53
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 414,
+      "rttSource": "control-ui-visible-final",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 414,
+        "requestStartedAt": "2026-06-01T06:27:49.848Z",
+        "responseObservedAt": "2026-06-01T06:27:50.262Z",
+        "method": "chat.send",
+        "source": "control-ui-visible-final"
+      },
+      "maxRssKb": 1082604,
+      "elapsedSeconds": 2.53,
+      "details": "Control UI rendered final Gateway event"
+    },
+    {
+      "index": 2,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 294,
+      "rttSource": "control-ui-visible-final",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 294,
+        "requestStartedAt": "2026-06-01T06:27:51.578Z",
+        "responseObservedAt": "2026-06-01T06:27:51.872Z",
+        "method": "chat.send",
+        "source": "control-ui-visible-final"
+      },
+      "maxRssKb": 428508,
+      "elapsedSeconds": 1.57,
+      "details": "Control UI rendered final Gateway event"
+    },
+    {
+      "index": 3,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 402,
+      "rttSource": "control-ui-visible-final",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 402,
+        "requestStartedAt": "2026-06-01T06:27:53.069Z",
+        "responseObservedAt": "2026-06-01T06:27:53.471Z",
+        "method": "chat.send",
+        "source": "control-ui-visible-final"
+      },
+      "maxRssKb": 455972,
+      "elapsedSeconds": 1.61,
+      "details": "Control UI rendered final Gateway event"
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/surfaces/control-ui/2026-06-01T062747869Z-openclaw_main-control-ui-control-ui-qa-channel-image-roundtrip-rtt/result.json"
+  }
+}
