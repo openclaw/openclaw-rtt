@@ -68,11 +68,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-05-31T23:27:30.363Z`
+Latest imported release coverage run: `2026-06-01T00:09:12.770Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.5.31-beta.3` | `1,199ms` | `998ms` | `2,030ms` | `4,473ms` | `3,293ms` | `2,035ms` | - |
+| `2026.5.31-beta.3` | `886ms` | `998ms` | `2,030ms` | `3,353ms` | `3,293ms` | `2,035ms` | - |
 | `2026.5.31-beta.2` | `845ms` | `993ms` | `1,829ms` | `3,355ms` | `2,977ms` | `2,590ms` | - |
 | `2026.5.31-beta.1` | `934ms` | `1,003ms` | - | `3,251ms` | `3,113ms` | `3,103ms` | - |
 | `2026.5.30-beta.1` | `962ms` | `998ms` | `3,344ms` | `3,500ms` | `3,446ms` | `3,291ms` | - |
@@ -313,7 +313,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.5.31-beta.3` | `4,473ms` | `5,042ms` | `945MB` | `979MB` | ok |
+| `2026.5.31-beta.3` | `3,353ms` | `4,608ms` | `939MB` | `970MB` | ok |
 | `2026.5.31-beta.2` | `3,355ms` | `4,979ms` | `946MB` | `968MB` | ok |
 | `2026.5.31-beta.1` | `3,251ms` | `4,506ms` | `947MB` | `974MB` | ok |
 | `2026.5.30-beta.1` | `3,500ms` | `4,583ms` | `959MB` | `990MB` | ok |
