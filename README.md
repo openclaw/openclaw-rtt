@@ -33,14 +33,14 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-06-01T20:05:33.233Z` · latest `2026.6.1` / `eb58c88598`
+Latest imported channel run: `2026-06-01T20:15:55.036Z` · latest `2026.6.1` / `05ea36a81f`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `997ms` | `2,050ms` | `136MB` | `136MB` | ok |
 | Discord | `1,795ms` | `3,075ms` | `1,127MB` | `1,155MB` | ok |
-| Slack | `2,914ms` | `3,264ms` | `949MB` | `970MB` | ok |
-| WhatsApp | `3,107ms` | `4,077ms` | `1,003MB` | `1,035MB` | ok |
+| Slack | `3,201ms` | `4,537ms` | `945MB` | `982MB` | ok |
+| WhatsApp | `2,941ms` | `3,980ms` | `1,001MB` | `1,052MB` | ok |
 
 <!-- latest-main:end -->
 
@@ -69,11 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-01T19:55:34.543Z`
+Latest imported release coverage run: `2026-06-01T20:20:17.383Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.6.1-beta.1` | - | `1,009ms` | - | - | - | - | - |
+| `2026.6.1-beta.1` | `428ms` | `1,009ms` | `1,865ms` | - | - | - | - |
 | `2026.5.31-beta.4` | `748ms` | `1,139ms` | `1,953ms` | `3,241ms` | `2,957ms` | `2,471ms` | - |
 | `2026.5.31-beta.3` | `886ms` | `998ms` | `2,030ms` | `3,353ms` | `3,293ms` | `2,035ms` | - |
 | `2026.5.31-beta.2` | `845ms` | `993ms` | `1,829ms` | `3,355ms` | `2,977ms` | `2,590ms` | - |
@@ -261,7 +261,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.1-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.6.1-beta.1` | `1,865ms` | `2,087ms` | `961MB` | `1,157MB` | ok |
 | `2026.5.31-beta.4` | `1,953ms` | `2,043ms` | `945MB` | `1,154MB` | ok |
 | `2026.5.31-beta.3` | `2,030ms` | `2,136ms` | `887MB` | `1,094MB` | ok |
 | `2026.5.31-beta.2` | `1,829ms` | `1,999ms` | `895MB` | `1,106MB` | ok |
