@@ -52,16 +52,29 @@ async function main() {
   await fs.mkdir(outputDir, { recursive: true });
 
   const startedAt = new Date();
-  const { chromium, installMockGateway, startControlUiE2eServer } =
-    await loadOpenClawHelpers(repoRoot);
-  const server = await startControlUiE2eServer();
-  const browser = await chromium.launch();
+  const {
+    canRunPlaywrightChromium,
+    chromium,
+    installMockGateway,
+    resolvePlaywrightChromiumExecutablePath,
+    startControlUiE2eServer,
+  } = await loadOpenClawHelpers(repoRoot);
+  let server;
+  let browser;
   let status = "fail";
   let details = "";
   let rttMeasurement;
   let events = [];
 
   try {
+    const chromiumExecutablePath = resolvePlaywrightChromiumExecutablePath(chromium.executablePath());
+    if (!canRunPlaywrightChromium(chromiumExecutablePath)) {
+      throw new Error(
+        `Playwright Chromium is not installed at ${chromiumExecutablePath}. Run \`pnpm --dir ui exec playwright install chromium\`, or set PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH to a compatible browser.`,
+      );
+    }
+    server = await startControlUiE2eServer();
+    browser = await chromium.launch({ executablePath: chromiumExecutablePath });
     const context = await browser.newContext({
       locale: "en-US",
       serviceWorkers: "block",
@@ -123,8 +136,8 @@ async function main() {
   } catch (error) {
     details = error instanceof Error ? error.stack ?? error.message : String(error);
   } finally {
-    await browser.close().catch(() => {});
-    await server.close().catch(() => {});
+    await browser?.close().catch(() => {});
+    await server?.close().catch(() => {});
   }
 
   const finishedAt = new Date();

@@ -151,8 +151,36 @@ jobs:
               "${PWD}/${metrics_path}" >>"$sample_paths"
           done
 
+      - name: Upload RPC RTT artifacts
+        if: always() && steps.rpc_surface_rtt.outputs.output_root != ''
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: rpc-rtt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/${{ steps.rpc_surface_rtt.outputs.output_root }}
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Import RPC Surface RTT
+        id: import_rpc_surface_rtt
+        if: steps.rpc_surface_rtt.outcome == 'success'
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/import-surface-rtt.mjs \
+            "${{ steps.rpc_surface_rtt.outputs.sample_paths }}" \
+            --surface rpc \
+            --spec openclaw@main \
+            --version "${{ steps.openclaw_ref.outputs.version }}" \
+            --provider-mode gateway-rpc \
+            --scenario rpc-gateway-smoke \
+            --require-pass
+
       - name: Run Control UI RTT samples
         id: surface_rtt
+        if: steps.rpc_surface_rtt.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 10
         working-directory: openclaw
         env:
           INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
@@ -195,7 +223,7 @@ jobs:
           done
 
       - name: Upload Control UI RTT artifacts
-        if: always()
+        if: always() && steps.surface_rtt.outputs.output_root != ''
         uses: actions/upload-artifact@v7.0.1
         with:
           name: control-ui-rtt-${{ github.run_id }}-${{ github.run_attempt }}
@@ -203,28 +231,13 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Upload RPC RTT artifacts
-        if: always()
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: rpc-rtt-${{ github.run_id }}-${{ github.run_attempt }}
-          path: openclaw/${{ steps.rpc_surface_rtt.outputs.output_root }}
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Import Surface RTT
+      - name: Import Control UI Surface RTT
+        id: import_control_ui_surface_rtt
+        if: steps.surface_rtt.outcome == 'success'
         working-directory: openclaw-rtt
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/import-surface-rtt.mjs \
-            "${{ steps.rpc_surface_rtt.outputs.sample_paths }}" \
-            --surface rpc \
-            --spec openclaw@main \
-            --version "${{ steps.openclaw_ref.outputs.version }}" \
-            --provider-mode gateway-rpc \
-            --scenario rpc-gateway-smoke \
-            --require-pass
           node scripts/import-surface-rtt.mjs \
             "${{ steps.surface_rtt.outputs.sample_paths }}" \
             --surface control-ui \
@@ -232,12 +245,19 @@ jobs:
             --version "${{ steps.openclaw_ref.outputs.version }}" \
             --provider-mode mock-openai \
             --require-pass
+
+      - name: Update Surface Dashboard
+        if: always() && (steps.import_rpc_surface_rtt.outcome == 'success' || steps.import_control_ui_surface_rtt.outcome == 'success')
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
           node scripts/update-readme.mjs --latest-main-only
           node scripts/validate.mjs
           node scripts/surface-rtt-summary.mjs
 
       - name: Commit imported Surface RTT
-        if: github.event_name != 'pull_request'
+        if: always() && github.event_name != 'pull_request' && (steps.import_rpc_surface_rtt.outcome == 'success' || steps.import_control_ui_surface_rtt.outcome == 'success')
         working-directory: openclaw-rtt
         shell: bash
         run: |
@@ -251,3 +271,13 @@ jobs:
           git add data/surfaces runs/surfaces README.md
           git commit -m "data: import main surface rtt"
           git push
+
+      - name: Fail on Surface RTT errors
+        if: always() && (steps.rpc_surface_rtt.outcome == 'failure' || steps.surface_rtt.outcome == 'failure' || steps.import_rpc_surface_rtt.outcome == 'failure' || steps.import_control_ui_surface_rtt.outcome == 'failure')
+        shell: bash
+        run: |
+          echo "RPC samples: ${{ steps.rpc_surface_rtt.outcome }}"
+          echo "Control UI samples: ${{ steps.surface_rtt.outcome }}"
+          echo "RPC import: ${{ steps.import_rpc_surface_rtt.outcome }}"
+          echo "Control UI import: ${{ steps.import_control_ui_surface_rtt.outcome }}"
+          exit 1
