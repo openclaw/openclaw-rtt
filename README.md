@@ -69,11 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-02T19:30:26.536Z`
+Latest imported release coverage run: `2026-06-02T20:22:46.216Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.6.1-beta.2` | - | `988ms` | - | - | - | - | - |
+| `2026.6.1-beta.2` | `854ms` | `988ms` | `1,824ms` | `2,940ms` | `3,072ms` | - | - |
 | `2026.6.1-beta.1` | `889ms` | `1,009ms` | `1,865ms` | `2,915ms` | `3,267ms` | - | - |
 | `2026.5.31-beta.4` | `748ms` | `1,139ms` | `1,953ms` | `3,241ms` | `2,957ms` | `2,471ms` | - |
 | `2026.5.31-beta.3` | `886ms` | `998ms` | `2,030ms` | `3,353ms` | `3,293ms` | `2,035ms` | - |
@@ -263,7 +263,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.1-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.6.1-beta.2` | `1,824ms` | `2,019ms` | `970MB` | `1,174MB` | ok |
 | `2026.6.1-beta.1` | `1,865ms` | `2,087ms` | `961MB` | `1,157MB` | ok |
 | `2026.5.31-beta.4` | `1,953ms` | `2,043ms` | `945MB` | `1,154MB` | ok |
 | `2026.5.31-beta.3` | `2,030ms` | `2,136ms` | `887MB` | `1,094MB` | ok |
@@ -324,7 +324,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.1-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.6.1-beta.2` | `2,940ms` | `4,280ms` | `947MB` | `978MB` | ok |
 | `2026.6.1-beta.1` | `2,915ms` | `4,183ms` | `950MB` | `962MB` | ok |
 | `2026.5.31-beta.4` | `3,241ms` | `4,979ms` | `950MB` | `962MB` | ok |
 | `2026.5.31-beta.3` | `3,353ms` | `4,608ms` | `939MB` | `970MB` | ok |
@@ -385,7 +385,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.1-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.6.1-beta.2` | `3,072ms` | `3,447ms` | `1,009MB` | `1,042MB` | ok |
 | `2026.6.1-beta.1` | `3,267ms` | `3,811ms` | `1,001MB` | `1,041MB` | ok |
 | `2026.5.31-beta.4` | `2,957ms` | `3,543ms` | `998MB` | `1,022MB` | ok |
 | `2026.5.31-beta.3` | `3,293ms` | `4,031ms` | `980MB` | `1,015MB` | ok |
