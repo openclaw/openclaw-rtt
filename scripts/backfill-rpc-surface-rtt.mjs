@@ -4,8 +4,9 @@ import { readAllChannelRows } from "./channel-storage.mjs";
 import { aggregateResources, numericStats } from "./resource-metrics.mjs";
 import {
   appendSurfaceRow,
-  existingSurfaceRunIds,
+  readSurfaceRows,
   surfaceResultPath,
+  writeSurfaceRows,
 } from "./surface-storage.mjs";
 import { surfaceRttRunsDir } from "./surface-rtt-config.mjs";
 
@@ -143,6 +144,20 @@ function buildRunId(version) {
   return `rpc-channel-rtt-backfill-${version.replace(/[^a-zA-Z0-9.+_-]+/gu, "_")}`;
 }
 
+function sameRow(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function replaceRow(rows, row) {
+  return rows.map((existing) => (existing.run?.id === row.run.id ? row : existing));
+}
+
+async function writeResult(row) {
+  const runDir = path.join(surfaceRttRunsDir("rpc"), row.run.id);
+  await fs.mkdir(runDir, { recursive: true });
+  await fs.writeFile(surfaceResultPath("rpc", row.run.id), `${JSON.stringify(row, null, 2)}\n`);
+}
+
 function buildRow(group) {
   const rows = group.rows.sort((left, right) =>
     String(left.run?.startedAt).localeCompare(String(right.run?.startedAt)),
@@ -249,23 +264,41 @@ function groupRows(rows, args) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const seen = await existingSurfaceRunIds("rpc");
+  let existingRows = await readSurfaceRows("rpc");
+  const existingByRunId = new Map(
+    existingRows.map((row) => [row.run?.id, row]).filter(([runId]) => runId),
+  );
   let imported = 0;
+  let updated = 0;
   let skipped = 0;
   for (const group of groupRows(await readAllChannelRows(), args)) {
     const row = buildRow(group);
-    if (seen.has(row.run.id)) {
+    const existing = existingByRunId.get(row.run.id);
+    if (existing && sameRow(existing, row)) {
       skipped += 1;
       continue;
     }
-    const runDir = path.join(surfaceRttRunsDir("rpc"), row.run.id);
-    await fs.mkdir(runDir, { recursive: true });
-    await fs.writeFile(surfaceResultPath("rpc", row.run.id), `${JSON.stringify(row, null, 2)}\n`);
-    await appendSurfaceRow("rpc", row);
-    seen.add(row.run.id);
-    imported += 1;
+    await writeResult(row);
+    if (existing) {
+      existingRows = replaceRow(existingRows, row);
+      await writeSurfaceRows(
+        "rpc",
+        row.package.version,
+        existingRows.filter((existingRow) => existingRow.package?.version === row.package.version),
+      );
+      existingByRunId.set(row.run.id, row);
+      updated += 1;
+    } else {
+      await appendSurfaceRow("rpc", row);
+      existingRows.push(row);
+      existingRows.sort((left, right) => String(left.run.startedAt).localeCompare(String(right.run.startedAt)));
+      existingByRunId.set(row.run.id, row);
+      imported += 1;
+    }
   }
-  process.stdout.write(`imported ${imported} rpc backfill rows; skipped ${skipped}\n`);
+  process.stdout.write(
+    `imported ${imported} rpc backfill rows; updated ${updated}; skipped ${skipped}\n`,
+  );
 }
 
 main().catch((error) => {

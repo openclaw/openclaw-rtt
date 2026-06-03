@@ -29,6 +29,34 @@ async function readJsonl(pathname) {
     .map((line) => JSON.parse(line));
 }
 
+function channelRow(channel, rttMs) {
+  const label = channel === "whatsapp" ? "WhatsApp" : "Slack";
+  return {
+    channel: { id: channel, label, scenario: `${channel}-canary` },
+    package: { spec: "openclaw@2026.5.16", version: "2026.5.16" },
+    run: {
+      id: `${channel}-run`,
+      startedAt: "2026-05-16T00:00:00.000Z",
+      finishedAt: "2026-05-16T00:01:00.000Z",
+      status: "pass",
+    },
+    rtt: { warmSamples: [rttMs], failedSamples: 0 },
+    resources: { maxRssKb: { p50: 204800 }, elapsedSeconds: { p50: 10 } },
+    samples: [
+      {
+        rttMs,
+        rttSource: "request-to-observed-message",
+        rttMeasurement: {
+          finalMatchedReplyRttMs: rttMs,
+          requestStartedAt: "2026-05-16T00:00:00.000Z",
+          responseObservedAt: "2026-05-16T00:00:00.123Z",
+          source: "request-to-observed-message",
+        },
+      },
+    ],
+  };
+}
+
 test("imports Control UI surface RTT from performance events", async () => {
   const workspace = await makeWorkspace();
   const summaryPath = path.join(workspace, "sample-1", "qa-suite-summary.json");
@@ -145,32 +173,11 @@ test("imports native Gateway RPC surface RTT from scenario measurements", async 
 
 test("backfills RPC surface RTT from existing channel rows", async () => {
   const workspace = await makeWorkspace();
-  const channelRow = {
-    channel: { id: "slack", label: "Slack", scenario: "slack-canary" },
-    package: { spec: "openclaw@2026.5.16", version: "2026.5.16" },
-    run: {
-      id: "slack-run",
-      startedAt: "2026-05-16T00:00:00.000Z",
-      finishedAt: "2026-05-16T00:01:00.000Z",
-      status: "pass",
-    },
-    rtt: { warmSamples: [100, 200], failedSamples: 0 },
-    resources: { maxRssKb: { p50: 204800 }, elapsedSeconds: { p50: 10 } },
-    samples: [
-      {
-        rttMs: 123,
-        rttSource: "request-to-observed-message",
-        rttMeasurement: {
-          finalMatchedReplyRttMs: 123,
-          requestStartedAt: "2026-05-16T00:00:00.000Z",
-          responseObservedAt: "2026-05-16T00:00:00.123Z",
-          source: "request-to-observed-message",
-        },
-      },
-    ],
-  };
   await fs.mkdir(path.join(workspace, "data/channels/slack"), { recursive: true });
-  await fs.writeFile(path.join(workspace, "data/channels/slack/2026.5.16.jsonl"), `${JSON.stringify(channelRow)}\n`);
+  await fs.writeFile(
+    path.join(workspace, "data/channels/slack/2026.5.16.jsonl"),
+    `${JSON.stringify(channelRow("slack", 123))}\n`,
+  );
 
   await execFileAsync(
     process.execPath,
@@ -192,4 +199,52 @@ test("backfills RPC surface RTT from existing channel rows", async () => {
   assert.deepEqual(row.rtt.sources, ["backfill:request-to-observed-message"]);
   assert.equal(row.samples[0].sourceRunId, "slack-run");
   assert.equal(row.resources.maxRssKb.p50, 204800);
+});
+
+test("updates existing RPC backfill rows when more release channels arrive", async () => {
+  const workspace = await makeWorkspace();
+  await fs.mkdir(path.join(workspace, "data/channels/slack"), { recursive: true });
+  await fs.writeFile(
+    path.join(workspace, "data/channels/slack/2026.5.16.jsonl"),
+    `${JSON.stringify(channelRow("slack", 123))}\n`,
+  );
+
+  await execFileAsync(
+    process.execPath,
+    [
+      BACKFILL_SCRIPT,
+      "--spec",
+      "openclaw@2026.5.16",
+      "--version",
+      "2026.5.16",
+    ],
+    { cwd: workspace },
+  );
+
+  await fs.mkdir(path.join(workspace, "data/channels/whatsapp"), { recursive: true });
+  await fs.writeFile(
+    path.join(workspace, "data/channels/whatsapp/2026.5.16.jsonl"),
+    `${JSON.stringify(channelRow("whatsapp", 456))}\n`,
+  );
+
+  await execFileAsync(
+    process.execPath,
+    [
+      BACKFILL_SCRIPT,
+      "--spec",
+      "openclaw@2026.5.16",
+      "--version",
+      "2026.5.16",
+    ],
+    { cwd: workspace },
+  );
+
+  const rows = await readJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16.jsonl"));
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0].mode.sourceChannels, ["slack", "whatsapp"]);
+  assert.deepEqual(rows[0].rtt.warmSamples, [123, 456]);
+  assert.deepEqual(
+    rows[0].samples.map((sample) => sample.sourceRunId),
+    ["slack-run", "whatsapp-run"],
+  );
 });

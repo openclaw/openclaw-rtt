@@ -394,7 +394,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git pull --rebase origin main
+          git pull --rebase origin "${GITHUB_REF_NAME:-main}"
           import_root="$RUNNER_TEMP/release-channel-rtt-imports"
           shopt -s nullglob
           import_dirs=("$import_root"/release-channel-rtt-import-*)
@@ -440,15 +440,20 @@ jobs:
               --version "$version" \
               --provider-mode mock-openai \
               --scenario "$scenario"
+            node scripts/backfill-rpc-surface-rtt.mjs \
+              --spec "$spec" \
+              --version "$version"
           done
+          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/channel-rtt-summary.mjs
+          node scripts/surface-rtt-summary.mjs
 
       - name: Commit result
         shell: bash
         run: |
           set -euo pipefail
-          git add data/channels/ runs/
+          git add data/channels/ data/surfaces/ runs/ README.md
           if git diff --cached --quiet --exit-code; then
             echo "No channel release RTT changes to commit."
             exit 0
@@ -457,6 +462,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "data: record channel release rtt"
           git push || {
-            git pull --rebase origin main
+            git pull --rebase origin "${GITHUB_REF_NAME:-main}"
             git push
           }
