@@ -33,14 +33,14 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-06-03T08:33:47.994Z` · latest `2026.6.2` / `1bd1483b62`
+Latest imported channel run: `2026-06-03T14:27:16.376Z` · latest `2026.6.2` / `c219c62598`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| Telegram | `1,069ms` | `1,996ms` | `136MB` | `136MB` | ok |
-| Discord | `1,799ms` | `1,929ms` | `938MB` | `1,171MB` | ok |
-| Slack | `3,215ms` | `4,521ms` | `950MB` | `981MB` | ok |
-| WhatsApp | `3,370ms` | `3,887ms` | `1,004MB` | `1,040MB` | ok |
+| Telegram | `1,040ms` | `2,180ms` | `136MB` | `136MB` | ok |
+| Discord | `1,692ms` | `1,829ms` | `956MB` | `1,170MB` | ok |
+| Slack | `2,907ms` | `4,178ms` | `958MB` | `973MB` | ok |
+| WhatsApp | `3,370ms` | `3,887ms` | `1,004MB` | `1,040MB` | stale: latest failed; showing last pass (blocked: credential pool exhausted) |
 
 <!-- latest-main:end -->
 
@@ -52,12 +52,12 @@ RPC and Control UI rows use the same normalized RTT shape as channel rows, but t
 
 <!-- surface-latest:start -->
 
-Latest imported surface run: `2026-06-03T08:14:38.731Z` · latest `2026.6.2` / `932d6ea8e5`
+Latest imported surface run: `2026-06-03T14:09:01.022Z` · latest `2026.6.2` / `c219c62598`
 
 | Surface | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| RPC | `11ms` | `14ms` | `174MB` | `182MB` | ok: gateway RPC |
-| Control UI | `330ms` | `365ms` | `456MB` | `1,096MB` | ok: browser/Gateway |
+| RPC | `7ms` | `13ms` | `174MB` | `183MB` | ok: gateway RPC |
+| Control UI | `303ms` | `348ms` | `450MB` | `1,100MB` | ok: browser/Gateway |
 
 <!-- surface-latest:end -->
 
@@ -73,7 +73,7 @@ Latest imported release coverage run: `2026-06-03T14:38:52.580Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.6.1-beta.3` | `868ms` | `986ms` | `2,057ms` | `3,212ms` | `3,364ms` | `2,681ms` | - |
+| `2026.6.1-beta.3` | `858ms` | `1,089ms` | `1,852ms` | `3,212ms` | `3,364ms` | `2,681ms` | - |
 | `2026.6.1-beta.2` | `764ms` | `988ms` | `1,824ms` | `2,940ms` | `3,072ms` | `2,268ms` | - |
 | `2026.6.1-beta.1` | `811ms` | `1,009ms` | `1,865ms` | `2,915ms` | `3,267ms` | `2,657ms` | - |
 | `2026.5.31-beta.4` | `748ms` | `1,139ms` | `1,953ms` | `3,241ms` | `2,957ms` | `2,471ms` | - |
@@ -201,7 +201,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.1-beta.3` | `986ms` | `2,006ms` | `147MB` | `147MB` | ok |
+| `2026.6.1-beta.3` | `1,089ms` | `3,770ms` | `148MB` | `148MB` | ok |
 | `2026.6.1-beta.2` | `988ms` | `2,029ms` | `149MB` | `149MB` | ok |
 | `2026.6.1-beta.1` | `1,009ms` | `2,014ms` | `148MB` | `148MB` | ok |
 | `2026.5.31-beta.4` | `1,139ms` | `2,023ms` | `147MB` | `147MB` | ok |
@@ -268,7 +268,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.1-beta.3` | `2,057ms` | `2,307ms` | `960MB` | `1,171MB` | ok |
+| `2026.6.1-beta.3` | `1,852ms` | `2,084ms` | `956MB` | `1,170MB` | ok |
 | `2026.6.1-beta.2` | `1,824ms` | `2,019ms` | `970MB` | `1,174MB` | ok |
 | `2026.6.1-beta.1` | `1,865ms` | `2,087ms` | `961MB` | `1,157MB` | ok |
 | `2026.5.31-beta.4` | `1,953ms` | `2,043ms` | `945MB` | `1,154MB` | ok |
