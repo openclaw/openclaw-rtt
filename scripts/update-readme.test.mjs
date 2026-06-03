@@ -375,12 +375,12 @@ test("renders release coverage across channels and surfaces", async () => {
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \| - \| - \|/u,
+    /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \| - \| n\/a \|/u,
   );
   assert.doesNotMatch(coverageSection, /2026\.4\.15/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| - \| `950ms` \| n\/a \| - \| n\/a \| - \| - \|/u,
+    /\| `2026\.5\.3` \| - \| `950ms` \| n\/a \| - \| n\/a \| - \| n\/a \|/u,
   );
 
   const telegramSection = readme.slice(
@@ -433,6 +433,65 @@ test("renders release coverage across channels and surfaces", async () => {
     readme.indexOf("<!-- surface-release-coverage:end -->"),
   );
   assert.match(surfaceCoverageSection, /\| `2026\.5\.16-beta\.1` \| `80ms` \| `700ms` \|/u);
+});
+
+test("marks pre-collection Control UI release surface cells as not applicable", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  const surfaceRow = (surface, version, p50Ms, startedAt) => {
+    const label = surface === "control-ui" ? "Control UI" : "RPC";
+    const scenario = surface === "control-ui" ? "control-ui-qa-channel-image-roundtrip" : "rpc-gateway-smoke";
+    return {
+      surface: { id: surface, label, scenario },
+      ...rttRow({
+        package: { spec: `openclaw@${version}`, version },
+        run: { id: `${surface}-${version}`, startedAt, status: "pass" },
+        rtt: { warmSamples: [p50Ms], p50Ms, p95Ms: p50Ms },
+      }),
+      mode: { source: "surface-import" },
+    };
+  };
+
+  await writeJsonl(path.join(workspace, "data/surfaces/rpc/2026.6.1-beta.2.jsonl"), [
+    surfaceRow("rpc", "2026.6.1-beta.2", 12, "2026-06-01T00:00:00.000Z"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/rpc/2026.6.1-beta.3.jsonl"), [
+    surfaceRow("rpc", "2026.6.1-beta.3", 13, "2026-06-01T00:01:00.000Z"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/control-ui/2026.6.1-beta.3.jsonl"), [
+    surfaceRow("control-ui", "2026.6.1-beta.3", 456, "2026-06-01T00:02:00.000Z"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/rpc/2026.6.1.jsonl"), [
+    surfaceRow("rpc", "2026.6.1", 14, "2026-06-01T00:03:00.000Z"),
+  ]);
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const coverageSection = readme.slice(
+    readme.indexOf("<!-- release-coverage:start -->"),
+    readme.indexOf("<!-- release-coverage:end -->"),
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.6\.1` \| - \| - \| - \| - \| - \| `14ms` \| - \|/u,
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.6\.1-beta\.3` \| `222ms` \| - \| - \| - \| - \| `13ms` \| `456ms` \|/u,
+  );
+  assert.match(
+    coverageSection,
+    /\| `2026\.6\.1-beta\.2` \| - \| - \| - \| - \| - \| `12ms` \| n\/a \|/u,
+  );
+
+  const surfaceCoverageSection = readme.slice(
+    readme.indexOf("<!-- surface-release-coverage:start -->"),
+    readme.indexOf("<!-- surface-release-coverage:end -->"),
+  );
+  assert.match(surfaceCoverageSection, /\| `2026\.6\.1` \| `14ms` \| - \|/u);
+  assert.match(surfaceCoverageSection, /\| `2026\.6\.1-beta\.3` \| `13ms` \| `456ms` \|/u);
+  assert.match(surfaceCoverageSection, /\| `2026\.6\.1-beta\.2` \| `12ms` \| n\/a \|/u);
 });
 
 test("renders release coverage failure cells without verbose labels", async () => {
@@ -505,11 +564,11 @@ test("renders release coverage failure cells without verbose labels", async () =
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| logged out \| - \| - \|/u,
+    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| logged out \| - \| n\/a \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.5` \| - \| - \| timeout \| - \| - \| - \| - \|/u,
+    /\| `2026\.5\.16-beta\.5` \| - \| - \| timeout \| - \| - \| - \| n\/a \|/u,
   );
   assert.doesNotMatch(coverageSection, /failed:/u);
 
@@ -576,7 +635,7 @@ test("keeps prior release RTT visible when a newer import has only RSS", async (
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \| - \| - \|/u,
+    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \| - \| n\/a \|/u,
   );
 
   const discordSection = readme.slice(

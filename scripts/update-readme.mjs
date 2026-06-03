@@ -46,6 +46,9 @@ const CHANNEL_CONFIG_BY_LABEL = new Map(
 const RELEASE_SPEC_RE =
   /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const RELEASE_COVERAGE_MIN_VERSION = "2026.4.24";
+const SURFACE_RELEASE_COVERAGE_MIN_VERSIONS = new Map([
+  ["Control UI", "2026.6.1-beta.3"],
+]);
 const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
@@ -404,7 +407,13 @@ function releaseSkipReason(label, version) {
     return discordReleaseGapReason(version);
   }
   const channel = CHANNEL_CONFIG_BY_LABEL.get(label);
-  return channel ? channelReleaseSkipReason(channel, version) : undefined;
+  if (channel) {
+    return channelReleaseSkipReason(channel, version);
+  }
+  const surfaceMinVersion = SURFACE_RELEASE_COVERAGE_MIN_VERSIONS.get(label);
+  return surfaceMinVersion && compareVersions(version, surfaceMinVersion) < 0
+    ? `surface release coverage starts at ${surfaceMinVersion}`
+    : undefined;
 }
 
 function sampleFailureDetails(row) {
