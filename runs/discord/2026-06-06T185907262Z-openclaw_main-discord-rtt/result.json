@@ -1,0 +1,488 @@
+{
+  "channel": {
+    "id": "discord",
+    "label": "Discord",
+    "scenario": "discord-canary"
+  },
+  "package": {
+    "spec": "openclaw@main",
+    "version": "2026.6.2+f2677d55ec"
+  },
+  "run": {
+    "id": "2026-06-06T185907262Z-openclaw_main-discord-rtt",
+    "startedAt": "2026-06-06T18:59:07.262Z",
+    "finishedAt": "2026-06-06T19:08:08.988Z",
+    "durationMs": 541726,
+    "status": "pass"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "discord-canary"
+    ],
+    "credentialSource": "convex",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [
+      1918,
+      1781,
+      1841,
+      1947,
+      2162,
+      1919,
+      1833,
+      1786,
+      1860,
+      1674,
+      1757,
+      2058,
+      1856,
+      2023,
+      1950,
+      1901,
+      1721,
+      3712,
+      1802,
+      1897
+    ],
+    "failedSamples": 0,
+    "sources": [
+      "request-to-observed-message"
+    ],
+    "avgMs": 1969.9,
+    "p50Ms": 1860,
+    "p95Ms": 2162,
+    "maxMs": 3712
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa discord"
+    },
+    "maxRssKbSamples": [
+      1042948,
+      935864,
+      972220,
+      934252,
+      1057836,
+      961540,
+      981128,
+      988916,
+      916640,
+      966600,
+      1024912,
+      904668,
+      953832,
+      964516,
+      969920,
+      988640,
+      982648,
+      943236,
+      924200,
+      919104
+    ],
+    "elapsedSecondsSamples": [
+      36.74,
+      27.32,
+      28.11,
+      27.37,
+      28.5,
+      27.73,
+      27.3,
+      27.11,
+      27.25,
+      27.85,
+      27.42,
+      29.13,
+      27.05,
+      27.12,
+      27.47,
+      27.3,
+      27.25,
+      29.1,
+      27.59,
+      27.45
+    ],
+    "maxRssKb": {
+      "avg": 966681,
+      "p50": 964516,
+      "p95": 1042948,
+      "max": 1057836
+    },
+    "elapsedSeconds": {
+      "avg": 28.108000000000004,
+      "p50": 27.42,
+      "p95": 29.13,
+      "max": 36.74
+    }
+  },
+  "discord": {
+    "samples": [
+      {
+        "index": 1,
+        "status": "pass",
+        "rttMs": 1918,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1918,
+          "requestStartedAt": "2026-06-06T18:59:19.762000+00:00",
+          "responseObservedAt": "2026-06-06T18:59:21.680000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 16213,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 1042948,
+          "elapsedSeconds": 36.74
+        }
+      },
+      {
+        "index": 2,
+        "status": "pass",
+        "rttMs": 1781,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1781,
+          "requestStartedAt": "2026-06-06T18:59:47.415000+00:00",
+          "responseObservedAt": "2026-06-06T18:59:49.196000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15325,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 935864,
+          "elapsedSeconds": 27.32
+        }
+      },
+      {
+        "index": 3,
+        "status": "pass",
+        "rttMs": 1841,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1841,
+          "requestStartedAt": "2026-06-06T19:00:15.593000+00:00",
+          "responseObservedAt": "2026-06-06T19:00:17.434000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 16048,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 972220,
+          "elapsedSeconds": 28.11
+        }
+      },
+      {
+        "index": 4,
+        "status": "pass",
+        "rttMs": 1947,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1947,
+          "requestStartedAt": "2026-06-06T19:00:43.029000+00:00",
+          "responseObservedAt": "2026-06-06T19:00:44.976000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15403,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 934252,
+          "elapsedSeconds": 27.37
+        }
+      },
+      {
+        "index": 5,
+        "status": "pass",
+        "rttMs": 2162,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 2162,
+          "requestStartedAt": "2026-06-06T19:01:11.112000+00:00",
+          "responseObservedAt": "2026-06-06T19:01:13.274000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 16459,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 1057836,
+          "elapsedSeconds": 28.5
+        }
+      },
+      {
+        "index": 6,
+        "status": "pass",
+        "rttMs": 1919,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1919,
+          "requestStartedAt": "2026-06-06T19:01:39.240000+00:00",
+          "responseObservedAt": "2026-06-06T19:01:41.159000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15624,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 961540,
+          "elapsedSeconds": 27.73
+        }
+      },
+      {
+        "index": 7,
+        "status": "pass",
+        "rttMs": 1833,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1833,
+          "requestStartedAt": "2026-06-06T19:02:06.586000+00:00",
+          "responseObservedAt": "2026-06-06T19:02:08.419000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15261,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 981128,
+          "elapsedSeconds": 27.3
+        }
+      },
+      {
+        "index": 8,
+        "status": "pass",
+        "rttMs": 1786,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1786,
+          "requestStartedAt": "2026-06-06T19:02:33.720000+00:00",
+          "responseObservedAt": "2026-06-06T19:02:35.506000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15135,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 988916,
+          "elapsedSeconds": 27.11
+        }
+      },
+      {
+        "index": 9,
+        "status": "pass",
+        "rttMs": 1860,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1860,
+          "requestStartedAt": "2026-06-06T19:03:00.926000+00:00",
+          "responseObservedAt": "2026-06-06T19:03:02.786000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15258,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 916640,
+          "elapsedSeconds": 27.25
+        }
+      },
+      {
+        "index": 10,
+        "status": "pass",
+        "rttMs": 1674,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1674,
+          "requestStartedAt": "2026-06-06T19:03:28.669000+00:00",
+          "responseObservedAt": "2026-06-06T19:03:30.343000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15966,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 966600,
+          "elapsedSeconds": 27.85
+        }
+      },
+      {
+        "index": 11,
+        "status": "pass",
+        "rttMs": 1757,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1757,
+          "requestStartedAt": "2026-06-06T19:03:56.008000+00:00",
+          "responseObservedAt": "2026-06-06T19:03:57.765000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15500,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 1024912,
+          "elapsedSeconds": 27.42
+        }
+      },
+      {
+        "index": 12,
+        "status": "pass",
+        "rttMs": 2058,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 2058,
+          "requestStartedAt": "2026-06-06T19:04:25.341000+00:00",
+          "responseObservedAt": "2026-06-06T19:04:27.399000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 17141,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 904668,
+          "elapsedSeconds": 29.13
+        }
+      },
+      {
+        "index": 13,
+        "status": "pass",
+        "rttMs": 1856,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1856,
+          "requestStartedAt": "2026-06-06T19:04:52.459000+00:00",
+          "responseObservedAt": "2026-06-06T19:04:54.315000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15192,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 953832,
+          "elapsedSeconds": 27.05
+        }
+      },
+      {
+        "index": 14,
+        "status": "pass",
+        "rttMs": 2023,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 2023,
+          "requestStartedAt": "2026-06-06T19:05:19.608000+00:00",
+          "responseObservedAt": "2026-06-06T19:05:21.631000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15156,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 964516,
+          "elapsedSeconds": 27.12
+        }
+      },
+      {
+        "index": 15,
+        "status": "pass",
+        "rttMs": 1950,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1950,
+          "requestStartedAt": "2026-06-06T19:05:46.947000+00:00",
+          "responseObservedAt": "2026-06-06T19:05:48.897000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15438,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 969920,
+          "elapsedSeconds": 27.47
+        }
+      },
+      {
+        "index": 16,
+        "status": "pass",
+        "rttMs": 1901,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1901,
+          "requestStartedAt": "2026-06-06T19:06:14.308000+00:00",
+          "responseObservedAt": "2026-06-06T19:06:16.209000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15243,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 988640,
+          "elapsedSeconds": 27.3
+        }
+      },
+      {
+        "index": 17,
+        "status": "pass",
+        "rttMs": 1721,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1721,
+          "requestStartedAt": "2026-06-06T19:06:41.704000+00:00",
+          "responseObservedAt": "2026-06-06T19:06:43.425000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15169,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 982648,
+          "elapsedSeconds": 27.25
+        }
+      },
+      {
+        "index": 18,
+        "status": "pass",
+        "rttMs": 3712,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 3712,
+          "requestStartedAt": "2026-06-06T19:07:09.243000+00:00",
+          "responseObservedAt": "2026-06-06T19:07:12.955000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 16967,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 943236,
+          "elapsedSeconds": 29.1
+        }
+      },
+      {
+        "index": 19,
+        "status": "pass",
+        "rttMs": 1802,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1802,
+          "requestStartedAt": "2026-06-06T19:07:38.251000+00:00",
+          "responseObservedAt": "2026-06-06T19:07:40.053000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15509,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 924200,
+          "elapsedSeconds": 27.59
+        }
+      },
+      {
+        "index": 20,
+        "status": "pass",
+        "rttMs": 1897,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 1897,
+          "requestStartedAt": "2026-06-06T19:08:05.562000+00:00",
+          "responseObservedAt": "2026-06-06T19:08:07.459000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 15404,
+        "details": "reply matched",
+        "resources": {
+          "maxRssKb": 919104,
+          "elapsedSeconds": 27.45
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "resultPath": "runs/discord/2026-06-06T185907262Z-openclaw_main-discord-rtt/result.json"
+  }
+}
