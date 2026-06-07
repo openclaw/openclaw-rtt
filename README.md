@@ -69,11 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-07T01:42:39.686Z`
+Latest imported release coverage run: `2026-06-07T02:02:27.751Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.6.5-beta.2` | `615ms` | `1,013ms` | `1,837ms` | - | - | - | `333ms` |
+| `2026.6.5-beta.2` | `1,047ms` | `1,013ms` | `1,837ms` | `3,177ms` | `3,029ms` | `2,593ms` | `333ms` |
 | `2026.6.5-beta.1` | `1,021ms` | `1,019ms` | `1,792ms` | `3,192ms` | `3,031ms` | `2,450ms` | `398ms` |
 | `2026.6.2-beta.1` | `1,067ms` | `1,001ms` | `1,737ms` | `3,221ms` | `3,020ms` | `2,605ms` | `308ms` |
 | `2026.6.1` | `1,161ms` | `1,059ms` | `1,862ms` | `3,190ms` | `3,303ms` | `3,147ms` | `303ms` |
@@ -141,7 +141,7 @@ Latest imported surface run: `2026-06-07T01:32:58.203Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
-| `2026.6.5-beta.2` | - | `333ms` |
+| `2026.6.5-beta.2` | `2,593ms` | `333ms` |
 | `2026.6.5-beta.1` | `2,450ms` | `398ms` |
 | `2026.6.2-beta.1` | `2,605ms` | `308ms` |
 | `2026.6.1` | `3,147ms` | `303ms` |
@@ -346,7 +346,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.5-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.6.5-beta.2` | `3,177ms` | `4,673ms` | `960MB` | `971MB` | ok |
 | `2026.6.5-beta.1` | `3,192ms` | `4,632ms` | `963MB` | `977MB` | ok |
 | `2026.6.2-beta.1` | `3,221ms` | `5,307ms` | `966MB` | `979MB` | ok |
 | `2026.6.1` | `3,190ms` | `4,526ms` | `948MB` | `972MB` | ok |
@@ -412,7 +412,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.5-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.6.5-beta.2` | `3,029ms` | `4,268ms` | `1,020MB` | `1,043MB` | ok |
 | `2026.6.5-beta.1` | `3,031ms` | `4,253ms` | `1,018MB` | `1,045MB` | ok |
 | `2026.6.2-beta.1` | `3,020ms` | `3,704ms` | `1,007MB` | `1,033MB` | ok |
 | `2026.6.1` | `3,303ms` | `4,098ms` | `1,014MB` | `1,048MB` | ok |
