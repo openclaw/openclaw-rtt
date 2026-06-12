@@ -16,9 +16,9 @@ const TELEGRAM_CHANNEL = {
 
 function usage() {
   return [
-    "Usage: node scripts/import-result.mjs <path-to-openclaw-result.json|qa-evidence.json>",
+    "Usage: node scripts/import-result.mjs <path-to-qa-evidence.json>",
     "  [--resource-metrics <resource-metrics.env>]",
-    "  [--spec <openclaw@spec> --version <version-or-ref> --started-at <iso> --finished-at <iso>]",
+    "  --spec <openclaw@spec> --version <version-or-ref> --started-at <iso> --finished-at <iso>",
   ].join("\n");
 }
 
@@ -79,12 +79,6 @@ function requireNumber(value, label) {
   return value;
 }
 
-function validateOptionalNumber(value, label) {
-  if (value !== undefined) {
-    requireNumber(value, label);
-  }
-}
-
 function safeRunLabel(input) {
   return input.replace(/[^a-zA-Z0-9.-]+/gu, "_").replace(/^_+|_+$/gu, "");
 }
@@ -97,54 +91,6 @@ function buildEvidenceRunId(startedAt, spec) {
     TELEGRAM_CHANNEL.scenario,
     "rtt",
   ].join("-");
-}
-
-function validateResult(value) {
-  const result = requireObject(value, "result");
-  const packageInfo = requireObject(result.package, "result.package");
-  const run = requireObject(result.run, "result.run");
-  const mode = requireObject(result.mode, "result.mode");
-  const rtt = requireObject(result.rtt, "result.rtt");
-
-  requireString(packageInfo.spec, "result.package.spec");
-  requireString(packageInfo.version, "result.package.version");
-  requireString(run.id, "result.run.id");
-  requireString(run.startedAt, "result.run.startedAt");
-  requireString(run.finishedAt, "result.run.finishedAt");
-  requireNumber(run.durationMs, "result.run.durationMs");
-  if (run.status !== "pass" && run.status !== "fail") {
-    throw new Error("result.run.status must be pass or fail.");
-  }
-  requireString(mode.providerMode, "result.mode.providerMode");
-  if (!Array.isArray(mode.scenarios)) {
-    throw new Error("result.mode.scenarios must be an array.");
-  }
-  validateOptionalNumber(rtt.canaryMs, "result.rtt.canaryMs");
-  validateOptionalNumber(rtt.mentionReplyMs, "result.rtt.mentionReplyMs");
-  validateOptionalNumber(rtt.avgMs, "result.rtt.avgMs");
-  validateOptionalNumber(rtt.p50Ms, "result.rtt.p50Ms");
-  validateOptionalNumber(rtt.p95Ms, "result.rtt.p95Ms");
-  validateOptionalNumber(rtt.maxMs, "result.rtt.maxMs");
-  validateOptionalNumber(rtt.failedSamples, "result.rtt.failedSamples");
-  if (rtt.warmSamples !== undefined) {
-    if (!Array.isArray(rtt.warmSamples)) {
-      throw new Error("result.rtt.warmSamples must be an array.");
-    }
-    rtt.warmSamples.forEach((sample, index) => {
-      requireNumber(sample, `result.rtt.warmSamples[${index}]`);
-    });
-  }
-
-  return result;
-}
-
-function isQaEvidenceSummary(value) {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    value.kind === "openclaw.qa.evidence-summary"
-  );
 }
 
 function requireEvidenceArgs(args) {
@@ -208,6 +154,9 @@ function statusFromEvidence(entries) {
 }
 
 function buildResultFromEvidence(evidence, args) {
+  if (evidence.kind !== "openclaw.qa.evidence-summary") {
+    throw new Error("input must be an OpenClaw qa-evidence.json summary.");
+  }
   const { finishedAtMs, startedAtMs } = requireEvidenceArgs(args);
   const canary = evidenceEntry(evidence, "telegram-canary");
   const mention = evidenceEntry(evidence, TELEGRAM_CHANNEL.scenario);
@@ -280,8 +229,7 @@ function resourceMeasurementForResult(result) {
   return {
     kind: "process-max-rss",
     scope: "release-harness-command",
-    command:
-      result.mode?.source === "qa-evidence" ? "pnpm test:docker:npm-telegram-live" : "pnpm rtt",
+    command: "pnpm test:docker:npm-telegram-live",
   };
 }
 
@@ -289,9 +237,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
 
   const input = await readJson(path.resolve(args.sourcePath));
-  const result = isQaEvidenceSummary(input)
-    ? buildResultFromEvidence(input, args)
-    : validateResult(input);
+  const result = buildResultFromEvidence(requireObject(input, "input"), args);
   const seen = await existingRunIds();
   if (seen.has(result.run.id)) {
     throw new Error(`Run already imported: ${result.run.id}`);

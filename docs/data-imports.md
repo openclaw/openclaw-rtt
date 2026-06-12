@@ -7,15 +7,14 @@
 Run importers from the repo root:
 
 ```sh
-node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json
-node scripts/import-result.mjs ../clawdbot/runs/<run-id>/result.json --resource-metrics resource-metrics.env
+node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --spec openclaw@beta --version <version> --started-at <iso> --finished-at <iso>
+node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --spec openclaw@beta --version <version> --started-at <iso> --finished-at <iso> --resource-metrics resource-metrics.env
 node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
 (cd ../openclaw && node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs --output-dir ../openclaw-rtt/.artifacts/rpc-rtt/sample-1)
 node scripts/import-surface-rtt.mjs rpc-samples.tsv --surface rpc --spec openclaw@main --version <ref> --provider-mode gateway-rpc --scenario rpc-gateway-smoke --require-pass
 node scripts/import-surface-rtt.mjs samples.tsv --surface control-ui --spec openclaw@main --version <ref>
 node scripts/backfill-rpc-surface-rtt.mjs
 node scripts/backfill-release-rss.mjs --family discord --spec openclaw@2026.5.16 --version 2026.5.16 --sample-paths samples.tsv
-node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --spec openclaw@beta --version <version> --started-at <iso> --finished-at <iso>
 node scripts/summary.mjs
 ```
 
