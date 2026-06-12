@@ -5,7 +5,7 @@
 ## Current State
 
 - All imported rows use `data/channels/<channel>/<version>.jsonl` and `runs/<channel>/<run-id>/result.json`.
-- Telegram main/release RTT still uses the older `pnpm rtt` source shape, but it now writes through the shared Telegram channel storage path.
+- Telegram main/release RTT uses the OpenClaw package Telegram live lane and imports aggregate timing from `qa-evidence.json` through the shared Telegram channel storage path.
 - Discord main/release RTT uses the live QA lane with a specialized importer because its summary currently needs observed-message timestamp fallback.
 - Slack and WhatsApp main RTT use the reusable live-transport importer.
 - The Discord release resolver backfills missing versions from the Telegram release baseline before measuring future versions. It skips releases that predate or fail the Discord canary contract instead of reporting them as runnable gaps.
@@ -37,7 +37,7 @@ Each sample is wrapped with `/usr/bin/time` and imports process max RSS in kilob
 
 Discord is intentionally not migrated to the generic live-transport importer yet. Its summary currently omits RTT fields, so the generic importer supports observed-message timestamp fallback and has test coverage for that path, but the existing Discord workflow remains stable while the new channel lane proves itself.
 
-Telegram is listed in the channel config for the future live-transport path, but the current production graph remains on the older `pnpm rtt` package-result path because that is what release sweeps already use.
+Telegram is listed in the channel config because the package Telegram live lane now emits QA evidence for `telegram-mentioned-message-reply`. Future Telegram rows keep the same dashboard metrics as older rows, but the source is aggregate `qa-evidence.json` timing rather than the retired package RTT wrapper's per-sample result JSON.
 
 Do not read cross-channel values as pure transport rankings. Telegram release rows use `telegram-mentioned-message-reply`; Discord, Slack, and WhatsApp rows use canary scenarios. The live-transport lane also includes QA-lab process overhead in RSS because the measured process is `pnpm openclaw qa <channel>`, not only the channel adapter.
 

@@ -131,32 +131,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for spec in ${{ steps.release.outputs.specs }}; do
+          read -r -a specs <<< "${{ steps.release.outputs.specs }}"
+          read -r -a versions <<< "${{ steps.release.outputs.versions }}"
+          for index in "${!specs[@]}"; do
+            spec="${specs[$index]}"
+            version="${versions[$index]}"
             output="$RUNNER_TEMP/openclaw-rtt-runs/$(printf '%s' "$spec" | tr -c 'A-Za-z0-9._-' '_')"
             metrics_path="${output}/resource-metrics.env"
             mkdir -p "$output"
+            started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
             set +e
-            /usr/bin/time \
+            OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
+            OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
+            OPENCLAW_NPM_TELEGRAM_WARM_SAMPLES=20 \
+            OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
+            OPENCLAW_NPM_TELEGRAM_SAMPLE_TIMEOUT_MS=30000 \
+              /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
               timeout --kill-after=30s 10m \
-              pnpm rtt "$spec" \
-              --harness-root "$PWD" \
-              --output "$output" \
-              --samples 20 \
-              --timeout-ms 240000 \
-              --sample-timeout-ms 30000
+              pnpm test:docker:npm-telegram-live
             status="$?"
             set -e
             echo "exit_status=${status}" >>"$metrics_path"
-            result_path="$(find "$output" -maxdepth 3 -name result.json -type f | sort | tail -1)"
-            if [[ -z "$result_path" ]]; then
-              echo "Skipping RSS backfill for $spec because the rerun did not produce a result." >&2
+            evidence_path="$output/raw/qa-evidence.json"
+            if [[ ! -f "$evidence_path" ]]; then
+              echo "Skipping RSS backfill for $spec because the rerun did not produce qa-evidence.json." >&2
               continue
             fi
-            run_status="$(node -e 'const fs = require("node:fs"); const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); process.stdout.write(String(result.run?.status || ""));' "$result_path")"
+            run_status="$(node -e 'const fs = require("node:fs"); const evidence = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const failed = !Array.isArray(evidence.entries) || evidence.entries.some((entry) => entry?.result?.status !== "pass"); process.stdout.write(failed ? "fail" : "pass");' "$evidence_path")"
             if [[ "$run_status" != "pass" ]]; then
-              echo "Skipping RSS backfill for failed rerun ${result_path} (status=${run_status:-missing})." >&2
+              echo "Skipping RSS backfill for failed rerun ${evidence_path} (status=${run_status:-missing})." >&2
               continue
             fi
             (
@@ -164,7 +169,8 @@ jobs:
               git pull --rebase origin "${GITHUB_REF_NAME:-main}"
               node scripts/backfill-release-rss.mjs \
                 --family telegram \
-                --result "$result_path" \
+                --spec "$spec" \
+                --version "$version" \
                 --resource-metrics "$metrics_path"
               node scripts/validate.mjs
               git add data/channels/telegram/ runs/telegram/
@@ -195,28 +201,34 @@ jobs:
           set -euo pipefail
           result_paths="$RUNNER_TEMP/openclaw-rtt-result-paths.txt"
           : >"$result_paths"
-          for spec in ${{ steps.release.outputs.specs }}; do
+          read -r -a specs <<< "${{ steps.release.outputs.specs }}"
+          read -r -a versions <<< "${{ steps.release.outputs.versions }}"
+          for index in "${!specs[@]}"; do
+            spec="${specs[$index]}"
+            version="${versions[$index]}"
             output="$RUNNER_TEMP/openclaw-rtt-runs/$(printf '%s' "$spec" | tr -c 'A-Za-z0-9._-' '_')"
             metrics_path="${output}/resource-metrics.env"
             mkdir -p "$output"
+            started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
             set +e
-            /usr/bin/time \
+            OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
+            OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
+            OPENCLAW_NPM_TELEGRAM_WARM_SAMPLES=20 \
+            OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
+            OPENCLAW_NPM_TELEGRAM_SAMPLE_TIMEOUT_MS=30000 \
+              /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
-              pnpm rtt "$spec" \
-              --harness-root "$PWD" \
-              --output "$output" \
-              --samples 20 \
-              --timeout-ms 240000 \
-              --sample-timeout-ms 30000
+              pnpm test:docker:npm-telegram-live
             status="$?"
             set -e
+            finished_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
             echo "exit_status=${status}" >>"$metrics_path"
-            result_path="$(find "$output" -maxdepth 3 -name result.json -type f | sort | tail -1)"
-            if [[ -z "$result_path" ]]; then
-              echo "No RTT result.json produced for $spec." >&2
+            evidence_path="$output/raw/qa-evidence.json"
+            if [[ ! -f "$evidence_path" ]]; then
+              echo "No qa-evidence.json produced for $spec." >&2
               if [[ "${{ steps.release.outputs.rss_backfill }}" == "true" ]]; then
-                echo "Skipping RSS backfill for $spec because the rerun did not produce a result." >&2
+                echo "Skipping RSS backfill for $spec because the rerun did not produce qa-evidence.json." >&2
                 continue
               fi
               if [[ "$status" -eq 0 ]]; then
@@ -224,7 +236,7 @@ jobs:
               fi
               exit "$status"
             fi
-            printf '%s\t%s\n' "$result_path" "$metrics_path" >>"$result_paths"
+            printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$evidence_path" "$metrics_path" "$spec" "$version" "$started_at" "$finished_at" >>"$result_paths"
           done
           echo "result_paths=$result_paths" >>"$GITHUB_OUTPUT"
 
@@ -235,19 +247,25 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-          while IFS=$'\t' read -r result_path metrics_path; do
+          while IFS=$'\t' read -r evidence_path metrics_path spec version started_at finished_at; do
             if [[ "${{ steps.release.outputs.rss_backfill }}" == "true" ]]; then
-              run_status="$(node -e 'const fs = require("node:fs"); const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); process.stdout.write(String(result.run?.status || ""));' "$result_path")"
+              run_status="$(node -e 'const fs = require("node:fs"); const evidence = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const failed = !Array.isArray(evidence.entries) || evidence.entries.some((entry) => entry?.result?.status !== "pass"); process.stdout.write(failed ? "fail" : "pass");' "$evidence_path")"
               if [[ "$run_status" != "pass" ]]; then
-                echo "Skipping RSS backfill for failed rerun ${result_path} (status=${run_status:-missing})." >&2
+                echo "Skipping RSS backfill for failed rerun ${evidence_path} (status=${run_status:-missing})." >&2
                 continue
               fi
               node scripts/backfill-release-rss.mjs \
                 --family telegram \
-                --result "$result_path" \
+                --spec "$spec" \
+                --version "$version" \
                 --resource-metrics "$metrics_path"
             else
-              node scripts/import-result.mjs "$result_path" --resource-metrics "$metrics_path"
+              node scripts/import-result.mjs "$evidence_path" \
+                --spec "$spec" \
+                --version "$version" \
+                --started-at "$started_at" \
+                --finished-at "$finished_at" \
+                --resource-metrics "$metrics_path"
             fi
           done <"${{ steps.rtt.outputs.result_paths }}"
           node scripts/validate.mjs

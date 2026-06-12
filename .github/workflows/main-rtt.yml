@@ -98,7 +98,9 @@ jobs:
             echo "No package tgz produced." >&2
             exit 1
           fi
+          package_version="$(node -e 'const fs = require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync("package.json", "utf8")).version)')+$(git rev-parse --short=10 HEAD)"
           echo "package_tgz=${PWD}/${package_tgz}" >>"$GITHUB_OUTPUT"
+          echo "package_version=$package_version" >>"$GITHUB_OUTPUT"
 
       - name: Run RTT
         id: rtt
@@ -115,27 +117,32 @@ jobs:
             echo "samples must be a positive integer, got: $samples" >&2
             exit 1
           fi
+          output="$RUNNER_TEMP/openclaw-rtt-runs/main"
           metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
+          started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
           set +e
-          /usr/bin/time \
+          OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="openclaw@main" \
+          OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ="${{ steps.pack.outputs.package_tgz }}" \
+          OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
+          OPENCLAW_NPM_TELEGRAM_WARM_SAMPLES="$samples" \
+          OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
+          OPENCLAW_NPM_TELEGRAM_SAMPLE_TIMEOUT_MS=30000 \
+            /usr/bin/time \
             -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
             -o "$metrics_path" \
-            pnpm rtt openclaw@main \
-            --package-tgz "${{ steps.pack.outputs.package_tgz }}" \
-            --harness-root "$PWD" \
-            --output "$RUNNER_TEMP/openclaw-rtt-runs" \
-            --samples "$samples" \
-            --timeout-ms 240000 \
-            --sample-timeout-ms 30000
+            pnpm test:docker:npm-telegram-live
           status="$?"
           set -e
-          result_path="$(find "$RUNNER_TEMP/openclaw-rtt-runs" -maxdepth 3 -name result.json -type f | sort | tail -1)"
-          if [[ -z "$result_path" ]]; then
-            echo "No RTT result.json produced." >&2
+          finished_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
+          evidence_path="$output/raw/qa-evidence.json"
+          if [[ ! -f "$evidence_path" ]]; then
+            echo "No qa-evidence.json produced." >&2
             exit "$status"
           fi
-          echo "result_path=$result_path" >>"$GITHUB_OUTPUT"
+          echo "evidence_path=$evidence_path" >>"$GITHUB_OUTPUT"
           echo "resource_metrics_path=$metrics_path" >>"$GITHUB_OUTPUT"
+          echo "started_at=$started_at" >>"$GITHUB_OUTPUT"
+          echo "finished_at=$finished_at" >>"$GITHUB_OUTPUT"
 
       - name: Import result
         working-directory: openclaw-rtt
@@ -143,7 +150,11 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          node scripts/import-result.mjs "${{ steps.rtt.outputs.result_path }}" \
+          node scripts/import-result.mjs "${{ steps.rtt.outputs.evidence_path }}" \
+            --spec openclaw@main \
+            --version "${{ steps.pack.outputs.package_version }}" \
+            --started-at "${{ steps.rtt.outputs.started_at }}" \
+            --finished-at "${{ steps.rtt.outputs.finished_at }}" \
             --resource-metrics "${{ steps.rtt.outputs.resource_metrics_path }}"
           node scripts/validate.mjs
           node scripts/summary.mjs

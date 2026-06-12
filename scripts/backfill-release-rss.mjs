@@ -78,7 +78,10 @@ async function readResources(args) {
   const measurement = {
     kind: "process-max-rss",
     scope: args.family === "telegram" ? "release-harness-command" : "qa-command",
-    command: args.family === "telegram" ? "pnpm rtt" : `pnpm openclaw qa ${args.family}`,
+    command:
+      args.family === "telegram"
+        ? "pnpm test:docker:npm-telegram-live"
+        : `pnpm openclaw qa ${args.family}`,
   };
   if (args.resourceMetricsPath) {
     return aggregateResources([await readResourceMetrics(path.resolve(args.resourceMetricsPath))], measurement);

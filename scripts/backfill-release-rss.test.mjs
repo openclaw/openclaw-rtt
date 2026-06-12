@@ -60,7 +60,7 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
   assert.deepEqual(updated.resources.measurement, {
     kind: "process-max-rss",
     scope: "release-harness-command",
-    command: "pnpm rtt",
+    command: "pnpm test:docker:npm-telegram-live",
   });
   assert.deepEqual(updated.resources.maxRssKbSamples, [409600]);
   assert.equal(updated.resources.maxRssKb.max, 409600);
