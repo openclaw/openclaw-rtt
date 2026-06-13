@@ -22,7 +22,7 @@ Telegram release imports expect the `qa-evidence.json` shape emitted by the Open
 
 ```sh
 OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@beta \
-OPENCLAW_NPM_TELEGRAM_WARM_SAMPLES=20 \
+OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
 pnpm test:docker:npm-telegram-live
 ```
 

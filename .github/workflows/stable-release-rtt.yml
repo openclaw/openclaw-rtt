@@ -142,9 +142,9 @@ jobs:
             set +e
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
-            OPENCLAW_NPM_TELEGRAM_WARM_SAMPLES=20 \
+            OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
-            OPENCLAW_NPM_TELEGRAM_SAMPLE_TIMEOUT_MS=30000 \
+            OPENCLAW_NPM_TELEGRAM_RTT_TIMEOUT_MS=30000 \
               /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
@@ -212,9 +212,9 @@ jobs:
             set +e
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
-            OPENCLAW_NPM_TELEGRAM_WARM_SAMPLES=20 \
+            OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
-            OPENCLAW_NPM_TELEGRAM_SAMPLE_TIMEOUT_MS=30000 \
+            OPENCLAW_NPM_TELEGRAM_RTT_TIMEOUT_MS=30000 \
               /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
