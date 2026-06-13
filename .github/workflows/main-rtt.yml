@@ -139,10 +139,12 @@ jobs:
             echo "No qa-evidence.json produced." >&2
             exit "$status"
           fi
-          echo "evidence_path=$evidence_path" >>"$GITHUB_OUTPUT"
-          echo "resource_metrics_path=$metrics_path" >>"$GITHUB_OUTPUT"
-          echo "started_at=$started_at" >>"$GITHUB_OUTPUT"
-          echo "finished_at=$finished_at" >>"$GITHUB_OUTPUT"
+          {
+            echo "evidence_path=$evidence_path"
+            echo "resource_metrics_path=$metrics_path"
+            echo "started_at=$started_at"
+            echo "finished_at=$finished_at"
+          } >>"$GITHUB_OUTPUT"
 
       - name: Import result
         working-directory: openclaw-rtt

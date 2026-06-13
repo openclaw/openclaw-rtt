@@ -139,7 +139,6 @@ jobs:
             output="$RUNNER_TEMP/openclaw-rtt-runs/$(printf '%s' "$spec" | tr -c 'A-Za-z0-9._-' '_')"
             metrics_path="${output}/resource-metrics.env"
             mkdir -p "$output"
-            started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
             set +e
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
