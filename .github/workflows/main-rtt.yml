@@ -118,15 +118,20 @@ jobs:
             exit 1
           fi
           output="$RUNNER_TEMP/openclaw-rtt-runs/main"
+          rtt_env=(
+            OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="openclaw@main"
+            OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ="${{ steps.pack.outputs.package_tgz }}"
+            OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw"
+            OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000
+          )
+          if [[ "$samples" != "20" ]]; then
+            rtt_env+=(OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES="$samples")
+          fi
           metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
           started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
           set +e
-          OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="openclaw@main" \
-          OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ="${{ steps.pack.outputs.package_tgz }}" \
-          OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
-          OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES="$samples" \
-          OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
-          OPENCLAW_NPM_TELEGRAM_RTT_TIMEOUT_MS=30000 \
+          env \
+            "${rtt_env[@]}" \
             /usr/bin/time \
             -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
             -o "$metrics_path" \
@@ -153,7 +158,6 @@ jobs:
           set -euo pipefail
           git pull --rebase origin main
           node scripts/import-result.mjs "${{ steps.rtt.outputs.evidence_path }}" \
-            --spec openclaw@main \
             --version "${{ steps.pack.outputs.package_version }}" \
             --started-at "${{ steps.rtt.outputs.started_at }}" \
             --finished-at "${{ steps.rtt.outputs.finished_at }}" \

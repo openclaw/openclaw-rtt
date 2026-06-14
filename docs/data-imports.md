@@ -7,8 +7,8 @@
 Run importers from the repo root:
 
 ```sh
-node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --spec openclaw@beta --version <version> --started-at <iso> --finished-at <iso>
-node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --spec openclaw@beta --version <version> --started-at <iso> --finished-at <iso> --resource-metrics resource-metrics.env
+node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --version <version> --started-at <iso> --finished-at <iso>
+node scripts/import-result.mjs ../openclaw/.artifacts/qa-e2e/npm-telegram-live/<run>/qa-evidence.json --version <version> --started-at <iso> --finished-at <iso> --resource-metrics resource-metrics.env
 node scripts/import-discord-rtt.mjs samples.tsv --spec openclaw@main --version <ref>
 (cd ../openclaw && node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs --output-dir ../openclaw-rtt/.artifacts/rpc-rtt/sample-1)
 node scripts/import-surface-rtt.mjs rpc-samples.tsv --surface rpc --spec openclaw@main --version <ref> --provider-mode gateway-rpc --scenario rpc-gateway-smoke --require-pass
@@ -22,7 +22,6 @@ Telegram release imports expect the aggregate `qa-evidence.json` shape emitted b
 
 ```sh
 OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@beta \
-OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
 pnpm test:docker:npm-telegram-live
 ```
 

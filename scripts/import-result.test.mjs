@@ -44,6 +44,10 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
           title: "Telegram canary",
         },
         execution: {
+          packageSource: {
+            kind: "npm-package",
+            spec: "openclaw@main",
+          },
           provider: {
             id: "openai",
             live: false,
@@ -64,6 +68,10 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
           title: "Telegram mentioned message gets a reply",
         },
         execution: {
+          packageSource: {
+            kind: "npm-package",
+            spec: "openclaw@main",
+          },
           provider: {
             id: "openai",
             live: false,
@@ -92,8 +100,6 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
     [
       IMPORT_SCRIPT,
       evidencePath,
-      "--spec",
-      "openclaw@main",
       "--version",
       "2026.6.2+abcdef1234",
       "--started-at",
@@ -143,22 +149,6 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
   assert.match(row.artifacts.resultPath, /^runs\/telegram\/.+\/result\.json$/u);
 });
 
-test("requires package metadata for qa-evidence imports", async () => {
-  const workspace = await makeWorkspace();
-  const evidencePath = path.join(workspace, "qa-evidence.json");
-  await writeJson(evidencePath, {
-    kind: "openclaw.qa.evidence-summary",
-    schemaVersion: 2,
-    generatedAt: "2026-06-12T20:00:20.000Z",
-    entries: [],
-  });
-
-  await assert.rejects(
-    execFileAsync(process.execPath, [IMPORT_SCRIPT, evidencePath], { cwd: workspace }),
-    /--spec must be a non-empty string/u,
-  );
-});
-
 test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
   const workspace = await makeWorkspace();
   const evidencePath = path.join(workspace, "qa-evidence.json");
@@ -186,6 +176,12 @@ test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
           id: "telegram-mentioned-message-reply",
           title: "Telegram mentioned message gets a reply",
         },
+        execution: {
+          packageSource: {
+            kind: "npm-package",
+            spec: "openclaw@main",
+          },
+        },
         result: {
           status: "pass",
           timing: {
@@ -202,8 +198,6 @@ test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
       [
         IMPORT_SCRIPT,
         evidencePath,
-        "--spec",
-        "openclaw@main",
         "--version",
         "2026.6.2+abcdef1234",
         "--started-at",

@@ -18,7 +18,7 @@ function usage() {
   return [
     "Usage: node scripts/import-result.mjs <path-to-qa-evidence.json>",
     "  [--resource-metrics <resource-metrics.env>]",
-    "  --spec <openclaw@spec> --version <version-or-ref> --started-at <iso> --finished-at <iso>",
+    "  --version <version-or-ref> --started-at <iso> --finished-at <iso>",
   ].join("\n");
 }
 
@@ -32,10 +32,6 @@ function parseArgs(argv) {
     }
     if (arg === "--resource-metrics") {
       args.resourceMetricsPath = argv[(index += 1)];
-      continue;
-    }
-    if (arg === "--spec") {
-      args.spec = argv[(index += 1)];
       continue;
     }
     if (arg === "--version") {
@@ -94,7 +90,6 @@ function buildEvidenceRunId(startedAt, spec) {
 }
 
 function requireEvidenceArgs(args) {
-  requireString(args.spec, "--spec");
   requireString(args.version, "--version");
   requireString(args.startedAt, "--started-at");
   requireString(args.finishedAt, "--finished-at");
@@ -120,6 +115,11 @@ function evidenceEntry(evidence, testId) {
     throw new Error(`qa evidence missing ${testId}; available: ${available || "<none>"}`);
   }
   return entry;
+}
+
+function packageSpecFromEvidence(entry) {
+  const spec = entry?.execution?.packageSource?.spec;
+  return requireString(spec, "qa evidence execution.packageSource.spec");
 }
 
 function readTiming(entry, label) {
@@ -168,6 +168,7 @@ function buildResultFromEvidence(evidence, args) {
   const { finishedAtMs, startedAtMs } = requireEvidenceArgs(args);
   const canary = evidenceEntry(evidence, "telegram-canary");
   const mention = evidenceEntry(evidence, TELEGRAM_CHANNEL.scenario);
+  const packageSpec = packageSpecFromEvidence(mention);
   const canaryTiming = readTiming(canary, "telegram-canary");
   const mentionTiming = readTiming(mention, TELEGRAM_CHANNEL.scenario);
   const canaryMs = finiteTimingNumber(canaryTiming, "rttMs");
@@ -180,11 +181,11 @@ function buildResultFromEvidence(evidence, args) {
   const failedSamples = finiteTimingNumber(mentionTiming, "failedSamples");
   return {
     package: {
-      spec: args.spec,
+      spec: packageSpec,
       version: args.version,
     },
     run: {
-      id: buildEvidenceRunId(args.startedAt, args.spec),
+      id: buildEvidenceRunId(args.startedAt, packageSpec),
       startedAt: args.startedAt,
       finishedAt: args.finishedAt,
       durationMs: finishedAtMs - startedAtMs,

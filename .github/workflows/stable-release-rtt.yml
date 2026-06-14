@@ -142,9 +142,7 @@ jobs:
             set +e
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
-            OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
-            OPENCLAW_NPM_TELEGRAM_RTT_TIMEOUT_MS=30000 \
               /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
@@ -212,9 +210,7 @@ jobs:
             set +e
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
-            OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
-            OPENCLAW_NPM_TELEGRAM_RTT_TIMEOUT_MS=30000 \
               /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
@@ -235,7 +231,7 @@ jobs:
               fi
               exit "$status"
             fi
-            printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$evidence_path" "$metrics_path" "$spec" "$version" "$started_at" "$finished_at" >>"$result_paths"
+            printf '%s\t%s\t%s\t%s\t%s\n' "$evidence_path" "$metrics_path" "$version" "$started_at" "$finished_at" >>"$result_paths"
           done
           echo "result_paths=$result_paths" >>"$GITHUB_OUTPUT"
 
@@ -246,26 +242,12 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-          while IFS=$'\t' read -r evidence_path metrics_path spec version started_at finished_at; do
-            if [[ "${{ steps.release.outputs.rss_backfill }}" == "true" ]]; then
-              run_status="$(node -e 'const fs = require("node:fs"); const evidence = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const failed = !Array.isArray(evidence.entries) || evidence.entries.some((entry) => entry?.result?.status !== "pass"); process.stdout.write(failed ? "fail" : "pass");' "$evidence_path")"
-              if [[ "$run_status" != "pass" ]]; then
-                echo "Skipping RSS backfill for failed rerun ${evidence_path} (status=${run_status:-missing})." >&2
-                continue
-              fi
-              node scripts/backfill-release-rss.mjs \
-                --family telegram \
-                --spec "$spec" \
-                --version "$version" \
-                --resource-metrics "$metrics_path"
-            else
-              node scripts/import-result.mjs "$evidence_path" \
-                --spec "$spec" \
-                --version "$version" \
-                --started-at "$started_at" \
-                --finished-at "$finished_at" \
-                --resource-metrics "$metrics_path"
-            fi
+          while IFS=$'\t' read -r evidence_path metrics_path version started_at finished_at; do
+            node scripts/import-result.mjs "$evidence_path" \
+              --version "$version" \
+              --started-at "$started_at" \
+              --finished-at "$finished_at" \
+              --resource-metrics "$metrics_path"
           done <"${{ steps.rtt.outputs.result_paths }}"
           node scripts/validate.mjs
           node scripts/summary.mjs
