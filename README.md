@@ -215,7 +215,7 @@ Latest imported surface run: `2026-06-13T13:07:49.830Z`
 
 ## Telegram Release Runs
 
-Telegram release runs use the OpenClaw repo black-box harness on Blacksmith with `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target normal-reply samples, a 240s canary timeout, and a 30s per-sample timeout.
+Telegram release runs use the OpenClaw package Telegram live QA lane on Blacksmith with `mock-openai`, scenario `telegram-mentioned-message-reply`, 20 target RTT checks, a 240s scenario timeout, and a 30s per-check timeout. New rows import aggregate timing from `qa-evidence.json`; older rows imported by the retired package RTT wrapper keep their historical per-sample arrays.
 
 The system under test is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
 
