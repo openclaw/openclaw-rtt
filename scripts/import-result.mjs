@@ -135,6 +135,14 @@ function finiteTimingNumber(timing, name) {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+function requirePositiveTimingNumber(timing, name, label) {
+  const value = finiteTimingNumber(timing, name);
+  if (value === undefined || value <= 0) {
+    throw new Error(`${label} must include positive result.timing.${name}.`);
+  }
+  return value;
+}
+
 function providerModeFromEvidence(entry) {
   const provider = entry?.execution?.provider;
   if (!provider || typeof provider !== "object" || Array.isArray(provider)) {
@@ -163,9 +171,12 @@ function buildResultFromEvidence(evidence, args) {
   const canaryTiming = readTiming(canary, "telegram-canary");
   const mentionTiming = readTiming(mention, TELEGRAM_CHANNEL.scenario);
   const canaryMs = finiteTimingNumber(canaryTiming, "rttMs");
-  const mentionReplyMs =
-    finiteTimingNumber(mentionTiming, "p50Ms") ?? finiteTimingNumber(mentionTiming, "rttMs");
-  const sampleCount = finiteTimingNumber(mentionTiming, "samples");
+  const sampleCount = requirePositiveTimingNumber(
+    mentionTiming,
+    "samples",
+    TELEGRAM_CHANNEL.scenario,
+  );
+  const mentionReplyMs = finiteTimingNumber(mentionTiming, "p50Ms");
   const failedSamples = finiteTimingNumber(mentionTiming, "failedSamples");
   return {
     package: {
@@ -193,26 +204,23 @@ function buildResultFromEvidence(evidence, args) {
       canaryMs,
       mentionReplyMs,
       avgMs: finiteTimingNumber(mentionTiming, "avgMs"),
-      p50Ms: finiteTimingNumber(mentionTiming, "p50Ms") ?? mentionReplyMs,
+      p50Ms: mentionReplyMs,
       p95Ms: finiteTimingNumber(mentionTiming, "p95Ms"),
       maxMs: finiteTimingNumber(mentionTiming, "maxMs"),
       failedSamples,
-      ...(typeof sampleCount === "number" ? { sampleCount } : {}),
+      sampleCount,
       sources: ["qa-evidence"],
     },
-    samples:
-      typeof sampleCount === "number"
-        ? [
-            {
-              index: 1,
-              status: mention?.result?.status === "pass" ? "pass" : "fail",
-              details: `aggregate timing from qa-evidence.json (${Math.max(
-                0,
-                sampleCount - (failedSamples ?? 0),
-              )}/${sampleCount} samples passed)`,
-            },
-          ]
-        : undefined,
+    samples: [
+      {
+        index: 1,
+        status: mention?.result?.status === "pass" ? "pass" : "fail",
+        details: `aggregate timing from qa-evidence.json (${Math.max(
+          0,
+          sampleCount - (failedSamples ?? 0),
+        )}/${sampleCount} samples passed)`,
+      },
+    ],
   };
 }
 

@@ -18,7 +18,7 @@ node scripts/backfill-release-rss.mjs --family discord --spec openclaw@2026.5.16
 node scripts/summary.mjs
 ```
 
-Telegram release imports expect the `qa-evidence.json` shape emitted by the OpenClaw package Telegram live lane:
+Telegram release imports expect the aggregate `qa-evidence.json` shape emitted by the OpenClaw package Telegram live lane. The OpenClaw harness checkout must include the package Telegram RTT evidence path; older OpenClaw packages can still be the system under test.
 
 ```sh
 OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC=openclaw@beta \

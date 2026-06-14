@@ -158,3 +158,61 @@ test("requires package metadata for qa-evidence imports", async () => {
     /--spec must be a non-empty string/u,
   );
 });
+
+test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
+  const workspace = await makeWorkspace();
+  const evidencePath = path.join(workspace, "qa-evidence.json");
+  await writeJson(evidencePath, {
+    kind: "openclaw.qa.evidence-summary",
+    schemaVersion: 2,
+    generatedAt: "2026-06-12T20:00:20.000Z",
+    entries: [
+      {
+        test: {
+          kind: "live-transport-check",
+          id: "telegram-canary",
+          title: "Telegram canary",
+        },
+        result: {
+          status: "pass",
+          timing: {
+            rttMs: 900,
+          },
+        },
+      },
+      {
+        test: {
+          kind: "live-transport-check",
+          id: "telegram-mentioned-message-reply",
+          title: "Telegram mentioned message gets a reply",
+        },
+        result: {
+          status: "pass",
+          timing: {
+            rttMs: 1200,
+          },
+        },
+      },
+    ],
+  });
+
+  await assert.rejects(
+    execFileAsync(
+      process.execPath,
+      [
+        IMPORT_SCRIPT,
+        evidencePath,
+        "--spec",
+        "openclaw@main",
+        "--version",
+        "2026.6.2+abcdef1234",
+        "--started-at",
+        "2026-06-12T20:00:00.000Z",
+        "--finished-at",
+        "2026-06-12T20:00:30.000Z",
+      ],
+      { cwd: workspace },
+    ),
+    /telegram-mentioned-message-reply must include positive result\.timing\.samples/u,
+  );
+});
