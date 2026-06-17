@@ -122,11 +122,11 @@ jobs:
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="openclaw@main"
             OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ="${{ steps.pack.outputs.package_tgz }}"
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw"
+            OPENCLAW_NPM_TELEGRAM_PROVIDER_MODE=mock-openai
+            OPENCLAW_NPM_TELEGRAM_SCENARIOS=telegram-mentioned-message-reply
+            OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES="$samples"
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000
           )
-          if [[ "$samples" != "20" ]]; then
-            rtt_env+=(OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES="$samples")
-          fi
           metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
           started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
           set +e
