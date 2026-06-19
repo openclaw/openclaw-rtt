@@ -69,10 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-17T11:45:17.558Z`
+Latest imported release coverage run: `2026-06-19T08:13:27.910Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
+| `2026.6.9-beta.1` | - | `1,970ms` | - | - | - | - | - |
 | `2026.6.8` | `784ms` | `1,984ms` | - | fail | fail | - | `417ms` |
 | `2026.6.8-beta.2` | `787ms` | `1,927ms` | - | fail | fail | - | `354ms` |
 | `2026.6.8-beta.1` | `811ms` | `1,971ms` | - | fail | fail | - | `349ms` |
@@ -229,6 +230,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.6.9-beta.1` | `1,970ms` | `12,843ms` | `150MB` | `150MB` | ok |
 | `2026.6.8` | `1,984ms` | `2,983ms` | `137MB` | `137MB` | ok |
 | `2026.6.8-beta.2` | `1,927ms` | `3,014ms` | `138MB` | `138MB` | ok |
 | `2026.6.8-beta.1` | `1,971ms` | `2,986ms` | `148MB` | `148MB` | ok |
@@ -310,6 +312,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.6.9-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.6.8` | - | - | - | - | missing: no imported run |
 | `2026.6.8-beta.2` | - | - | - | - | missing: no imported run |
 | `2026.6.8-beta.1` | - | - | - | - | missing: no imported run |
@@ -386,6 +389,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.6.9-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.6.8` | - | - | `996MB` | `996MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.2` | - | - | `995MB` | `995MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.1` | - | - | `985MB` | `985MB` | failed: QA command exited with status 0 before writing a summary. |
@@ -462,6 +466,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.6.9-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.6.8` | - | - | `635MB` | `635MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.2` | - | - | `630MB` | `630MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.1` | - | - | `639MB` | `639MB` | failed: QA command exited with status 0 before writing a summary. |
