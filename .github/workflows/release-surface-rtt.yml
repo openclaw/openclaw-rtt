@@ -76,7 +76,7 @@ jobs:
     name: Measure OpenClaw ${{ matrix.package.label }} release RTT
     needs: resolve
     if: needs.resolve.outputs.should_run == 'true'
-    runs-on: blacksmith-32vcpu-ubuntu-2404
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 60
     concurrency:
       group: surface-rtt-measure-${{ matrix.package.surface }}-${{ github.ref }}
