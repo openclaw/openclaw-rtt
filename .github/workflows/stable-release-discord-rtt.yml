@@ -219,7 +219,7 @@ jobs:
 
           for sample in $(seq 1 "$samples"); do
             output_dir="${output_root}/sample-${sample}"
-            summary_path="${output_dir}/discord-qa-summary.json"
+            summary_path="${output_dir}/qa-evidence.json"
             observed_path="${output_dir}/discord-qa-observed-messages.json"
             metrics_path="${output_dir}/resource-metrics.env"
             status=1
@@ -347,7 +347,7 @@ jobs:
             sample_paths="$RUNNER_TEMP/openclaw-discord-release-${version}-rtt-samples.tsv"
             : >"$sample_paths"
             while IFS= read -r sample_dir; do
-              summary_path="${sample_dir}/discord-qa-summary.json"
+              summary_path="${sample_dir}/qa-evidence.json"
               observed_path="${sample_dir}/discord-qa-observed-messages.json"
               metrics_path="${sample_dir}/resource-metrics.env"
               if [[ ! -f "$summary_path" || ! -f "$observed_path" || ! -f "$metrics_path" ]]; then

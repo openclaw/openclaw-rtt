@@ -91,6 +91,45 @@ function validateSummary(value) {
   return summary;
 }
 
+function normalizeEvidenceSummary(value) {
+  if (value?.kind !== "openclaw.qa.evidence-summary") {
+    return value;
+  }
+  const entries = Array.isArray(value.entries) ? value.entries : [];
+  const entry = entries.find((item) => item?.test?.id === "discord-canary");
+  if (!entry) {
+    throw new Error("qa evidence missing discord-canary.");
+  }
+  const generatedAt = requireString(value.generatedAt, "qa evidence generatedAt");
+  const timing = requireObject(entry.result?.timing, "qa evidence discord-canary timing");
+  const rttMs = timing.rttMs;
+  if (typeof rttMs !== "number" || !Number.isFinite(rttMs)) {
+    throw new Error("qa evidence discord-canary timing must include finite rttMs.");
+  }
+  const passed = entries.filter((item) => item?.result?.status === "pass").length;
+  return {
+    startedAt: generatedAt,
+    finishedAt: generatedAt,
+    counts: {
+      total: entries.length,
+      passed,
+      failed: entries.length - passed,
+    },
+    scenarios: [
+      {
+        id: "discord-canary",
+        status: entry.result?.status === "pass" ? "pass" : "fail",
+        rttMs,
+        details: entry.result?.details,
+      },
+    ],
+    credentials: {
+      source: entry.execution?.provider?.fixture ?? entry.execution?.provider?.auth,
+      role: "ci",
+    },
+  };
+}
+
 function safeRunLabel(input) {
   return input.replace(/[^a-zA-Z0-9.-]+/gu, "_").replace(/^_+|_+$/gu, "");
 }
@@ -223,7 +262,7 @@ function extractGatewayResourceMetrics(summary) {
 }
 
 async function readSample(entry, index) {
-  const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
+  const summary = validateSummary(normalizeEvidenceSummary(await readJson(path.resolve(entry.summaryPath))));
   const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
   const resources = entry.resourceMetricsPath
     ? await readResourceMetrics(path.resolve(entry.resourceMetricsPath))

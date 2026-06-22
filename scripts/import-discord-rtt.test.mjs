@@ -55,6 +55,54 @@ test("does not write failed Discord runs when pass is required", async () => {
   await assert.rejects(fs.stat(path.join(workspace, "runs/discord")), { code: "ENOENT" });
 });
 
+test("imports Discord qa-evidence summaries", async () => {
+  const workspace = await makeWorkspace();
+  const sampleDir = path.join(workspace, "sample-1");
+  await fs.mkdir(sampleDir, { recursive: true });
+  await fs.writeFile(
+    path.join(sampleDir, "qa-evidence.json"),
+    `${JSON.stringify({
+      kind: "openclaw.qa.evidence-summary",
+      schemaVersion: 2,
+      generatedAt: "2026-06-22T03:54:37.214Z",
+      entries: [
+        {
+          test: { id: "discord-canary", title: "Discord canary echo" },
+          execution: { provider: { fixture: "mock-openai" } },
+          result: { status: "pass", timing: { rttMs: 1903 } },
+        },
+      ],
+    })}\n`,
+  );
+  await fs.writeFile(path.join(sampleDir, "discord-qa-observed-messages.json"), "[]\n");
+  await fs.writeFile(
+    path.join(workspace, "samples.tsv"),
+    `${path.join(sampleDir, "qa-evidence.json")}\t${path.join(
+      sampleDir,
+      "discord-qa-observed-messages.json",
+    )}\n`,
+  );
+
+  await execFileAsync(process.execPath, [
+    IMPORT_SCRIPT,
+    path.join(workspace, "samples.tsv"),
+    "--spec",
+    "openclaw@2026.6.10-beta.1",
+    "--version",
+    "2026.6.10-beta.1",
+    "--require-pass",
+  ], { cwd: workspace });
+
+  const [row] = (await fs.readFile(path.join(workspace, "data/channels/discord/2026.6.10-beta.1.jsonl"), "utf8"))
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line));
+  assert.equal(row.run.status, "pass");
+  assert.equal(row.rtt.p50Ms, 1903);
+  assert.deepEqual(row.rtt.sources, ["summary-rtt"]);
+  assert.equal(row.mode.providerMode, "mock-openai");
+});
+
 test("imports Discord resource metrics without changing RTT stats", async () => {
   const workspace = await makeWorkspace();
   const sampleDir = path.join(workspace, "sample-1");
