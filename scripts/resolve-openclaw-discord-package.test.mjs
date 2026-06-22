@@ -115,7 +115,7 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
   assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.12"]);
 });
 
-test("does not requeue imported failed Discord releases by default", async () => {
+test("auto-requeues failed Discord releases by default", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.5.12", "telegram"),
@@ -142,10 +142,13 @@ test("does not requeue imported failed Discord releases by default", async () =>
   });
 
   const outputs = parseOutputs(stdout);
-  assert.equal(outputs.count, "1");
-  assert.equal(outputs.missing_baseline_count, "1");
+  assert.equal(outputs.count, "2");
+  assert.equal(outputs.missing_baseline_count, "2");
   assert.equal(outputs.reason, "missing-discord-release-versions");
-  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.16-beta.6"]);
+  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), [
+    "2026.5.16-beta.5",
+    "2026.5.16-beta.6",
+  ]);
 });
 
 test("queues requested Discord releases even when a failed row was imported", async () => {

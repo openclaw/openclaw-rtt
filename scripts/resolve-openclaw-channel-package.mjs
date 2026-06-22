@@ -114,9 +114,11 @@ const explicitVersions = readListEnv("INPUT_VERSIONS");
 const versionLimit = readPositiveIntegerEnv("INPUT_VERSION_LIMIT", DEFAULT_VERSION_LIMIT);
 const channelRows = releaseRows(await readChannelRttRows());
 const measured = new Set(
-  channelRows.map(
-    (row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`,
-  ),
+  channelRows
+    .filter((row) => row.run?.status === "pass")
+    .map(
+      (row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`,
+    ),
 );
 
 const queue = [];
@@ -124,6 +126,7 @@ for (const channelId of channelIds) {
   const channel = channelConfig.get(channelId);
   const measuredVersions = channelRows
     .filter((row) => row.channel?.id === channelId)
+    .filter((row) => row.run?.status === "pass")
     .map((row) => row.package.version)
     .filter((version) => parseVersion(version));
   const latestMeasured = measuredVersions.sort(compareVersions).at(-1);
