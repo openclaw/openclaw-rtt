@@ -98,6 +98,46 @@ function validateSummary(value) {
   return summary;
 }
 
+function normalizeEvidenceSummary(value, scenarioId) {
+  if (value?.kind !== "openclaw.qa.evidence-summary") {
+    return value;
+  }
+  const entries = Array.isArray(value.entries) ? value.entries : [];
+  const entry = entries.find((item) => item?.test?.id === scenarioId);
+  if (!entry) {
+    throw new Error(`qa evidence missing ${scenarioId}.`);
+  }
+  const generatedAt = requireString(value.generatedAt, "qa evidence generatedAt");
+  const result = requireObject(entry.result, `qa evidence ${scenarioId} result`);
+  const timing = result.timing;
+  const rttMs =
+    timing && typeof timing === "object" && !Array.isArray(timing) ? timing.rttMs : undefined;
+  const passed = entries.filter((item) => item?.result?.status === "pass").length;
+  return {
+    startedAt: generatedAt,
+    finishedAt: generatedAt,
+    counts: {
+      total: entries.length,
+      passed,
+      failed: entries.length - passed,
+    },
+    scenarios: [
+      {
+        id: scenarioId,
+        status: result.status === "pass" ? "pass" : "fail",
+        ...(typeof rttMs === "number" && Number.isFinite(rttMs)
+          ? { rttMs: Math.max(0, Math.round(rttMs)) }
+          : {}),
+        ...(typeof result.details === "string" ? { details: result.details } : {}),
+      },
+    ],
+    credentials: {
+      source: entry.execution?.provider?.fixture ?? entry.execution?.provider?.auth,
+      role: "ci",
+    },
+  };
+}
+
 function safeRunLabel(input) {
   return input.replace(/[^a-zA-Z0-9.-]+/gu, "_").replace(/^_+|_+$/gu, "");
 }
@@ -256,7 +296,9 @@ function selectScenario(summary, scenarioId) {
 }
 
 async function readSample(entry, index, scenarioId) {
-  const summary = validateSummary(await readJson(path.resolve(entry.summaryPath)));
+  const summary = validateSummary(
+    normalizeEvidenceSummary(await readJson(path.resolve(entry.summaryPath)), scenarioId),
+  );
   const scenario = selectScenario(summary, scenarioId);
   const rttMeasurement = extractScenarioMeasurement(scenario);
   const summaryRttMs =
