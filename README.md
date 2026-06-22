@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-21T13:41:25.391Z`
+Latest imported release coverage run: `2026-06-22T03:54:29.299Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -398,7 +398,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.10-beta.1` | - | - | `1,026MB` | `1,026MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.10-beta.1` | - | - | `1,020MB` | `1,020MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.9` | - | - | `1,041MB` | `1,041MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.9-beta.1` | - | - | `1,049MB` | `1,049MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8` | - | - | `996MB` | `996MB` | failed: QA command exited with status 0 before writing a summary. |
@@ -477,7 +477,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.10-beta.1` | - | - | `642MB` | `642MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.10-beta.1` | - | - | `626MB` | `626MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.9` | - | - | `609MB` | `609MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.9-beta.1` | - | - | `644MB` | `644MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8` | - | - | `635MB` | `635MB` | failed: QA command exited with status 0 before writing a summary. |
