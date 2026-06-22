@@ -94,7 +94,7 @@ test("queues explicit channel release versions even when already measured", asyn
   ]);
 });
 
-test("does not auto-requeue imported channel release versions", async () => {
+test("auto-requeues failed channel release versions", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/slack/2026.5.16-beta.6.jsonl"), [
     row("2026.5.16-beta.6", "slack", "fail"),
@@ -119,6 +119,7 @@ test("does not auto-requeue imported channel release versions", async () => {
   );
   const matrix = JSON.parse(outputs.matrix);
   assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
+    "slack:2026.5.16-beta.6",
     "whatsapp:2026.5.16-beta.6",
     "slack:2026.5.16-beta.7",
     "whatsapp:2026.5.16-beta.7",

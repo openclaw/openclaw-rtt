@@ -121,7 +121,9 @@ for (const surfaceId of surfaceIds) {
 }
 const measured = new Set(
   [...rowsBySurface.entries()].flatMap(([surfaceId, rows]) =>
-    rows.map((row) => `${surfaceId}\0${row.package?.spec}\0${row.package?.version}`),
+    rows
+      .filter((row) => row.run?.status === "pass")
+      .map((row) => `${surfaceId}\0${row.package?.spec}\0${row.package?.version}`),
   ),
 );
 
@@ -130,6 +132,7 @@ for (const surfaceId of surfaceIds) {
   const surface = surfaceConfig.get(surfaceId);
   const surfaceRows = rowsBySurface.get(surfaceId) ?? [];
   const measuredVersions = surfaceRows
+    .filter((row) => row.run?.status === "pass")
     .map((row) => row.package.version)
     .filter((version) => parseVersion(version));
   const latestMeasured = measuredVersions.sort(compareVersions).at(-1);

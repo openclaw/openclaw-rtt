@@ -93,7 +93,7 @@ test("queues explicit surface release versions even when already measured", asyn
   ]);
 });
 
-test("does not auto-requeue imported surface release versions", async () => {
+test("auto-requeues failed surface release versions", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/surfaces/control-ui/2026.6.1-beta.3.jsonl"), [
     row("2026.6.1-beta.3", "control-ui", "fail"),
@@ -113,6 +113,7 @@ test("does not auto-requeue imported surface release versions", async () => {
   const outputs = parseOutputs(stdout);
   const matrix = JSON.parse(outputs.matrix);
   assert.deepEqual(matrix.map((entry) => `${entry.surface}:${entry.version}`), [
+    "control-ui:2026.6.1-beta.3",
     "control-ui:2026.6.1",
   ]);
 });

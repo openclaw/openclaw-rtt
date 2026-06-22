@@ -178,7 +178,7 @@ if (requestedVersions.length > 0) {
     .slice(0, rssBackfillLimit);
 } else {
   const measured = new Set(
-    discordRows.map((row) => `${row.package.spec}\0${row.package.version}`),
+    successfulDiscordRows.map((row) => `${row.package.spec}\0${row.package.version}`),
   );
   queue = (await npmVersions())
     .filter((version) => typeof version === "string" && parseVersion(version))
