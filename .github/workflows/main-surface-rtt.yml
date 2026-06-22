@@ -36,11 +36,11 @@ env:
 jobs:
   measure-surface-rtt:
     name: Measure OpenClaw main surface RTT
-    runs-on: blacksmith-32vcpu-ubuntu-2404
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 45
     concurrency:
       group: surface-rtt-measure-main-${{ github.ref }}
-      cancel-in-progress: false
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: Checkout RTT tracker
         uses: actions/checkout@v6

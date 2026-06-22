@@ -99,15 +99,15 @@ jobs:
     name: Measure OpenClaw main ${{ matrix.label }} RTT
     needs: resolve
     if: needs.resolve.outputs.should_run == 'true'
-    runs-on: blacksmith-32vcpu-ubuntu-2404
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 120
     environment: qa-live-shared
     concurrency:
       group: channel-rtt-measure-${{ matrix.channel }}-${{ github.ref }}
-      cancel-in-progress: false
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
       - name: Checkout RTT tracker
