@@ -48,7 +48,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout RTT tracker
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: openclaw-rtt
           fetch-depth: 0
@@ -73,7 +73,7 @@ jobs:
 
       - name: Checkout OpenClaw harness
         if: steps.release.outputs.should_run == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
           ref: main
