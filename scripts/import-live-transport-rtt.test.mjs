@@ -112,6 +112,49 @@ test("imports live transport summary RTT samples", async () => {
   });
 });
 
+test("imports channel qa-evidence summaries", async () => {
+  const workspace = await makeWorkspace();
+  const summaryPath = path.join(workspace, "sample-1", "qa-evidence.json");
+  await writeJson(summaryPath, {
+    kind: "openclaw.qa.evidence-summary",
+    schemaVersion: 2,
+    generatedAt: "2026-05-16T00:03:00.000Z",
+    entries: [
+      {
+        test: { id: "slack-canary", title: "Slack canary echo" },
+        execution: { provider: { fixture: "mock-openai" } },
+        result: { status: "pass", timing: { rttMs: 456 } },
+      },
+    ],
+  });
+  const samplesPath = path.join(workspace, "samples.tsv");
+  await fs.writeFile(samplesPath, `${summaryPath}\n`);
+
+  await execFileAsync(
+    process.execPath,
+    [
+      IMPORT_SCRIPT,
+      samplesPath,
+      "--channel",
+      "slack",
+      "--spec",
+      "openclaw@main",
+      "--version",
+      "2026.5.16+qa-evidence",
+      "--provider-mode",
+      "mock-openai",
+    ],
+    { cwd: workspace },
+  );
+
+  const [row] = await readJsonl(
+    path.join(workspace, "data/channels/slack/2026.5.16+qa-evidence.jsonl"),
+  );
+  assert.equal(row.run.status, "pass");
+  assert.deepEqual(row.rtt.warmSamples, [456]);
+  assert.deepEqual(row.rtt.sources, ["summary-rtt"]);
+});
+
 test("falls back to observed message timestamps when summaries do not carry RTT", async () => {
   const workspace = await makeWorkspace();
   const summaryPath = path.join(workspace, "sample-1", "discord-qa-summary.json");
