@@ -69,18 +69,18 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-22T20:33:26.364Z`
+Latest imported release coverage run: `2026-06-22T21:05:09.536Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.6.10-beta.2` | `1,184ms` | `1,945ms` | - | `3,275ms` | - | `3,275ms` | `402ms` |
+| `2026.6.10-beta.2` | `1,073ms` | `1,945ms` | `1,795ms` | `3,275ms` | - | `3,275ms` | `402ms` |
 | `2026.6.10-beta.1` | `983ms` | `1,955ms` | `1,971ms` | `3,518ms` | fail | `1,984ms` | `411ms` |
-| `2026.6.9` | `786ms` | `1,974ms` | - | fail | fail | - | `403ms` |
-| `2026.6.9-beta.1` | `783ms` | `1,970ms` | - | fail | fail | - | `405ms` |
-| `2026.6.8` | `784ms` | `1,984ms` | - | fail | fail | - | `417ms` |
-| `2026.6.8-beta.2` | `787ms` | `1,927ms` | - | fail | fail | - | `354ms` |
-| `2026.6.8-beta.1` | `811ms` | `1,971ms` | - | fail | fail | - | `349ms` |
-| `2026.6.7-beta.1` | `344ms` | `1,003ms` | - | fail | fail | - | `316ms` |
+| `2026.6.9` | `790ms` | `1,974ms` | `2,166ms` | fail | fail | - | `403ms` |
+| `2026.6.9-beta.1` | `788ms` | `1,970ms` | `2,167ms` | fail | fail | - | `405ms` |
+| `2026.6.8` | `835ms` | `1,984ms` | `2,340ms` | fail | fail | - | `417ms` |
+| `2026.6.8-beta.2` | `763ms` | `1,927ms` | `2,016ms` | fail | fail | - | `354ms` |
+| `2026.6.8-beta.1` | `790ms` | `1,971ms` | `2,075ms` | fail | fail | - | `349ms` |
+| `2026.6.7-beta.1` | `738ms` | `1,003ms` | `2,107ms` | fail | fail | - | `316ms` |
 | `2026.6.6` | `1,010ms` | `1,038ms` | `2,249ms` | `3,172ms` | fail | `2,260ms` | `307ms` |
 | `2026.6.6-beta.2` | `937ms` | `1,109ms` | `1,929ms` | `3,199ms` | fail | `1,964ms` | `407ms` |
 | `2026.6.5` | `1,069ms` | `1,002ms` | `2,068ms` | `3,148ms` | `3,135ms` | `2,636ms` | `308ms` |
@@ -101,7 +101,7 @@ Latest imported release coverage run: `2026-06-22T20:33:26.364Z`
 | `2026.5.30-beta.1` | `962ms` | `998ms` | `3,344ms` | `3,500ms` | `3,446ms` | `3,291ms` | n/a |
 | `2026.5.28` | `803ms` | `993ms` | `2,728ms` | `3,143ms` | `3,140ms` | `2,815ms` | n/a |
 | `2026.5.28-beta.4` | `804ms` | `994ms` | `2,665ms` | `3,183ms` | `3,133ms` | `2,785ms` | n/a |
-| `2026.5.28-beta.3` | `720ms` | `1,165ms` | `2,709ms` | `2,900ms` | `3,205ms` | `2,869ms` | n/a |
+| `2026.5.28-beta.3` | `728ms` | `1,165ms` | `2,849ms` | `2,900ms` | `3,205ms` | `2,869ms` | n/a |
 | `2026.5.28-beta.1` | `796ms` | `991ms` | `2,280ms` | `3,223ms` | `3,061ms` | `2,654ms` | n/a |
 | `2026.5.27` | `1,106ms` | `1,487ms` | `4,340ms` | `4,427ms` | `3,630ms` | `4,247ms` | n/a |
 | `2026.5.27-beta.1` | `81ms` | fail | `4,308ms` | `4,410ms` | `4,181ms` | `4,306ms` | n/a |
@@ -322,14 +322,14 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.6.10-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.6.10-beta.2` | `1,795ms` | `1,962ms` | `1,204MB` | `1,219MB` | ok |
 | `2026.6.10-beta.1` | `1,971ms` | `2,119ms` | `1,208MB` | `1,233MB` | ok |
-| `2026.6.9` | - | - | - | - | missing: no imported run |
-| `2026.6.9-beta.1` | - | - | - | - | missing: no imported run |
-| `2026.6.8` | - | - | - | - | missing: no imported run |
-| `2026.6.8-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.6.8-beta.1` | - | - | - | - | missing: no imported run |
-| `2026.6.7-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.6.9` | `2,166ms` | `2,507ms` | `1,192MB` | `1,236MB` | ok |
+| `2026.6.9-beta.1` | `2,167ms` | `2,332ms` | `1,193MB` | `1,234MB` | ok |
+| `2026.6.8` | `2,340ms` | `2,485ms` | `1,023MB` | `1,074MB` | ok |
+| `2026.6.8-beta.2` | `2,016ms` | `2,140ms` | `1,032MB` | `1,084MB` | ok |
+| `2026.6.8-beta.1` | `2,075ms` | `2,199ms` | `1,030MB` | `1,085MB` | ok |
+| `2026.6.7-beta.1` | `2,107ms` | `2,377ms` | `930MB` | `947MB` | ok |
 | `2026.6.6` | `2,249ms` | `2,459ms` | `925MB` | `955MB` | ok |
 | `2026.6.6-beta.2` | `1,929ms` | `2,145ms` | `931MB` | `949MB` | ok |
 | `2026.6.5` | `2,068ms` | `2,629ms` | `933MB` | `1,014MB` | ok |
@@ -350,7 +350,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.5.30-beta.1` | `3,344ms` | `4,956ms` | `1,055MB` | `1,106MB` | ok |
 | `2026.5.28` | `2,728ms` | `2,967ms` | `958MB` | `967MB` | ok |
 | `2026.5.28-beta.4` | `2,665ms` | `2,827ms` | `955MB` | `1,029MB` | ok |
-| `2026.5.28-beta.3` | `2,709ms` | `6,026ms` | `945MB` | `1,012MB` | failed: reply matched |
+| `2026.5.28-beta.3` | `2,849ms` | `3,182ms` | `944MB` | `972MB` | ok |
 | `2026.5.28-beta.1` | `2,280ms` | `2,450ms` | `892MB` | `1,003MB` | ok |
 | `2026.5.27` | `4,340ms` | `4,709ms` | `804MB` | `818MB` | ok |
 | `2026.5.27-beta.1` | `4,308ms` | `4,603ms` | `806MB` | `840MB` | ok |
