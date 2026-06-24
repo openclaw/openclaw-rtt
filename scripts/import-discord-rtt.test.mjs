@@ -103,6 +103,58 @@ test("imports Discord qa-evidence summaries", async () => {
   assert.equal(row.mode.providerMode, "mock-openai");
 });
 
+test("imports failed Discord qa-evidence summaries without timing", async () => {
+  const workspace = await makeWorkspace();
+  const sampleDir = path.join(workspace, "sample-1");
+  await fs.mkdir(sampleDir, { recursive: true });
+  await fs.writeFile(
+    path.join(sampleDir, "qa-evidence.json"),
+    `${JSON.stringify({
+      kind: "openclaw.qa.evidence-summary",
+      schemaVersion: 2,
+      generatedAt: "2026-06-24T05:52:51.059Z",
+      entries: [
+        {
+          test: { id: "discord-canary", title: "Discord canary echo" },
+          execution: { provider: { fixture: "mock-openai" } },
+          result: {
+            status: "fail",
+            failure: {
+              reason: "timed out after 45000ms waiting for Discord message",
+            },
+          },
+        },
+      ],
+    })}\n`,
+  );
+  await fs.writeFile(path.join(sampleDir, "discord-qa-observed-messages.json"), "[]\n");
+  await fs.writeFile(
+    path.join(workspace, "samples.tsv"),
+    `${path.join(sampleDir, "qa-evidence.json")}\t${path.join(
+      sampleDir,
+      "discord-qa-observed-messages.json",
+    )}\n`,
+  );
+
+  await execFileAsync(process.execPath, [
+    IMPORT_SCRIPT,
+    path.join(workspace, "samples.tsv"),
+    "--spec",
+    "openclaw@2026.5.16-beta.6",
+    "--version",
+    "2026.5.16-beta.6",
+  ], { cwd: workspace });
+
+  const [row] = (await fs.readFile(path.join(workspace, "data/channels/discord/2026.5.16-beta.6.jsonl"), "utf8"))
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line));
+  assert.equal(row.run.status, "fail");
+  assert.deepEqual(row.rtt.warmSamples, []);
+  assert.equal(row.rtt.failedSamples, 1);
+  assert.equal(row.discord.samples[0].details, "timed out after 45000ms waiting for Discord message");
+});
+
 test("imports Discord resource metrics without changing RTT stats", async () => {
   const workspace = await makeWorkspace();
   const sampleDir = path.join(workspace, "sample-1");

@@ -266,22 +266,28 @@ jobs:
               rm -rf "$output_dir"
               mkdir -p "$output_dir"
               echo "CHANNEL_RELEASE_RTT_PHASE:${{ matrix.package.channel }} version=${{ matrix.package.version }} sample=${sample}/${samples} attempt=${attempt}/${max_attempts}"
+              # The release checkout can reactivate its shipped pnpm. Switch
+              # back before invoking the current OpenClaw QA harness.
+              corepack prepare "pnpm@${PNPM_VERSION}" --activate
               set +e
-              /usr/bin/time \
-                -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
-                -o "$metrics_path" \
-                timeout "${sample_timeout_seconds}s" \
-                pnpm --dir "${workspace_root}/openclaw-qa" openclaw qa "${{ matrix.package.channel }}" \
-                --repo-root "${workspace_root}/openclaw" \
-                --output-dir "${output_dir}" \
-                --provider-mode mock-openai \
-                --model mock-openai/gpt-5.5 \
-                --alt-model mock-openai/gpt-5.5-alt \
-                --fast \
-                --credential-source convex \
-                --credential-role ci \
-                --scenario "${{ matrix.package.scenario }}" \
-                --allow-failures
+              (
+                cd "${workspace_root}/openclaw-qa"
+                /usr/bin/time \
+                  -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+                  -o "${workspace_root}/openclaw/${metrics_path}" \
+                  timeout "${sample_timeout_seconds}s" \
+                  pnpm openclaw qa "${{ matrix.package.channel }}" \
+                  --repo-root "${workspace_root}/openclaw" \
+                  --output-dir "${output_dir}" \
+                  --provider-mode mock-openai \
+                  --model mock-openai/gpt-5.5 \
+                  --alt-model mock-openai/gpt-5.5-alt \
+                  --fast \
+                  --credential-source convex \
+                  --credential-role ci \
+                  --scenario "${{ matrix.package.scenario }}" \
+                  --allow-failures
+              )
               status="$?"
               set -e
               {
