@@ -33,13 +33,13 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-06-26T07:51:35.240Z` · latest `2026.6.10` / `9a735bea03`
+Latest imported channel run: `2026-06-26T08:39:23.603Z` · latest `2026.6.10` / `9a735bea03`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,012ms` | `1,995ms` | `136MB` | `136MB` | stale: latest failed; showing last pass (failed) |
 | Discord | `1,822ms` | `1,900ms` | `1,196MB` | `1,227MB` | ok |
-| Slack | `3,270ms` | `3,270ms` | `1,020MB` | `1,020MB` | ok |
+| Slack | `4,791ms` | `4,791ms` | `1,045MB` | `1,045MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed) |
 
 <!-- latest-main:end -->
@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-06-26T02:12:06.427Z`
+Latest imported release coverage run: `2026-06-26T08:11:02.204Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -379,8 +379,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.5.18` | `7,318ms` | `7,657ms` | `768MB` | `783MB` | ok |
 | `2026.5.18-beta.1` | `5,957ms` | `6,083ms` | `770MB` | `783MB` | ok |
 | `2026.5.16-beta.7` | `7,307ms` | `7,792ms` | `766MB` | `782MB` | ok |
-| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `778MB` | `791MB` | timeout |
-| `2026.5.16-beta.5` | - | - | `779MB` | `787MB` | timeout |
+| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `778MB` | `792MB` | timeout |
+| `2026.5.16-beta.5` | - | - | `779MB` | `800MB` | timeout |
 | `2026.5.16-beta.4` | `26,263ms` | `28,304ms` | `779MB` | `815MB` | ok |
 | `2026.5.16-beta.3` | `26,771ms` | `28,550ms` | `812MB` | `825MB` | ok |
 | `2026.5.16-beta.2` | `26,639ms` | `27,767ms` | `808MB` | `820MB` | ok |
