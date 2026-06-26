@@ -54,7 +54,7 @@ jobs:
       versions: ${{ steps.release.outputs.versions }}
     steps:
       - name: Checkout RTT tracker
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -96,13 +96,13 @@ jobs:
         package: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     steps:
       - name: Checkout RTT tracker
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: openclaw-rtt
           fetch-depth: 0
 
       - name: Checkout OpenClaw release
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
           ref: ${{ matrix.package.tag }}
@@ -111,7 +111,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout OpenClaw QA harness
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
           ref: ${{ matrix.package.qa_ref }}
@@ -381,7 +381,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Checkout RTT tracker
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
