@@ -38,7 +38,7 @@ Latest imported channel run: `2026-06-29T01:40:20.210Z` · latest `2026.6.10` / 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,012ms` | `1,995ms` | `136MB` | `136MB` | stale: latest failed; showing last pass (failed) |
-| Discord | `1,915ms` | `2,081ms` | `1,183MB` | `1,218MB` | ok |
+| Discord | `1,822ms` | `1,991ms` | `1,170MB` | `1,211MB` | ok |
 | Slack | `4,559ms` | `4,559ms` | `1,062MB` | `1,062MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed) |
 
