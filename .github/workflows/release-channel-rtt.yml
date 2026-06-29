@@ -140,7 +140,7 @@ jobs:
           echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
 
       - name: Restore pnpm store
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
           key: openclaw-release-channel-rtt-pnpm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('openclaw/pnpm-lock.yaml', 'openclaw-qa/pnpm-lock.yaml') }}
