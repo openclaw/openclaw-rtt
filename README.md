@@ -73,7 +73,7 @@ Latest imported release coverage run: `2026-07-02T08:35:52.615Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.7.1-beta.1` | `1,309ms` | `1,903ms` | - | `3,549ms` | - | `3,549ms` | `407ms` |
+| `2026.7.1-beta.1` | `1,185ms` | `1,903ms` | `1,889ms` | `3,549ms` | - | `3,549ms` | `407ms` |
 | `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | - | `1,743ms` | `413ms` |
 | `2026.6.11-beta.2` | `1,123ms` | `988ms` | `1,759ms` | `3,174ms` | - | `3,174ms` | `413ms` |
 | `2026.6.11-beta.1` | `1,006ms` | `1,850ms` | `1,876ms` | `3,120ms` | - | `3,120ms` | `407ms` |
@@ -337,7 +337,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.1-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.7.1-beta.1` | `1,889ms` | `2,036ms` | `1,216MB` | `1,251MB` | ok |
 | `2026.6.11` | `1,728ms` | `1,957ms` | `1,185MB` | `1,215MB` | ok |
 | `2026.6.11-beta.2` | `1,759ms` | `1,908ms` | `1,185MB` | `1,228MB` | ok |
 | `2026.6.11-beta.1` | `1,876ms` | `2,024ms` | `1,176MB` | `1,258MB` | ok |
@@ -391,8 +391,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.5.18` | `7,318ms` | `7,657ms` | `768MB` | `783MB` | ok |
 | `2026.5.18-beta.1` | `5,957ms` | `6,083ms` | `770MB` | `783MB` | ok |
 | `2026.5.16-beta.7` | `7,307ms` | `7,792ms` | `766MB` | `782MB` | ok |
-| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `777MB` | `812MB` | timeout |
-| `2026.5.16-beta.5` | - | - | `779MB` | `802MB` | timeout |
+| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `822MB` | `824MB` | timeout |
+| `2026.5.16-beta.5` | - | - | `774MB` | `801MB` | timeout |
 | `2026.5.16-beta.4` | `26,263ms` | `28,304ms` | `779MB` | `815MB` | ok |
 | `2026.5.16-beta.3` | `26,771ms` | `28,550ms` | `812MB` | `825MB` | ok |
 | `2026.5.16-beta.2` | `26,639ms` | `27,767ms` | `808MB` | `820MB` | ok |
