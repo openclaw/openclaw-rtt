@@ -300,7 +300,7 @@ jobs:
             fi
             # OPENCLAW_QA_KEEP_TEMP leaves each attempt's gateway temp root behind;
             # sweep them into this sample's dir (token-masked) for phase analysis.
-            for gw_root in "${TMPDIR:-/tmp}"/openclaw-qa-suite-*; do
+            for gw_root in "${TMPDIR:-/tmp}"/openclaw/openclaw-qa-suite-* "${TMPDIR:-/tmp}"/openclaw-qa-suite-*; do
               [[ -d "$gw_root" ]] || continue
               gw_dest="${output_dir}/gateway-logs/$(basename "$gw_root")"
               mkdir -p "$gw_dest"
