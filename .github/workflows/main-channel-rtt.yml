@@ -264,7 +264,7 @@ jobs:
               } >>"$metrics_path"
               scenario_status=""
               if [[ -f "$summary_path" ]]; then
-                scenario_status="$(node -e 'const fs = require("node:fs"); const [summaryPath, scenarioId] = process.argv.slice(1); const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8")); const scenario = Array.isArray(summary.scenarios) ? summary.scenarios.find((item) => item && item.id === scenarioId) : undefined; process.stdout.write(typeof scenario?.status === "string" ? scenario.status : "missing");' "$summary_path" "${{ matrix.scenario }}")"
+                scenario_status="$(node -e 'const fs = require("node:fs"); const [summaryPath, scenarioId] = process.argv.slice(1); const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8")); const fromScenarios = Array.isArray(summary.scenarios) ? summary.scenarios.find((item) => item && item.id === scenarioId) : undefined; const fromEntries = Array.isArray(summary.entries) ? summary.entries.find((item) => item?.test?.id === scenarioId) : undefined; const status = fromScenarios?.status ?? fromEntries?.result?.status; process.stdout.write(typeof status === "string" ? status : "missing");' "$summary_path" "${{ matrix.scenario }}")"
               fi
               if [[ "$scenario_status" == "pass" ]]; then
                 break
