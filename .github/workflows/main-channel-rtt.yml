@@ -196,7 +196,10 @@ jobs:
           OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
           OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
           OPENCLAW_QA_CREDENTIAL_HTTP_TIMEOUT_MS: "60000"
-          OPENCLAW_QA_REDACT_PUBLIC_METADATA: "1"
+          # A/B instrumentation: keep Slack server ts in observed-messages,
+          # raise SUT gateway verbosity, keep per-sample gateway temp roots.
+          OPENCLAW_LOG_LEVEL: "debug"
+          OPENCLAW_QA_KEEP_TEMP: "1"
         shell: bash
         run: |
           set -euo pipefail
@@ -295,6 +298,19 @@ jobs:
             else
               printf '%s\t\t%s\n' "${PWD}/${summary_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
             fi
+            # OPENCLAW_QA_KEEP_TEMP leaves each attempt's gateway temp root behind;
+            # sweep them into this sample's dir (token-masked) for phase analysis.
+            for gw_root in "${TMPDIR:-/tmp}"/openclaw-qa-suite-*; do
+              [[ -d "$gw_root" ]] || continue
+              gw_dest="${output_dir}/gateway-logs/$(basename "$gw_root")"
+              mkdir -p "$gw_dest"
+              for gw_log in "$gw_root"/gateway.stdout.log "$gw_root"/gateway.stderr.log; do
+                [[ -f "$gw_log" ]] || continue
+                sed -E 's/xox[a-z]-[A-Za-z0-9-]+/xox*-REDACTED/g; s/[Bb]earer [A-Za-z0-9._-]+/Bearer REDACTED/g' \
+                  "$gw_log" >"$gw_dest/$(basename "$gw_log")"
+              done
+              rm -rf "$gw_root"
+            done
             if [[ "$scenario_status" != "pass" ]]; then
               break
             fi
