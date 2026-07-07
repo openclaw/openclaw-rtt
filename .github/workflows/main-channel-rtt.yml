@@ -31,6 +31,11 @@ on:
         required: false
         default: ""
         type: string
+      openclaw_ref:
+        description: OpenClaw ref, branch, or SHA to measure
+        required: false
+        default: "main"
+        type: string
 
 permissions:
   actions: read
@@ -120,7 +125,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
-          ref: main
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.openclaw_ref || 'main' }}
           path: openclaw
           fetch-depth: 1
           persist-credentials: false
