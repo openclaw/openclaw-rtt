@@ -1,0 +1,281 @@
+{
+  "channel": {
+    "id": "discord",
+    "label": "Discord",
+    "scenario": "discord-canary"
+  },
+  "package": {
+    "spec": "openclaw@2026.5.16-beta.5",
+    "version": "2026.5.16-beta.5"
+  },
+  "run": {
+    "id": "2026-07-09T012324355Z-openclaw_2026.5.16-beta.5-discord-rtt",
+    "startedAt": "2026-07-09T01:23:24.355Z",
+    "finishedAt": "2026-07-09T01:45:48.094Z",
+    "durationMs": 1343739,
+    "status": "fail"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "discord-canary"
+    ],
+    "credentialSource": "mock-openai",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 20,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa discord"
+    },
+    "maxRssKbSamples": [
+      1384416,
+      902668,
+      922544,
+      922528,
+      927296,
+      921776,
+      924488,
+      916332,
+      920540,
+      905584,
+      905608,
+      901940,
+      927820,
+      907812,
+      924000,
+      976408,
+      933324,
+      978096,
+      923536,
+      925584
+    ],
+    "elapsedSecondsSamples": [
+      81.6,
+      72.7,
+      72.41,
+      72.78,
+      71.78,
+      72.56,
+      32.24,
+      72.9,
+      73.2,
+      72.43,
+      73.35,
+      72.84,
+      72.81,
+      72.9,
+      72.58,
+      72.63,
+      72.26,
+      72.83,
+      72.83,
+      74.34
+    ],
+    "maxRssKb": {
+      "avg": 947615,
+      "p50": 922544,
+      "p95": 978096,
+      "max": 1384416
+    },
+    "elapsedSeconds": {
+      "avg": 71.1985,
+      "p50": 72.78,
+      "p95": 74.34,
+      "max": 81.6
+    }
+  },
+  "discord": {
+    "samples": [
+      {
+        "index": 1,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 1384416,
+          "elapsedSeconds": 81.6
+        }
+      },
+      {
+        "index": 2,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 902668,
+          "elapsedSeconds": 72.7
+        }
+      },
+      {
+        "index": 3,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 922544,
+          "elapsedSeconds": 72.41
+        }
+      },
+      {
+        "index": 4,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 922528,
+          "elapsedSeconds": 72.78
+        }
+      },
+      {
+        "index": 5,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 927296,
+          "elapsedSeconds": 71.78
+        }
+      },
+      {
+        "index": 6,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 921776,
+          "elapsedSeconds": 72.56
+        }
+      },
+      {
+        "index": 7,
+        "status": "fail",
+        "details": "Discord API /channels/1497045013002064025/messages?after=1524588368732749945&limit=50 failed (503): upstream connect error or disconnect/reset before headers. reset reason: remote connection failure, transport failure reason: immediate connect error: No such file or directory",
+        "resources": {
+          "maxRssKb": 924488,
+          "elapsedSeconds": 32.24
+        }
+      },
+      {
+        "index": 8,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 916332,
+          "elapsedSeconds": 72.9
+        }
+      },
+      {
+        "index": 9,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 920540,
+          "elapsedSeconds": 73.2
+        }
+      },
+      {
+        "index": 10,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 905584,
+          "elapsedSeconds": 72.43
+        }
+      },
+      {
+        "index": 11,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 905608,
+          "elapsedSeconds": 73.35
+        }
+      },
+      {
+        "index": 12,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 901940,
+          "elapsedSeconds": 72.84
+        }
+      },
+      {
+        "index": 13,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 927820,
+          "elapsedSeconds": 72.81
+        }
+      },
+      {
+        "index": 14,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 907812,
+          "elapsedSeconds": 72.9
+        }
+      },
+      {
+        "index": 15,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 924000,
+          "elapsedSeconds": 72.58
+        }
+      },
+      {
+        "index": 16,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 976408,
+          "elapsedSeconds": 72.63
+        }
+      },
+      {
+        "index": 17,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 933324,
+          "elapsedSeconds": 72.26
+        }
+      },
+      {
+        "index": 18,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 978096,
+          "elapsedSeconds": 72.83
+        }
+      },
+      {
+        "index": 19,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 923536,
+          "elapsedSeconds": 72.83
+        }
+      },
+      {
+        "index": 20,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 925584,
+          "elapsedSeconds": 74.34
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "resultPath": "runs/discord/2026-07-09T012324355Z-openclaw_2026.5.16-beta.5-discord-rtt/result.json"
+  }
+}
