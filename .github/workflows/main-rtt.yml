@@ -90,8 +90,12 @@ jobs:
           time pnpm build
           echo "::endgroup::"
           mkdir -p .artifacts/rtt-package
-          echo "::group::pnpm pack"
-          time pnpm --config.ignore-scripts=true pack --pack-destination .artifacts/rtt-package
+          echo "::group::package OpenClaw"
+          time node scripts/package-openclaw-for-docker.mjs \
+            --skip-build \
+            --pnpm-pack \
+            --allow-unreleased-changelog \
+            --output-dir .artifacts/rtt-package
           echo "::endgroup::"
           package_tgz="$(find .artifacts/rtt-package -maxdepth 1 -name '*.tgz' -type f | sort | tail -1)"
           if [[ -z "$package_tgz" ]]; then
