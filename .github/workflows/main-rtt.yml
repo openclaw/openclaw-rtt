@@ -90,8 +90,8 @@ jobs:
           time pnpm build
           echo "::endgroup::"
           mkdir -p .artifacts/rtt-package
-          echo "::group::npm pack"
-          time npm pack --ignore-scripts --silent --pack-destination .artifacts/rtt-package
+          echo "::group::pnpm pack"
+          time pnpm --config.ignore-scripts=true pack --pack-destination .artifacts/rtt-package
           echo "::endgroup::"
           package_tgz="$(find .artifacts/rtt-package -maxdepth 1 -name '*.tgz' -type f | sort | tail -1)"
           if [[ -z "$package_tgz" ]]; then
