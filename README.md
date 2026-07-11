@@ -73,8 +73,8 @@ Latest imported release coverage run: `2026-07-11T14:00:01.120Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.7.1-beta.5` | `2,117ms` | - | - | `4,778ms` | - | `4,778ms` | `288ms` |
-| `2026.7.1-beta.4` | `1,459ms` | - | - | `3,378ms` | - | `3,378ms` | `284ms` |
+| `2026.7.1-beta.5` | `1,945ms` | - | `1,776ms` | `4,778ms` | - | `4,778ms` | `288ms` |
+| `2026.7.1-beta.4` | `1,286ms` | - | `1,787ms` | `3,378ms` | - | `3,378ms` | `284ms` |
 | `2026.7.1-beta.2` | `960ms` | `1,992ms` | `1,666ms` | `3,352ms` | - | `1,687ms` | `341ms` |
 | `2026.7.1-beta.1` | `1,185ms` | `1,903ms` | `1,889ms` | `3,549ms` | - | `3,549ms` | `407ms` |
 | `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | - | `1,743ms` | `413ms` |
@@ -346,8 +346,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.1-beta.5` | - | - | - | - | missing: no imported run |
-| `2026.7.1-beta.4` | - | - | - | - | missing: no imported run |
+| `2026.7.1-beta.5` | `1,776ms` | `2,022ms` | `1,049MB` | `1,138MB` | ok |
+| `2026.7.1-beta.4` | `1,787ms` | `1,885ms` | `1,046MB` | `1,054MB` | ok |
 | `2026.7.1-beta.2` | `1,666ms` | `1,909ms` | `1,205MB` | `1,248MB` | ok |
 | `2026.7.1-beta.1` | `1,889ms` | `2,036ms` | `1,216MB` | `1,251MB` | ok |
 | `2026.6.11` | `1,728ms` | `1,957ms` | `1,185MB` | `1,215MB` | ok |
@@ -403,8 +403,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.5.18` | `7,318ms` | `7,657ms` | `768MB` | `783MB` | ok |
 | `2026.5.18-beta.1` | `5,957ms` | `6,083ms` | `770MB` | `783MB` | ok |
 | `2026.5.16-beta.7` | `7,307ms` | `7,792ms` | `766MB` | `782MB` | ok |
-| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `975MB` | `978MB` | timeout |
-| `2026.5.16-beta.5` | - | - | `957MB` | `965MB` | timeout |
+| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `975MB` | `1,022MB` | timeout |
+| `2026.5.16-beta.5` | - | - | `974MB` | `980MB` | timeout |
 | `2026.5.16-beta.4` | `26,263ms` | `28,304ms` | `779MB` | `815MB` | ok |
 | `2026.5.16-beta.3` | `26,771ms` | `28,550ms` | `812MB` | `825MB` | ok |
 | `2026.5.16-beta.2` | `26,639ms` | `27,767ms` | `808MB` | `820MB` | ok |
