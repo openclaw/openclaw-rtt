@@ -1,9 +1,12 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
+import { resolveChannelRttChannel } from "./channel-rtt-config.mjs";
 import { readRows } from "./read-rows.mjs";
+import { channelReleaseSkipReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
+const TELEGRAM_CHANNEL = resolveChannelRttChannel("telegram");
 const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 
@@ -140,6 +143,15 @@ function writeOutput(values) {
   process.stdout.write(`${lines.join("\n")}\n`);
 }
 
+function isMeasurableRelease(pkg) {
+  const skipReason = channelReleaseSkipReason(TELEGRAM_CHANNEL, pkg.version);
+  if (!skipReason) {
+    return true;
+  }
+  process.stderr.write(`Skipping telegram ${pkg.spec}: ${skipReason}.\n`);
+  return false;
+}
+
 const rows = await readRows();
 const anchor = latestMeasuredStable(rows);
 const requestedVersions = readRequestedVersionsEnv("INPUT_VERSIONS");
@@ -150,6 +162,7 @@ let queue;
 if (requestedVersions.length > 0) {
   queue = requestedVersions
     .map((version) => ({ version, spec: `openclaw@${version}` }))
+    .filter(isMeasurableRelease)
     .sort((left, right) => compareVersions(left.version, right.version));
 } else if (rssBackfill) {
   queue = releaseRows(rows)
@@ -166,6 +179,7 @@ if (requestedVersions.length > 0) {
     .filter((version) => typeof version === "string" && parseVersion(version))
     .filter((version) => compareVersions(version, anchor) > 0)
     .map((version) => ({ version, spec: `openclaw@${version}` }))
+    .filter(isMeasurableRelease)
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
     .sort((left, right) => compareVersions(left.version, right.version));
 }

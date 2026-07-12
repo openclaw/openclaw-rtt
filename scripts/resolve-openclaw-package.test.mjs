@@ -156,3 +156,32 @@ test("requeues failed Telegram release rows", async () => {
   assert.equal(outputs.reason, "new-release-versions");
   assert.equal(outputs.versions, "2026.5.16-beta.5 2026.5.16-beta.6");
 });
+
+test("skips registered Telegram release gaps", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    releaseRow("2026.6.11"),
+  ]);
+  const binDir = await writeFakeNpm(workspace, [
+    "2026.6.11",
+    "2026.7.1-beta.4",
+    "2026.7.1-beta.5",
+  ]);
+
+  const { stderr, stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.count, "1");
+  assert.equal(outputs.versions, "2026.7.1-beta.5");
+  assert.match(
+    stderr,
+    /Skipping telegram openclaw@2026\.7\.1-beta\.4: published package omits @openclaw\/ai/u,
+  );
+});

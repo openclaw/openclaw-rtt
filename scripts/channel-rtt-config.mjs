@@ -23,6 +23,10 @@ export const CHANNEL_RTT_CHANNELS = {
     command: "telegram",
     defaultScenario: "telegram-mentioned-message-reply",
     label: "Telegram",
+    releaseSkipVersions: {
+      "2026.7.1-beta.4":
+        "published package omits @openclaw/ai required by the onboarding recovery path",
+    },
   },
   whatsapp: {
     command: "whatsapp",
