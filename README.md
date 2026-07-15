@@ -33,12 +33,12 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-07-14T18:55:12.685Z` · latest `2026.7.2` / `61df1dbe7b`
+Latest imported channel run: `2026-07-15T01:00:52.908Z` · latest `2026.7.2` / `525db34f80`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,012ms` | `1,995ms` | `136MB` | `136MB` | stale: latest failed; showing last pass (failed) |
-| Discord | `1,874ms` | `2,199ms` | `1,029MB` | `1,048MB` | ok |
+| Discord | `1,849ms` | `2,017ms` | `1,023MB` | `1,038MB` | ok |
 | Slack | `3,337ms` | `3,337ms` | `800MB` | `800MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed) |
 
