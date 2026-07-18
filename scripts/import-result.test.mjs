@@ -64,7 +64,7 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
       {
         test: {
           kind: "live-transport-check",
-          id: "telegram-mentioned-message-reply",
+          id: "channel-canary",
           title: "Telegram mentioned message gets a reply",
         },
         execution: {
@@ -118,7 +118,7 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
   assert.deepEqual(row.channel, {
     id: "telegram",
     label: "Telegram",
-    scenario: "telegram-mentioned-message-reply",
+    scenario: "channel-canary",
   });
   assert.equal(row.package.spec, "openclaw@main");
   assert.equal(row.package.version, "2026.6.2+abcdef1234");
@@ -173,7 +173,7 @@ test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
       {
         test: {
           kind: "live-transport-check",
-          id: "telegram-mentioned-message-reply",
+          id: "channel-canary",
           title: "Telegram mentioned message gets a reply",
         },
         execution: {
@@ -207,6 +207,6 @@ test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
       ],
       { cwd: workspace },
     ),
-    /telegram-mentioned-message-reply must include positive result\.timing\.samples/u,
+    /channel-canary must include positive result\.timing\.samples/u,
   );
 });

@@ -11,7 +11,7 @@ import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs"
 const TELEGRAM_CHANNEL = {
   id: "telegram",
   label: "Telegram",
-  scenario: "telegram-mentioned-message-reply",
+  scenario: "channel-canary",
 };
 
 function usage() {

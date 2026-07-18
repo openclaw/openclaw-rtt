@@ -27,7 +27,7 @@ test("backfills Telegram RSS without touching RTT p50/p95", async () => {
       durationMs: 60000,
       status: "pass",
     },
-    mode: { providerMode: "mock-openai", scenarios: ["telegram-mentioned-message-reply"] },
+    mode: { providerMode: "mock-openai", scenarios: ["channel-canary"] },
     rtt: { warmSamples: [1000, 2000], failedSamples: 0, p50Ms: 1000, p95Ms: 2000 },
   };
   await fs.mkdir(path.join(workspace, "data/channels/telegram"), { recursive: true });
