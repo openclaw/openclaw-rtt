@@ -69,11 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-18T04:32:07.180Z`
+Latest imported release coverage run: `2026-07-18T05:06:01.300Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.7.2-beta.1` | `783ms` | - | `1,872ms` | - | - | - | `306ms` |
+| `2026.7.2-beta.1` | `640ms` | `1,024ms` | `1,872ms` | - | - | - | `306ms` |
 | `2026.7.1` | `1,079ms` | - | `1,797ms` | `3,333ms` | - | `1,819ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,248ms` | - | `1,808ms` | `3,335ms` | - | `3,335ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,902ms` | `984ms` | `1,776ms` | `4,778ms` | - | `4,778ms` | `288ms` |
@@ -259,7 +259,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.7.2-beta.1` | `1,024ms` | `2,011ms` | `151MB` | `151MB` | ok |
 | `2026.7.1` | - | - | - | - | missing: no imported run |
 | `2026.7.1-beta.6` | - | - | - | - | missing: no imported run |
 | `2026.7.1-beta.5` | `984ms` | `2,068ms` | `151MB` | `151MB` | ok |
