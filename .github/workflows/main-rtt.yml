@@ -54,6 +54,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Preserve Telegram harness stdin
+        working-directory: openclaw-rtt
+        run: node scripts/patch-openclaw-telegram-harness.mjs ../openclaw
+
       - name: Setup pnpm
         shell: bash
         run: |
@@ -146,6 +150,9 @@ jobs:
           evidence_path="$output/raw/qa-evidence.json"
           if [[ ! -f "$evidence_path" ]]; then
             echo "No qa-evidence.json produced." >&2
+            if [[ "$status" -eq 0 ]]; then
+              status=1
+            fi
             exit "$status"
           fi
           {

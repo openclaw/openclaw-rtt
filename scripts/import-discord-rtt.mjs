@@ -166,8 +166,8 @@ async function readSampleEntries(samplesPath) {
     .filter(Boolean)
     .map((line, index) => {
       const [summaryPath, observedMessagesPath, resourceMetricsPath] = line.split("\t");
-      if (!summaryPath || !observedMessagesPath) {
-        throw new Error(`Invalid sample-paths line ${index + 1}: expected summary and observed paths.`);
+      if (!summaryPath) {
+        throw new Error(`Invalid sample-paths line ${index + 1}: expected a summary path.`);
       }
       return { summaryPath, observedMessagesPath, resourceMetricsPath };
     });
@@ -265,7 +265,9 @@ function extractGatewayResourceMetrics(summary) {
 
 async function readSample(entry, index) {
   const summary = validateSummary(normalizeEvidenceSummary(await readJson(path.resolve(entry.summaryPath))));
-  const observedMessages = await readJson(path.resolve(entry.observedMessagesPath));
+  const observedMessages = entry.observedMessagesPath
+    ? await readJson(path.resolve(entry.observedMessagesPath))
+    : [];
   const resources = entry.resourceMetricsPath
     ? await readResourceMetrics(path.resolve(entry.resourceMetricsPath))
     : undefined;

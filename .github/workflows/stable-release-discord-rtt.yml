@@ -253,18 +253,25 @@ jobs:
                 echo "attempts=${attempt}"
                 echo "exit_status=${status}"
               } >>"$metrics_path"
-              if [[ -f "$summary_path" && -f "$observed_path" ]]; then
+              if [[ -f "$summary_path" ]]; then
                 break
               fi
               if [[ "$attempt" -lt 3 ]]; then
                 sleep $((attempt * 15))
               fi
             done
-            if [[ ! -f "$summary_path" || ! -f "$observed_path" ]]; then
-              echo "No Discord QA artifacts produced for sample ${sample}." >&2
+            if [[ ! -f "$summary_path" ]]; then
+              echo "No Discord QA evidence produced for sample ${sample}." >&2
+              if [[ "$status" -eq 0 ]]; then
+                status=1
+              fi
               exit "$status"
             fi
-            printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
+            observed_value=""
+            if [[ -f "$observed_path" ]]; then
+              observed_value="${PWD}/${observed_path}"
+            fi
+            printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "$observed_value" "${PWD}/${metrics_path}" >>"$sample_paths"
           done
 
       - name: Prepare Discord release import artifact
@@ -356,11 +363,15 @@ jobs:
               summary_path="${sample_dir}/qa-evidence.json"
               observed_path="${sample_dir}/discord-qa-observed-messages.json"
               metrics_path="${sample_dir}/resource-metrics.env"
-              if [[ ! -f "$summary_path" || ! -f "$observed_path" || ! -f "$metrics_path" ]]; then
+              if [[ ! -f "$summary_path" || ! -f "$metrics_path" ]]; then
                 echo "Missing Discord release artifacts under ${sample_dir}." >&2
                 exit 1
               fi
-              printf '%s\t%s\t%s\n' "$summary_path" "$observed_path" "$metrics_path" >>"$sample_paths"
+              observed_value=""
+              if [[ -f "$observed_path" ]]; then
+                observed_value="$observed_path"
+              fi
+              printf '%s\t%s\t%s\n' "$summary_path" "$observed_value" "$metrics_path" >>"$sample_paths"
             done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
             if [[ "${{ needs.resolve.outputs.rss_backfill }}" == "true" ]]; then
               node scripts/backfill-release-rss.mjs \
