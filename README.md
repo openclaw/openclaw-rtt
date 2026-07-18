@@ -69,12 +69,12 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-18T03:57:29.998Z`
+Latest imported release coverage run: `2026-07-18T04:04:50.942Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.7.2-beta.1` | `783ms` | - | `1,872ms` | - | - | - | `306ms` |
-| `2026.7.1` | `759ms` | - | `1,797ms` | - | - | - | `280ms` |
+| `2026.7.1` | `1,079ms` | - | `1,797ms` | `3,333ms` | - | `1,819ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,248ms` | - | `1,808ms` | `3,335ms` | - | `3,335ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,902ms` | `984ms` | `1,776ms` | `4,778ms` | - | `4,778ms` | `288ms` |
 | `2026.7.1-beta.4` | `1,286ms` | n/a | `1,787ms` | `3,378ms` | - | `3,378ms` | `284ms` |
@@ -167,7 +167,7 @@ Latest imported surface run: `2026-07-18T03:57:29.998Z`
 | Version | RPC | Control UI |
 |---|---:|---:|
 | `2026.7.2-beta.1` | - | `306ms` |
-| `2026.7.1` | - | `280ms` |
+| `2026.7.1` | `1,819ms` | `280ms` |
 | `2026.7.1-beta.6` | `3,335ms` | `328ms` |
 | `2026.7.1-beta.5` | `4,778ms` | `288ms` |
 | `2026.7.1-beta.4` | `3,378ms` | `284ms` |
@@ -447,7 +447,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | `2026.7.2-beta.1` | - | - | - | - | missing: no imported run |
-| `2026.7.1` | - | - | - | - | missing: no imported run |
+| `2026.7.1` | `3,333ms` | `3,333ms` | `899MB` | `899MB` | ok |
 | `2026.7.1-beta.6` | `3,335ms` | `3,335ms` | `916MB` | `916MB` | ok |
 | `2026.7.1-beta.5` | `4,778ms` | `4,778ms` | `976MB` | `976MB` | ok |
 | `2026.7.1-beta.4` | `3,378ms` | `3,378ms` | `937MB` | `937MB` | ok |
