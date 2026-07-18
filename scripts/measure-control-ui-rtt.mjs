@@ -105,7 +105,10 @@ async function main() {
         ? params.idempotencyKey
         : sendRequest.id;
     await gateway.emitChatFinal({ runId, text: "Control UI RTT measured." });
-    await page.getByText("Control UI RTT measured.").waitFor({ timeout: 10_000 });
+    await page
+      .locator("p")
+      .filter({ hasText: "Control UI RTT measured." })
+      .waitFor({ timeout: 10_000 });
     const responseObservedAt = new Date();
     rttMeasurement = {
       finalMatchedReplyRttMs: Math.max(0, responseObservedAt.getTime() - requestStartedAt.getTime()),
