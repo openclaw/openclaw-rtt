@@ -40,30 +40,6 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
       {
         test: {
           kind: "live-transport-check",
-          id: "telegram-canary",
-          title: "Telegram canary",
-        },
-        execution: {
-          packageSource: {
-            kind: "npm-package",
-            spec: "openclaw@main",
-          },
-          provider: {
-            id: "openai",
-            live: false,
-            fixture: "mock-openai",
-          },
-        },
-        result: {
-          status: "pass",
-          timing: {
-            rttMs: 900,
-          },
-        },
-      },
-      {
-        test: {
-          kind: "live-transport-check",
           id: "channel-canary",
           title: "Telegram mentioned message gets a reply",
         },
@@ -126,7 +102,7 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
   assert.equal(row.run.durationMs, 30_000);
   assert.equal(row.mode.providerMode, "mock-openai");
   assert.equal(row.mode.source, "qa-evidence");
-  assert.equal(row.rtt.canaryMs, 900);
+  assert.equal(row.rtt.canaryMs, 1200);
   assert.equal(row.rtt.mentionReplyMs, 1200);
   assert.equal(row.rtt.avgMs, 1300);
   assert.equal(row.rtt.p50Ms, 1200);
@@ -157,19 +133,6 @@ test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
     schemaVersion: 2,
     generatedAt: "2026-06-12T20:00:20.000Z",
     entries: [
-      {
-        test: {
-          kind: "live-transport-check",
-          id: "telegram-canary",
-          title: "Telegram canary",
-        },
-        result: {
-          status: "pass",
-          timing: {
-            rttMs: 900,
-          },
-        },
-      },
       {
         test: {
           kind: "live-transport-check",

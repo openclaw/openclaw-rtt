@@ -166,12 +166,10 @@ function buildResultFromEvidence(evidence, args) {
     throw new Error("input must be an OpenClaw qa-evidence.json summary.");
   }
   const { finishedAtMs, startedAtMs } = requireEvidenceArgs(args);
-  const canary = evidenceEntry(evidence, "telegram-canary");
   const mention = evidenceEntry(evidence, TELEGRAM_CHANNEL.scenario);
   const packageSpec = packageSpecFromEvidence(mention);
-  const canaryTiming = readTiming(canary, "telegram-canary");
   const mentionTiming = readTiming(mention, TELEGRAM_CHANNEL.scenario);
-  const canaryMs = finiteTimingNumber(canaryTiming, "rttMs");
+  const canaryMs = finiteTimingNumber(mentionTiming, "rttMs");
   const sampleCount = requirePositiveTimingNumber(
     mentionTiming,
     "samples",
@@ -190,7 +188,7 @@ function buildResultFromEvidence(evidence, args) {
       finishedAt: args.finishedAt,
       durationMs: finishedAtMs - startedAtMs,
       status:
-        statusFromEvidence([canary, mention]) === "pass" &&
+        statusFromEvidence([mention]) === "pass" &&
         typeof canaryMs === "number" &&
         typeof mentionReplyMs === "number"
           ? "pass"
