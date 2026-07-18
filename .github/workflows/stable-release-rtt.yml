@@ -81,6 +81,11 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Preserve Telegram harness stdin
+        if: steps.release.outputs.should_run == 'true'
+        working-directory: openclaw-rtt
+        run: node scripts/patch-openclaw-telegram-harness.mjs ../openclaw
+
       - name: Set up Blacksmith Docker Builder
         if: steps.release.outputs.should_run == 'true'
         uses: useblacksmith/setup-docker-builder@ab5c1da94f53f5cd75c1038092aa276dddfccbba # v1
