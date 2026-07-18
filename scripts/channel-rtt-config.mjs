@@ -21,7 +21,7 @@ export const CHANNEL_RTT_CHANNELS = {
   },
   telegram: {
     command: "telegram",
-    defaultScenario: "telegram-mentioned-message-reply",
+    defaultScenario: "channel-canary",
     label: "Telegram",
     releaseSkipVersions: {
       "2026.7.1-beta.4":

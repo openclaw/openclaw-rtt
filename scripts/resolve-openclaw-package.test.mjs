@@ -30,7 +30,7 @@ function releaseRow(version, status = "pass") {
       durationMs: 2000,
       status,
     },
-    mode: { providerMode: "mock-openai", scenarios: ["telegram-mentioned-message-reply"] },
+    mode: { providerMode: "mock-openai", scenarios: ["channel-canary"] },
     rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
   };
 }
