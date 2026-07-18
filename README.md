@@ -69,12 +69,12 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-18T07:39:38.956Z`
+Latest imported release coverage run: `2026-07-18T08:46:09.456Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.7.2-beta.2` | - | - | fail | - | - | - | `314ms` |
-| `2026.7.2-beta.1` | `640ms` | `1,024ms` | `1,872ms` | - | - | - | `306ms` |
+| `2026.7.2-beta.2` | `157ms` | - | fail | fail | - | `0ms` | `314ms` |
+| `2026.7.2-beta.1` | `1,516ms` | `1,024ms` | `1,872ms` | `4,764ms` | - | `1,898ms` | `306ms` |
 | `2026.7.1` | `1,079ms` | - | `1,797ms` | `3,333ms` | - | `1,819ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,248ms` | - | `1,808ms` | `3,335ms` | - | `3,335ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,902ms` | `984ms` | `1,776ms` | `4,778ms` | - | `4,778ms` | `288ms` |
@@ -163,12 +163,12 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-07-18T07:12:50.070Z`
+Latest imported surface run: `2026-07-18T07:39:38.956Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
-| `2026.7.2-beta.2` | - | `314ms` |
-| `2026.7.2-beta.1` | - | `306ms` |
+| `2026.7.2-beta.2` | `0ms` | `314ms` |
+| `2026.7.2-beta.1` | `1,898ms` | `306ms` |
 | `2026.7.1` | `1,819ms` | `280ms` |
 | `2026.7.1-beta.6` | `3,335ms` | `328ms` |
 | `2026.7.1-beta.5` | `4,778ms` | `288ms` |
@@ -531,8 +531,8 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.7.2-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.7.2-beta.2` | - | - | `1,072MB` | `1,072MB` | failed |
+| `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1` | `3,333ms` | `3,333ms` | `899MB` | `899MB` | ok |
 | `2026.7.1-beta.6` | `3,335ms` | `3,335ms` | `916MB` | `916MB` | ok |
 | `2026.7.1-beta.5` | `4,778ms` | `4,778ms` | `976MB` | `976MB` | ok |
@@ -641,10 +641,10 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.9-beta.1` | - | - | `644MB` | `644MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8` | - | - | `635MB` | `635MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.2` | - | - | `630MB` | `630MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.8-beta.1` | - | - | `619MB` | `619MB` | failed |
-| `2026.6.7-beta.1` | - | - | `621MB` | `621MB` | failed |
-| `2026.6.6` | - | - | `610MB` | `610MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.6-beta.2` | - | - | `595MB` | `595MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.8-beta.1` | - | - | `664MB` | `664MB` | failed |
+| `2026.6.7-beta.1` | - | - | `655MB` | `655MB` | failed |
+| `2026.6.6` | - | - | `660MB` | `660MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.6-beta.2` | - | - | `653MB` | `653MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.5` | `3,135ms` | `3,936ms` | `1,013MB` | `1,036MB` | ok |
 | `2026.6.5-beta.6` | `3,125ms` | `4,420ms` | `1,017MB` | `1,041MB` | ok |
 | `2026.6.5-beta.5` | `2,668ms` | `3,611ms` | `1,060MB` | `1,073MB` | ok |
