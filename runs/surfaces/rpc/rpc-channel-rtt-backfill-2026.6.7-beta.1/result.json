@@ -11,15 +11,16 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.6.7-beta.1",
     "startedAt": "2026-06-22T20:10:49.400Z",
-    "finishedAt": "2026-06-22T20:18:11.410Z",
-    "durationMs": 442010,
+    "finishedAt": "2026-07-20T20:18:20.014Z",
+    "durationMs": 2419650614,
     "status": "pass"
   },
   "mode": {
     "providerMode": "mixed",
     "source": "channel-rtt-backfill",
     "sourceChannels": [
-      "discord"
+      "discord",
+      "whatsapp"
     ]
   },
   "rtt": {
@@ -43,16 +44,17 @@
       2107,
       2151,
       2211,
-      2316
+      2316,
+      3326
     ],
     "failedSamples": 0,
     "sources": [
       "backfill:summary-rtt"
     ],
-    "avgMs": 2151,
-    "p50Ms": 2107,
-    "p95Ms": 2377,
-    "maxMs": 2407
+    "avgMs": 2206.9523809523807,
+    "p50Ms": 2114,
+    "p95Ms": 2407,
+    "maxMs": 3326
   },
   "resources": {
     "measurement": {
@@ -61,22 +63,24 @@
       "command": "backfill from data/channels"
     },
     "maxRssKbSamples": [
-      952588
+      952588,
+      1123912
     ],
     "elapsedSecondsSamples": [
-      23.3
+      23.3,
+      43.02
     ],
     "maxRssKb": {
-      "avg": 952588,
+      "avg": 1038250,
       "p50": 952588,
-      "p95": 952588,
-      "max": 952588
+      "p95": 1123912,
+      "max": 1123912
     },
     "elapsedSeconds": {
-      "avg": 23.3,
+      "avg": 33.160000000000004,
       "p50": 23.3,
-      "p95": 23.3,
-      "max": 23.3
+      "p95": 43.02,
+      "max": 43.02
     }
   },
   "samples": [
@@ -397,6 +401,22 @@
       "rttSource": "backfill:summary-rtt",
       "rttMeasurement": {
         "finalMatchedReplyRttMs": 2316,
+        "source": "backfill:summary-rtt"
+      }
+    },
+    {
+      "index": 21,
+      "status": "pass",
+      "channel": {
+        "id": "whatsapp",
+        "label": "WhatsApp",
+        "scenario": "whatsapp-canary"
+      },
+      "sourceRunId": "2026-07-20T201820014Z-openclaw_2026.6.7-beta.1-whatsapp-whatsapp-canary-rtt",
+      "rttMs": 3326,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 3326,
         "source": "backfill:summary-rtt"
       }
     }
