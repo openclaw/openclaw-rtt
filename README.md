@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-20T03:54:06.152Z`
+Latest imported release coverage run: `2026-07-20T09:22:10.707Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -361,8 +361,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.3` | - | - | `1,111MB` | `1,134MB` | failed |
-| `2026.7.2-beta.2` | - | - | `1,026MB` | `1,087MB` | failed |
+| `2026.7.2-beta.3` | - | - | `1,101MB` | `1,119MB` | failed |
+| `2026.7.2-beta.2` | - | - | `1,070MB` | `1,091MB` | failed |
 | `2026.7.2-beta.1` | `1,872ms` | `2,429ms` | `1,033MB` | `1,050MB` | ok |
 | `2026.7.1` | `1,797ms` | `2,138ms` | `1,367MB` | `1,367MB` | failed |
 | `2026.7.1-beta.6` | `1,808ms` | `1,988ms` | `1,074MB` | `1,076MB` | ok |
@@ -502,85 +502,85 @@ Gateway logs:
 2026-07-20T02:30:30.613+00:00 [ws] ⇄ res ✓ config.get 128ms conn=4fdb4f8b…d95b id=35a89475…7b80
 2026-07-20T02:30:30.755+00:00 [ws] ⇄ res ✓ config.get 129ms conn=985c75db…1930 id=850c4e29…6ceb
 2026-07-20T02:30:30.767+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=452ddf84…ce21 id=dcd7fa30…3524 \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST |
-| `2026.5.16-beta.5` | - | - | `609MB` | `641MB` | failed: invalid config.patch params: at root: unexpected property 'replacePaths'
+| `2026.5.16-beta.5` | - | - | `614MB` | `647MB` | failed: invalid config.patch params: at root: unexpected property 'replacePaths'
 Gateway logs:
-2026-07-20T02:30:58.487+00:00 [gateway] loading configuration…
-2026-07-20T02:31:00.186+00:00 [gateway] resolving authentication…
-2026-07-20T02:31:00.203+00:00 [gateway] starting...
-2026-07-20T02:31:01.227+00:00 [gateway] starting HTTP server...
-2026-07-20T02:31:01.414+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-20T02:31:03.536+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-20T02:31:03.538+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 3.3s)
-2026-07-20T02:31:03.540+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-20.log
-2026-07-20T02:31:03.659+00:00 [gateway] security warning: dangerous config flags enabled: gateway.controlUi.allowInsecureAuth=true. Run `openclaw security audit`.
-2026-07-20T02:31:03.664+00:00 [gateway] starting channels and sidecars...
-2026-07-20T02:31:03.848+00:00 [discord] [sut] starting provider
-2026-07-20T02:31:04.209+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-JoENHK/workspace)
-2026-07-20T02:31:04.419+00:00 [discord] channels resolved: 1497045302899900476/1497045305076613222 (guild:OpenClaw QA Lab 3; channel:general)
-2026-07-20T02:31:04.833+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT 3
-2026-07-20T02:31:04.835+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-20T02:31:04.844+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-20T02:31:04.847+00:00 [gateway] ready
-2026-07-20T02:31:04.854+00:00 [heartbeat] started
-2026-07-20T02:31:05.081+00:00 [discord] client initialized as 1497048058171625534; awaiting gateway readiness
-2026-07-20T02:31:07.256+00:00 [ws] ⇄ res ✓ config.get 1641ms conn=d2a65ab7…e3a6 id=90f863f2…5d04
-2026-07-20T02:31:07.725+00:00 [ws] ⇄ res ✓ channels.status 224ms conn=803cb943…6e53 id=59d9bf49…ff7c
-2026-07-20T02:31:08.679+00:00 [ws] ⇄ res ✓ channels.status 222ms conn=c03ed3c0…1c90 id=8aab404c…53f8
-2026-07-20T02:31:10.084+00:00 [ws] ⇄ res ✓ config.get 133ms conn=f6402b96…e66e id=279ed5ce…0773
-2026-07-20T02:31:10.228+00:00 [ws] ⇄ res ✓ config.get 132ms conn=97af8d79…0ec0 id=061e18fe…43e2
-2026-07-20T02:31:10.241+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=5604912d…4faf id=94b9fb69…6a5a \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST
+2026-07-20T08:13:55.447+00:00 [gateway] loading configuration…
+2026-07-20T08:13:57.077+00:00 [gateway] resolving authentication…
+2026-07-20T08:13:57.094+00:00 [gateway] starting...
+2026-07-20T08:13:58.038+00:00 [gateway] starting HTTP server...
+2026-07-20T08:13:58.226+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-07-20T08:14:00.204+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
+2026-07-20T08:14:00.206+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 3.1s)
+2026-07-20T08:14:00.208+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-20.log
+2026-07-20T08:14:00.319+00:00 [gateway] security warning: dangerous config flags enabled: gateway.controlUi.allowInsecureAuth=true. Run `openclaw security audit`.
+2026-07-20T08:14:00.323+00:00 [gateway] starting channels and sidecars...
+2026-07-20T08:14:00.496+00:00 [discord] [sut] starting provider
+2026-07-20T08:14:00.794+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-Z7sH5a/workspace)
+2026-07-20T08:14:01.055+00:00 [plugins] embedded acpx runtime backend ready
+2026-07-20T08:14:01.058+00:00 [gateway] ready
+2026-07-20T08:14:01.066+00:00 [heartbeat] started
+2026-07-20T08:14:01.139+00:00 [discord] channels resolved: 1496962067029299350/1496962068027281447 (guild:OpenClaw QA Lab; channel:general)
+2026-07-20T08:14:01.534+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT
+2026-07-20T08:14:01.535+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
+2026-07-20T08:14:03.520+00:00 [ws] ⇄ res ✓ config.get 1590ms conn=d4e0d16e…2bc2 id=d8e042a2…e93b
+2026-07-20T08:14:03.972+00:00 [ws] ⇄ res ✓ channels.status 219ms conn=6c9143fd…07d3 id=59156e7a…ec5f
+2026-07-20T08:14:03.998+00:00 [discord] client initialized as 1496965113469603871; awaiting gateway readiness
+2026-07-20T08:14:04.921+00:00 [ws] ⇄ res ✓ channels.status 217ms conn=bcb63067…31e9 id=c727fba5…0c2a
+2026-07-20T08:14:06.311+00:00 [ws] ⇄ res ✓ config.get 130ms conn=694e476c…ca7f id=a82ec82f…a30a
+2026-07-20T08:14:06.445+00:00 [ws] ⇄ res ✓ config.get 124ms conn=ffe2910b…c15e id=ff42c3a4…89b6
+2026-07-20T08:14:06.457+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=5195e844…1f4b id=d7e8bafb…7df6 \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST
 Gateway logs:
-2026-07-20T02:30:58.487+00:00 [gateway] loading configuration…
-2026-07-20T02:31:00.186+00:00 [gateway] resolving authentication…
-2026-07-20T02:31:00.203+00:00 [gateway] starting...
-2026-07-20T02:31:01.227+00:00 [gateway] starting HTTP server...
-2026-07-20T02:31:01.414+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-20T02:31:03.536+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-20T02:31:03.538+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 3.3s)
-2026-07-20T02:31:03.540+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-20.log
-2026-07-20T02:31:03.659+00:00 [gateway] security warning: dangerous config flags enabled: gateway.controlUi.allowInsecureAuth=true. Run `openclaw security audit`.
-2026-07-20T02:31:03.664+00:00 [gateway] starting channels and sidecars...
-2026-07-20T02:31:03.848+00:00 [discord] [sut] starting provider
-2026-07-20T02:31:04.209+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-JoENHK/workspace)
-2026-07-20T02:31:04.419+00:00 [discord] channels resolved: 1497045302899900476/1497045305076613222 (guild:OpenClaw QA Lab 3; channel:general)
-2026-07-20T02:31:04.833+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT 3
-2026-07-20T02:31:04.835+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-20T02:31:04.844+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-20T02:31:04.847+00:00 [gateway] ready
-2026-07-20T02:31:04.854+00:00 [heartbeat] started
-2026-07-20T02:31:05.081+00:00 [discord] client initialized as 1497048058171625534; awaiting gateway readiness
-2026-07-20T02:31:07.256+00:00 [ws] ⇄ res ✓ config.get 1641ms conn=d2a65ab7…e3a6 id=90f863f2…5d04
-2026-07-20T02:31:07.725+00:00 [ws] ⇄ res ✓ channels.status 224ms conn=803cb943…6e53 id=59d9bf49…ff7c
-2026-07-20T02:31:08.679+00:00 [ws] ⇄ res ✓ channels.status 222ms conn=c03ed3c0…1c90 id=8aab404c…53f8
-2026-07-20T02:31:10.084+00:00 [ws] ⇄ res ✓ config.get 133ms conn=f6402b96…e66e id=279ed5ce…0773
-2026-07-20T02:31:10.228+00:00 [ws] ⇄ res ✓ config.get 132ms conn=97af8d79…0ec0 id=061e18fe…43e2
-2026-07-20T02:31:10.241+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=5604912d…4faf id=94b9fb69…6a5a \| invalid config.patch params: at root: unexpected property 'replacePaths'
+2026-07-20T08:13:55.447+00:00 [gateway] loading configuration…
+2026-07-20T08:13:57.077+00:00 [gateway] resolving authentication…
+2026-07-20T08:13:57.094+00:00 [gateway] starting...
+2026-07-20T08:13:58.038+00:00 [gateway] starting HTTP server...
+2026-07-20T08:13:58.226+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-07-20T08:14:00.204+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
+2026-07-20T08:14:00.206+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 3.1s)
+2026-07-20T08:14:00.208+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-20.log
+2026-07-20T08:14:00.319+00:00 [gateway] security warning: dangerous config flags enabled: gateway.controlUi.allowInsecureAuth=true. Run `openclaw security audit`.
+2026-07-20T08:14:00.323+00:00 [gateway] starting channels and sidecars...
+2026-07-20T08:14:00.496+00:00 [discord] [sut] starting provider
+2026-07-20T08:14:00.794+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-Z7sH5a/workspace)
+2026-07-20T08:14:01.055+00:00 [plugins] embedded acpx runtime backend ready
+2026-07-20T08:14:01.058+00:00 [gateway] ready
+2026-07-20T08:14:01.066+00:00 [heartbeat] started
+2026-07-20T08:14:01.139+00:00 [discord] channels resolved: 1496962067029299350/1496962068027281447 (guild:OpenClaw QA Lab; channel:general)
+2026-07-20T08:14:01.534+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT
+2026-07-20T08:14:01.535+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
+2026-07-20T08:14:03.520+00:00 [ws] ⇄ res ✓ config.get 1590ms conn=d4e0d16e…2bc2 id=d8e042a2…e93b
+2026-07-20T08:14:03.972+00:00 [ws] ⇄ res ✓ channels.status 219ms conn=6c9143fd…07d3 id=59156e7a…ec5f
+2026-07-20T08:14:03.998+00:00 [discord] client initialized as 1496965113469603871; awaiting gateway readiness
+2026-07-20T08:14:04.921+00:00 [ws] ⇄ res ✓ channels.status 217ms conn=bcb63067…31e9 id=c727fba5…0c2a
+2026-07-20T08:14:06.311+00:00 [ws] ⇄ res ✓ config.get 130ms conn=694e476c…ca7f id=a82ec82f…a30a
+2026-07-20T08:14:06.445+00:00 [ws] ⇄ res ✓ config.get 124ms conn=ffe2910b…c15e id=ff42c3a4…89b6
+2026-07-20T08:14:06.457+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=5195e844…1f4b id=d7e8bafb…7df6 \| invalid config.patch params: at root: unexpected property 'replacePaths'
 Gateway logs:
-2026-07-20T02:30:58.487+00:00 [gateway] loading configuration…
-2026-07-20T02:31:00.186+00:00 [gateway] resolving authentication…
-2026-07-20T02:31:00.203+00:00 [gateway] starting...
-2026-07-20T02:31:01.227+00:00 [gateway] starting HTTP server...
-2026-07-20T02:31:01.414+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-20T02:31:03.536+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-20T02:31:03.538+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 3.3s)
-2026-07-20T02:31:03.540+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-20.log
-2026-07-20T02:31:03.659+00:00 [gateway] security warning: dangerous config flags enabled: gateway.controlUi.allowInsecureAuth=true. Run `openclaw security audit`.
-2026-07-20T02:31:03.664+00:00 [gateway] starting channels and sidecars...
-2026-07-20T02:31:03.848+00:00 [discord] [sut] starting provider
-2026-07-20T02:31:04.209+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-JoENHK/workspace)
-2026-07-20T02:31:04.419+00:00 [discord] channels resolved: 1497045302899900476/1497045305076613222 (guild:OpenClaw QA Lab 3; channel:general)
-2026-07-20T02:31:04.833+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT 3
-2026-07-20T02:31:04.835+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-20T02:31:04.844+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-20T02:31:04.847+00:00 [gateway] ready
-2026-07-20T02:31:04.854+00:00 [heartbeat] started
-2026-07-20T02:31:05.081+00:00 [discord] client initialized as 1497048058171625534; awaiting gateway readiness
-2026-07-20T02:31:07.256+00:00 [ws] ⇄ res ✓ config.get 1641ms conn=d2a65ab7…e3a6 id=90f863f2…5d04
-2026-07-20T02:31:07.725+00:00 [ws] ⇄ res ✓ channels.status 224ms conn=803cb943…6e53 id=59d9bf49…ff7c
-2026-07-20T02:31:08.679+00:00 [ws] ⇄ res ✓ channels.status 222ms conn=c03ed3c0…1c90 id=8aab404c…53f8
-2026-07-20T02:31:10.084+00:00 [ws] ⇄ res ✓ config.get 133ms conn=f6402b96…e66e id=279ed5ce…0773
-2026-07-20T02:31:10.228+00:00 [ws] ⇄ res ✓ config.get 132ms conn=97af8d79…0ec0 id=061e18fe…43e2
-2026-07-20T02:31:10.241+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=5604912d…4faf id=94b9fb69…6a5a \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST |
+2026-07-20T08:13:55.447+00:00 [gateway] loading configuration…
+2026-07-20T08:13:57.077+00:00 [gateway] resolving authentication…
+2026-07-20T08:13:57.094+00:00 [gateway] starting...
+2026-07-20T08:13:58.038+00:00 [gateway] starting HTTP server...
+2026-07-20T08:13:58.226+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
+2026-07-20T08:14:00.204+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
+2026-07-20T08:14:00.206+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 3.1s)
+2026-07-20T08:14:00.208+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-20.log
+2026-07-20T08:14:00.319+00:00 [gateway] security warning: dangerous config flags enabled: gateway.controlUi.allowInsecureAuth=true. Run `openclaw security audit`.
+2026-07-20T08:14:00.323+00:00 [gateway] starting channels and sidecars...
+2026-07-20T08:14:00.496+00:00 [discord] [sut] starting provider
+2026-07-20T08:14:00.794+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-Z7sH5a/workspace)
+2026-07-20T08:14:01.055+00:00 [plugins] embedded acpx runtime backend ready
+2026-07-20T08:14:01.058+00:00 [gateway] ready
+2026-07-20T08:14:01.066+00:00 [heartbeat] started
+2026-07-20T08:14:01.139+00:00 [discord] channels resolved: 1496962067029299350/1496962068027281447 (guild:OpenClaw QA Lab; channel:general)
+2026-07-20T08:14:01.534+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT
+2026-07-20T08:14:01.535+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
+2026-07-20T08:14:03.520+00:00 [ws] ⇄ res ✓ config.get 1590ms conn=d4e0d16e…2bc2 id=d8e042a2…e93b
+2026-07-20T08:14:03.972+00:00 [ws] ⇄ res ✓ channels.status 219ms conn=6c9143fd…07d3 id=59156e7a…ec5f
+2026-07-20T08:14:03.998+00:00 [discord] client initialized as 1496965113469603871; awaiting gateway readiness
+2026-07-20T08:14:04.921+00:00 [ws] ⇄ res ✓ channels.status 217ms conn=bcb63067…31e9 id=c727fba5…0c2a
+2026-07-20T08:14:06.311+00:00 [ws] ⇄ res ✓ config.get 130ms conn=694e476c…ca7f id=a82ec82f…a30a
+2026-07-20T08:14:06.445+00:00 [ws] ⇄ res ✓ config.get 124ms conn=ffe2910b…c15e id=ff42c3a4…89b6
+2026-07-20T08:14:06.457+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=5195e844…1f4b id=d7e8bafb…7df6 \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST |
 | `2026.5.16-beta.4` | `26,263ms` | `28,304ms` | `779MB` | `815MB` | ok |
 | `2026.5.16-beta.3` | `26,771ms` | `28,550ms` | `812MB` | `825MB` | ok |
 | `2026.5.16-beta.2` | `26,639ms` | `27,767ms` | `808MB` | `820MB` | ok |
@@ -610,8 +610,8 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.3` | - | - | `1,112MB` | `1,112MB` | failed |
-| `2026.7.2-beta.2` | - | - | `1,070MB` | `1,070MB` | failed |
+| `2026.7.2-beta.3` | - | - | `1,240MB` | `1,240MB` | failed |
+| `2026.7.2-beta.2` | - | - | `1,250MB` | `1,250MB` | failed |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1` | `3,333ms` | `3,333ms` | `899MB` | `899MB` | ok |
 | `2026.7.1-beta.6` | `3,335ms` | `3,335ms` | `916MB` | `916MB` | ok |
@@ -722,10 +722,10 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.9-beta.1` | - | - | `644MB` | `644MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8` | - | - | `635MB` | `635MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.2` | - | - | `630MB` | `630MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.8-beta.1` | - | - | `665MB` | `665MB` | failed |
-| `2026.6.7-beta.1` | - | - | `662MB` | `662MB` | failed |
-| `2026.6.6` | - | - | `629MB` | `629MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.6-beta.2` | - | - | `652MB` | `652MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.8-beta.1` | - | - | `637MB` | `637MB` | failed |
+| `2026.6.7-beta.1` | - | - | `664MB` | `664MB` | failed |
+| `2026.6.6` | - | - | `627MB` | `627MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.6-beta.2` | - | - | `627MB` | `627MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.5` | `3,135ms` | `3,936ms` | `1,013MB` | `1,036MB` | ok |
 | `2026.6.5-beta.6` | `3,125ms` | `4,420ms` | `1,017MB` | `1,041MB` | ok |
 | `2026.6.5-beta.5` | `2,668ms` | `3,611ms` | `1,060MB` | `1,073MB` | ok |
