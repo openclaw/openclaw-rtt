@@ -33,7 +33,7 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-07-24T19:03:30.623Z` · latest `2026.7.2` / `3d486066ca`
+Latest imported channel run: `2026-07-24T19:41:40.246Z` · latest `2026.7.2` / `2900026b33`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
