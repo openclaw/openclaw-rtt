@@ -1,0 +1,71 @@
+{
+  "channel": {
+    "id": "whatsapp",
+    "label": "WhatsApp",
+    "scenario": "whatsapp-canary"
+  },
+  "package": {
+    "spec": "openclaw@main",
+    "version": "2026.7.2+b6dcb8c323"
+  },
+  "run": {
+    "id": "2026-07-27T012541929Z-openclaw_main-whatsapp-whatsapp-canary-rtt",
+    "startedAt": "2026-07-27T01:25:41.929Z",
+    "finishedAt": "2026-07-27T01:35:35.887Z",
+    "durationMs": 593958,
+    "status": "fail"
+  },
+  "polling": {
+    "attemptSamples": [
+      3
+    ],
+    "retryCount": 2,
+    "maxAttempts": 3
+  },
+  "mode": {
+    "providerMode": "mock-openai"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 1,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa whatsapp"
+    },
+    "maxRssKbSamples": [
+      600412
+    ],
+    "elapsedSecondsSamples": [
+      182.94
+    ],
+    "maxRssKb": {
+      "avg": 600412,
+      "p50": 600412,
+      "p95": 600412,
+      "max": 600412
+    },
+    "elapsedSeconds": {
+      "avg": 182.94,
+      "p50": 182.94,
+      "p95": 182.94,
+      "max": 182.94
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "fail",
+      "attempts": 3,
+      "maxRssKb": 600412,
+      "elapsedSeconds": 182.94,
+      "details": "QA command exited with status 1 before writing a summary."
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/whatsapp/2026-07-27T012541929Z-openclaw_main-whatsapp-whatsapp-canary-rtt/result.json"
+  }
+}
