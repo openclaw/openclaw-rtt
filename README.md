@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-30T19:09:03.156Z`
+Latest imported release coverage run: `2026-07-30T20:39:51.463Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -82,10 +82,10 @@ Latest imported release coverage run: `2026-07-30T19:09:03.156Z`
 | `2026.7.1-beta.6` | `1,212ms` | `1,024ms` | `1,808ms` | `3,335ms` | - | `3,335ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,902ms` | `984ms` | `1,776ms` | `4,778ms` | - | `4,778ms` | `288ms` |
 | `2026.7.1-beta.4` | `1,286ms` | n/a | `1,787ms` | `3,378ms` | - | `3,378ms` | `284ms` |
-| `2026.7.1-beta.2` | `960ms` | `1,992ms` | `1,666ms` | `3,352ms` | - | `1,687ms` | `341ms` |
-| `2026.7.1-beta.1` | `1,185ms` | `1,903ms` | `1,889ms` | `3,549ms` | - | `3,549ms` | `407ms` |
-| `2026.6.33` | `1,024ms` | `1,029ms` | `1,425ms` | `2,909ms` | - | `2,909ms` | `360ms` |
-| `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | - | `1,743ms` | `413ms` |
+| `2026.7.1-beta.2` | `960ms` | `1,992ms` | `1,666ms` | `3,352ms` | fail | `1,687ms` | `341ms` |
+| `2026.7.1-beta.1` | `994ms` | `1,903ms` | `1,889ms` | `3,549ms` | fail | `1,889ms` | `407ms` |
+| `2026.6.33` | `1,013ms` | `1,029ms` | `1,425ms` | `2,909ms` | fail | `0ms` | `360ms` |
+| `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | fail | `1,743ms` | `413ms` |
 | `2026.6.11-beta.2` | `929ms` | `988ms` | `1,759ms` | `3,174ms` | fail | `1,762ms` | `413ms` |
 | `2026.6.11-beta.1` | `859ms` | `1,850ms` | `1,876ms` | `3,120ms` | fail | `1,877ms` | `407ms` |
 | `2026.6.10` | `1,401ms` | `1,961ms` | `1,790ms` | `4,698ms` | fail | `1,798ms` | `407ms` |
@@ -167,7 +167,7 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-07-30T16:31:47.408Z`
+Latest imported surface run: `2026-07-30T16:09:56.192Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
@@ -181,8 +181,8 @@ Latest imported surface run: `2026-07-30T16:31:47.408Z`
 | `2026.7.1-beta.5` | `4,778ms` | `288ms` |
 | `2026.7.1-beta.4` | `3,378ms` | `284ms` |
 | `2026.7.1-beta.2` | `1,687ms` | `341ms` |
-| `2026.7.1-beta.1` | `3,549ms` | `407ms` |
-| `2026.6.33` | `2,909ms` | `360ms` |
+| `2026.7.1-beta.1` | `1,889ms` | `407ms` |
+| `2026.6.33` | `0ms` | `360ms` |
 | `2026.6.11` | `1,743ms` | `413ms` |
 | `2026.6.11-beta.2` | `1,762ms` | `413ms` |
 | `2026.6.11-beta.1` | `1,877ms` | `407ms` |
@@ -571,10 +571,10 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.7.1-beta.6` | - | - | - | - | missing: no imported run |
 | `2026.7.1-beta.5` | - | - | - | - | missing: no imported run |
 | `2026.7.1-beta.4` | - | - | - | - | missing: no imported run |
-| `2026.7.1-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.7.1-beta.1` | - | - | - | - | missing: no imported run |
-| `2026.6.33` | - | - | - | - | missing: no imported run |
-| `2026.6.11` | - | - | - | - | missing: no imported run |
+| `2026.7.1-beta.2` | - | - | `728MB` | `728MB` | failed |
+| `2026.7.1-beta.1` | - | - | `705MB` | `705MB` | failed |
+| `2026.6.33` | - | - | `670MB` | `670MB` | failed |
+| `2026.6.11` | - | - | `666MB` | `666MB` | failed |
 | `2026.6.11-beta.2` | - | - | `672MB` | `672MB` | failed |
 | `2026.6.11-beta.1` | - | - | `669MB` | `669MB` | failed |
 | `2026.6.10` | - | - | `635MB` | `635MB` | failed |
