@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-30T17:10:50.262Z`
+Latest imported release coverage run: `2026-07-30T17:42:59.891Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -381,7 +381,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.7.1-beta.4` | `1,787ms` | `1,885ms` | `1,046MB` | `1,054MB` | ok |
 | `2026.7.1-beta.2` | `1,666ms` | `1,909ms` | `1,205MB` | `1,248MB` | ok |
 | `2026.7.1-beta.1` | `1,889ms` | `2,036ms` | `1,216MB` | `1,251MB` | ok |
-| `2026.6.33` | - | - | `3,141MB` | `3,160MB` | failed |
+| `2026.6.33` | - | - | `3,168MB` | `3,168MB` | failed |
 | `2026.6.11` | `1,728ms` | `1,957ms` | `1,185MB` | `1,215MB` | ok |
 | `2026.6.11-beta.2` | `1,759ms` | `1,908ms` | `1,185MB` | `1,228MB` | ok |
 | `2026.6.11-beta.1` | `1,876ms` | `2,024ms` | `1,176MB` | `1,258MB` | ok |
