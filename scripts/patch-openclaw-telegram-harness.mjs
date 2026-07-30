@@ -18,6 +18,7 @@ const callSites = [
 
 const harnessMountAnchor = `  -v "$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER" \\`;
 const harnessMounts = `${harnessMountAnchor}
+  -v "$ROOT_DIR/taxonomy.yaml:/app/taxonomy.yaml:ro" \\
   -v "$ROOT_DIR/package.json:/openclaw-harness/package.json:ro" \\
   -v "$ROOT_DIR/dist:/openclaw-harness/dist:ro" \\
   -v "$ROOT_DIR/node_modules:/openclaw-harness/node_modules:ro" \\
