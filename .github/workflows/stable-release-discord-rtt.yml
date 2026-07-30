@@ -164,6 +164,13 @@ jobs:
           set -euo pipefail
           node scripts/patch-openclaw-release-qa-harness.mjs ../openclaw-qa
 
+      - name: Patch Discord RTT measurement
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/patch-openclaw-discord-rtt-harness.mjs ../openclaw-qa
+
       - name: Verify OpenClaw release ref
         working-directory: openclaw
         shell: bash
