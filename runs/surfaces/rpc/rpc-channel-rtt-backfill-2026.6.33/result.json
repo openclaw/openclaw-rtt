@@ -1,0 +1,85 @@
+{
+  "surface": {
+    "id": "rpc",
+    "label": "RPC",
+    "scenario": "channel-rtt-backfill"
+  },
+  "package": {
+    "spec": "openclaw@2026.6.33",
+    "version": "2026.6.33"
+  },
+  "run": {
+    "id": "rpc-channel-rtt-backfill-2026.6.33",
+    "startedAt": "2026-07-30T16:31:47.408Z",
+    "finishedAt": "2026-07-30T16:31:47.408Z",
+    "durationMs": 0,
+    "status": "pass"
+  },
+  "mode": {
+    "providerMode": "mixed",
+    "source": "channel-rtt-backfill",
+    "sourceChannels": [
+      "slack"
+    ]
+  },
+  "rtt": {
+    "warmSamples": [
+      2909
+    ],
+    "failedSamples": 0,
+    "sources": [
+      "backfill:summary-rtt"
+    ],
+    "avgMs": 2909,
+    "p50Ms": 2909,
+    "p95Ms": 2909,
+    "maxMs": 2909
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "source-channel-runs",
+      "command": "backfill from data/channels"
+    },
+    "maxRssKbSamples": [
+      918740
+    ],
+    "elapsedSecondsSamples": [
+      20.93
+    ],
+    "maxRssKb": {
+      "avg": 918740,
+      "p50": 918740,
+      "p95": 918740,
+      "max": 918740
+    },
+    "elapsedSeconds": {
+      "avg": 20.93,
+      "p50": 20.93,
+      "p95": 20.93,
+      "max": 20.93
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "pass",
+      "channel": {
+        "id": "slack",
+        "label": "Slack",
+        "scenario": "slack-canary"
+      },
+      "sourceRunId": "2026-07-30T163147408Z-openclaw_2026.6.33-slack-slack-canary-rtt",
+      "rttMs": 2909,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 2909,
+        "source": "backfill:summary-rtt"
+      }
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/surfaces/rpc/rpc-channel-rtt-backfill-2026.6.33/result.json",
+    "source": "data/channels"
+  }
+}
