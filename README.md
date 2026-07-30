@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-30T17:42:59.891Z`
+Latest imported release coverage run: `2026-07-30T18:01:50.509Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -84,7 +84,7 @@ Latest imported release coverage run: `2026-07-30T17:42:59.891Z`
 | `2026.7.1-beta.4` | `1,286ms` | n/a | `1,787ms` | `3,378ms` | - | `3,378ms` | `284ms` |
 | `2026.7.1-beta.2` | `960ms` | `1,992ms` | `1,666ms` | `3,352ms` | - | `1,687ms` | `341ms` |
 | `2026.7.1-beta.1` | `1,185ms` | `1,903ms` | `1,889ms` | `3,549ms` | - | `3,549ms` | `407ms` |
-| `2026.6.33` | `1,132ms` | `1,029ms` | fail | `2,909ms` | - | `2,909ms` | `360ms` |
+| `2026.6.33` | `1,024ms` | `1,029ms` | `1,425ms` | `2,909ms` | - | `2,909ms` | `360ms` |
 | `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | - | `1,743ms` | `413ms` |
 | `2026.6.11-beta.2` | `929ms` | `988ms` | `1,759ms` | `3,174ms` | fail | `1,762ms` | `413ms` |
 | `2026.6.11-beta.1` | `859ms` | `1,850ms` | `1,876ms` | `3,120ms` | fail | `1,877ms` | `407ms` |
@@ -381,7 +381,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.7.1-beta.4` | `1,787ms` | `1,885ms` | `1,046MB` | `1,054MB` | ok |
 | `2026.7.1-beta.2` | `1,666ms` | `1,909ms` | `1,205MB` | `1,248MB` | ok |
 | `2026.7.1-beta.1` | `1,889ms` | `2,036ms` | `1,216MB` | `1,251MB` | ok |
-| `2026.6.33` | - | - | `3,168MB` | `3,168MB` | failed |
+| `2026.6.33` | `1,425ms` | `1,425ms` | `3,143MB` | `3,143MB` | ok |
 | `2026.6.11` | `1,728ms` | `1,957ms` | `1,185MB` | `1,215MB` | ok |
 | `2026.6.11-beta.2` | `1,759ms` | `1,908ms` | `1,185MB` | `1,228MB` | ok |
 | `2026.6.11-beta.1` | `1,876ms` | `2,024ms` | `1,176MB` | `1,258MB` | ok |
