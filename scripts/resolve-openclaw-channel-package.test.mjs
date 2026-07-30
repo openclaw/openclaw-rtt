@@ -96,8 +96,19 @@ test("queues explicit channel release versions even when already measured", asyn
 
 test("auto-requeues failed channel release versions", async () => {
   const workspace = await makeWorkspace();
+  for (const version of ["2026.5.16-beta.6", "2026.5.16-beta.7"]) {
+    await writeJsonl(path.join(workspace, `data/channels/telegram/${version}.jsonl`), [
+      row(version),
+    ]);
+    await writeJsonl(path.join(workspace, `data/channels/whatsapp/${version}.jsonl`), [
+      row(version, "whatsapp"),
+    ]);
+  }
   await writeJsonl(path.join(workspace, "data/channels/slack/2026.5.16-beta.6.jsonl"), [
     row("2026.5.16-beta.6", "slack", "fail"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/slack/2026.5.16-beta.7.jsonl"), [
+    row("2026.5.16-beta.7", "slack"),
   ]);
 
   const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
@@ -119,14 +130,11 @@ test("auto-requeues failed channel release versions", async () => {
   );
   const matrix = JSON.parse(outputs.matrix);
   assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
-    "whatsapp:2026.5.16-beta.6",
-    "slack:2026.5.16-beta.7",
-    "whatsapp:2026.5.16-beta.7",
     "slack:2026.5.16-beta.6",
   ]);
 });
 
-test("prioritizes unattempted channel gaps before failed retries", async () => {
+test("runs unattempted channel gaps before failed retry batches", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.16-beta.3.jsonl"), [
     row("2026.5.16-beta.3"),
@@ -157,7 +165,7 @@ test("prioritizes unattempted channel gaps before failed retries", async () => {
   );
   assert.deepEqual(
     JSON.parse(outputs.matrix).map((entry) => `${entry.channel}:${entry.version}`),
-    ["slack:2026.5.16-beta.4", "slack:2026.5.16-beta.3"],
+    ["slack:2026.5.16-beta.4"],
   );
 });
 

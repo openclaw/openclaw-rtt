@@ -220,16 +220,26 @@ queue.sort((left, right) => {
   return left.channel.localeCompare(right.channel);
 });
 
+const unattemptedQueue =
+  explicitVersions.length === 0
+    ? queue.filter(
+        (pkg) => !attempted.has(`${pkg.channel}\0${pkg.spec}\0${pkg.version}`),
+      )
+    : [];
+// Publish newly discovered coverage before retrying failed rows, since the
+// report commit waits for every matrix job to finish.
+const runnableQueue = unattemptedQueue.length > 0 ? unattemptedQueue : queue;
+
 await writeOutput({
-  count: String(queue.length),
-  matrix: JSON.stringify(queue),
-  should_run: queue.length > 0 ? "true" : "false",
+  count: String(runnableQueue.length),
+  matrix: JSON.stringify(runnableQueue),
+  should_run: runnableQueue.length > 0 ? "true" : "false",
   reason:
-    queue.length === 0
+    runnableQueue.length === 0
       ? "no-missing-channel-release-versions"
       : explicitVersions.length > 0
         ? "explicit-channel-release-versions"
         : "missing-channel-release-versions",
-  versions: [...new Set(queue.map((pkg) => pkg.version))].join(" "),
-  channels: [...new Set(queue.map((pkg) => pkg.channel))].join(" "),
+  versions: [...new Set(runnableQueue.map((pkg) => pkg.version))].join(" "),
+  channels: [...new Set(runnableQueue.map((pkg) => pkg.channel))].join(" "),
 });
