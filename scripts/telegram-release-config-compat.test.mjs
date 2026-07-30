@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { adaptTelegramReleaseGatewayConfig } from "./telegram-release-config-compat.mjs";
+import {
+  adaptTelegramReleaseGatewayConfig,
+  resolveTelegramReleaseAuthRuntimePath,
+} from "./telegram-release-config-compat.mjs";
+
+const RELEASE_AUTH_RUNTIME_PATH =
+  "/npm-global/lib/node_modules/openclaw/dist/plugin-sdk/agent-runtime.js";
 
 function currentConfig() {
   return {
@@ -51,6 +57,7 @@ for (const packageSpec of [
     assert.deepEqual(adapted.memory, { backend: "builtin" });
     assert.deepEqual(adapted.plugins, config.plugins);
     assert.deepEqual(config, currentConfig());
+    assert.equal(resolveTelegramReleaseAuthRuntimePath(packageSpec), RELEASE_AUTH_RUNTIME_PATH);
   });
 }
 
@@ -59,10 +66,22 @@ for (const packageSpec of [
   "openclaw@2026.7.2-beta.5",
   "openclaw@2026.7.2",
   "openclaw@main",
+  "openclaw@latest",
+  "openclaw@beta",
   "openclaw@2026.7.2-beta.3-extra",
 ]) {
   test(`preserves current config for ${packageSpec}`, () => {
     const config = currentConfig();
     assert.strictEqual(adaptTelegramReleaseGatewayConfig(config, packageSpec), config);
+    assert.equal(
+      resolveTelegramReleaseAuthRuntimePath(packageSpec),
+      RELEASE_AUTH_RUNTIME_PATH,
+    );
   });
 }
+
+test("does not select the installed auth runtime without an OpenClaw package spec", () => {
+  assert.equal(resolveTelegramReleaseAuthRuntimePath(undefined), undefined);
+  assert.equal(resolveTelegramReleaseAuthRuntimePath(""), undefined);
+  assert.equal(resolveTelegramReleaseAuthRuntimePath("other@latest"), undefined);
+});

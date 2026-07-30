@@ -1,9 +1,13 @@
+import { pathToFileURL } from "node:url";
+
 const LEGACY_CONFIG_CUTOFF = {
   major: 2026,
   minor: 7,
   patch: 2,
   prerelease: 4,
 };
+const TELEGRAM_RELEASE_AUTH_RUNTIME_PATH =
+  "/npm-global/lib/node_modules/openclaw/dist/plugin-sdk/agent-runtime.js";
 
 function parseExactPackageVersion(packageSpec) {
   const match =
@@ -32,6 +36,22 @@ function compareVersions(left, right) {
     }
   }
   return 0;
+}
+
+export function resolveTelegramReleaseAuthRuntimePath(packageSpec) {
+  return typeof packageSpec === "string" && packageSpec.trim().startsWith("openclaw@")
+    ? TELEGRAM_RELEASE_AUTH_RUNTIME_PATH
+    : undefined;
+}
+
+export async function resolveTelegramReleaseAuthRuntime(packageSpec) {
+  const runtimePath = resolveTelegramReleaseAuthRuntimePath(packageSpec);
+  if (!runtimePath) {
+    return undefined;
+  }
+  // The Docker harness installs the SUT at this fixed root while /app remains
+  // the trusted current QA source. Import the SUT serializer so it owns its DB schema.
+  return await import(pathToFileURL(runtimePath).href);
 }
 
 function legacyMemoryConfig(memory) {
