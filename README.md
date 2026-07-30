@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-30T18:46:09.866Z`
+Latest imported release coverage run: `2026-07-30T19:09:03.156Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -139,7 +139,7 @@ Latest imported release coverage run: `2026-07-30T18:46:09.866Z`
 | `2026.5.18-beta.1` | `2,541ms` | `1,017ms` | `5,957ms` | blocked | `7,875ms` | `5,977ms` | n/a |
 | `2026.5.16-beta.7` | `2,190ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` | `6,055ms` | n/a |
 | `2026.5.16-beta.6` | `2,216ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` | `4,732ms` | n/a |
-| `2026.5.16-beta.5` | `2,287ms` | `1,386ms` | fail | `4,703ms` | `7,853ms` | `4,740ms` | n/a |
+| `2026.5.16-beta.5` | `2,287ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` | `4,740ms` | n/a |
 | `2026.5.16-beta.4` | `8,826ms` | `1,221ms` | `26,263ms` | `4,255ms` | `6,888ms` | `6,975ms` | n/a |
 | `2026.5.16-beta.3` | `8,856ms` | `1,112ms` | `26,771ms` | `4,690ms` | `8,644ms` | `8,644ms` | n/a |
 | `2026.5.16-beta.2` | `8,873ms` | `1,050ms` | `26,639ms` | `4,751ms` | `8,377ms` | `7,308ms` | n/a |
@@ -435,176 +435,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.5.18` | `7,318ms` | `7,657ms` | `768MB` | `783MB` | ok |
 | `2026.5.18-beta.1` | `5,957ms` | `6,083ms` | `770MB` | `783MB` | ok |
 | `2026.5.16-beta.7` | `7,307ms` | `7,792ms` | `766MB` | `782MB` | ok |
-| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `3,150MB` | `3,150MB` | failed: invalid config.patch params: at root: unexpected property 'replacePaths'
-Gateway logs:
-2026-07-30T18:16:58.654+00:00 [gateway] loading configuration…
-2026-07-30T18:16:59.676+00:00 [gateway] resolving authentication…
-2026-07-30T18:16:59.685+00:00 [gateway] Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.
-2026-07-30T18:16:59.695+00:00 [gateway] starting...
-2026-07-30T18:17:00.454+00:00 [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
-2026-07-30T18:17:03.278+00:00 [gateway] starting HTTP server...
-2026-07-30T18:17:03.588+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-30T18:17:05.330+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-30T18:17:05.332+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 5.6s)
-2026-07-30T18:17:05.334+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-30.log
-2026-07-30T18:17:05.406+00:00 [gateway] starting channels and sidecars...
-2026-07-30T18:17:05.531+00:00 [discord] [sut] starting provider
-2026-07-30T18:17:05.783+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-nyo6cD/workspace)
-2026-07-30T18:17:06.047+00:00 [discord] channels resolved: 1497045011244777472/1497045013002064025 (guild:OpenClaw QA Lab 2; channel:general)
-2026-07-30T18:17:06.378+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT 2
-2026-07-30T18:17:06.379+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-30T18:17:06.383+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-30T18:17:06.385+00:00 [gateway] ready
-2026-07-30T18:17:06.392+00:00 [heartbeat] started
-2026-07-30T18:17:06.720+00:00 [discord] client initialized as 1497048027418984549; awaiting gateway readiness
-2026-07-30T18:17:09.343+00:00 [ws] ⇄ res ✓ config.get 1731ms conn=06d25fb2…f85a id=f5bbf47b…e631
-2026-07-30T18:17:09.501+00:00 [ws] ⇄ res ✓ channels.status 140ms conn=464c1f41…bfdf id=29d90879…6115
-2026-07-30T18:17:10.282+00:00 [ws] ⇄ res ✓ channels.status 133ms conn=f5d4ca3c…0cec id=7a5f0383…9aea
-2026-07-30T18:17:11.066+00:00 [ws] ⇄ res ✓ channels.status 131ms conn=248aec87…3e4c id=a2a1b182…4dce
-2026-07-30T18:17:11.708+00:00 [ws] ⇄ res ✓ channels.status 128ms conn=6a39c0ed…184b id=21c0f9ad…fec1
-2026-07-30T18:17:11.881+00:00 [ws] ⇄ res ✓ config.get 85ms conn=3f110064…545b id=31d3fb6f…00cf
-2026-07-30T18:17:11.982+00:00 [ws] ⇄ res ✓ config.get 90ms conn=2c17d217…d6c0 id=0b90bde6…7e08
-2026-07-30T18:17:12.133+00:00 [ws] ⇄ res ✗ config.patch 4ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=2fe3bcea…7d9d id=ff964e41…d141 \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST
-Gateway logs:
-2026-07-30T18:16:58.654+00:00 [gateway] loading configuration…
-2026-07-30T18:16:59.676+00:00 [gateway] resolving authentication…
-2026-07-30T18:16:59.685+00:00 [gateway] Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.
-2026-07-30T18:16:59.695+00:00 [gateway] starting...
-2026-07-30T18:17:00.454+00:00 [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
-2026-07-30T18:17:03.278+00:00 [gateway] starting HTTP server...
-2026-07-30T18:17:03.588+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-30T18:17:05.330+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-30T18:17:05.332+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 5.6s)
-2026-07-30T18:17:05.334+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-30.log
-2026-07-30T18:17:05.406+00:00 [gateway] starting channels and sidecars...
-2026-07-30T18:17:05.531+00:00 [discord] [sut] starting provider
-2026-07-30T18:17:05.783+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-nyo6cD/workspace)
-2026-07-30T18:17:06.047+00:00 [discord] channels resolved: 1497045011244777472/1497045013002064025 (guild:OpenClaw QA Lab 2; channel:general)
-2026-07-30T18:17:06.378+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT 2
-2026-07-30T18:17:06.379+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-30T18:17:06.383+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-30T18:17:06.385+00:00 [gateway] ready
-2026-07-30T18:17:06.392+00:00 [heartbeat] started
-2026-07-30T18:17:06.720+00:00 [discord] client initialized as 1497048027418984549; awaiting gateway readiness
-2026-07-30T18:17:09.343+00:00 [ws] ⇄ res ✓ config.get 1731ms conn=06d25fb2…f85a id=f5bbf47b…e631
-2026-07-30T18:17:09.501+00:00 [ws] ⇄ res ✓ channels.status 140ms conn=464c1f41…bfdf id=29d90879…6115
-2026-07-30T18:17:10.282+00:00 [ws] ⇄ res ✓ channels.status 133ms conn=f5d4ca3c…0cec id=7a5f0383…9aea
-2026-07-30T18:17:11.066+00:00 [ws] ⇄ res ✓ channels.status 131ms conn=248aec87…3e4c id=a2a1b182…4dce
-2026-07-30T18:17:11.708+00:00 [ws] ⇄ res ✓ channels.status 128ms conn=6a39c0ed…184b id=21c0f9ad…fec1
-2026-07-30T18:17:11.881+00:00 [ws] ⇄ res ✓ config.get 85ms conn=3f110064…545b id=31d3fb6f…00cf
-2026-07-30T18:17:11.982+00:00 [ws] ⇄ res ✓ config.get 90ms conn=2c17d217…d6c0 id=0b90bde6…7e08
-2026-07-30T18:17:12.133+00:00 [ws] ⇄ res ✗ config.patch 4ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=2fe3bcea…7d9d id=ff964e41…d141 \| invalid config.patch params: at root: unexpected property 'replacePaths'
-Gateway logs:
-2026-07-30T18:16:58.654+00:00 [gateway] loading configuration…
-2026-07-30T18:16:59.676+00:00 [gateway] resolving authentication…
-2026-07-30T18:16:59.685+00:00 [gateway] Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.
-2026-07-30T18:16:59.695+00:00 [gateway] starting...
-2026-07-30T18:17:00.454+00:00 [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
-2026-07-30T18:17:03.278+00:00 [gateway] starting HTTP server...
-2026-07-30T18:17:03.588+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-30T18:17:05.330+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-30T18:17:05.332+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 5.6s)
-2026-07-30T18:17:05.334+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-30.log
-2026-07-30T18:17:05.406+00:00 [gateway] starting channels and sidecars...
-2026-07-30T18:17:05.531+00:00 [discord] [sut] starting provider
-2026-07-30T18:17:05.783+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-nyo6cD/workspace)
-2026-07-30T18:17:06.047+00:00 [discord] channels resolved: 1497045011244777472/1497045013002064025 (guild:OpenClaw QA Lab 2; channel:general)
-2026-07-30T18:17:06.378+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT 2
-2026-07-30T18:17:06.379+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-30T18:17:06.383+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-30T18:17:06.385+00:00 [gateway] ready
-2026-07-30T18:17:06.392+00:00 [heartbeat] started
-2026-07-30T18:17:06.720+00:00 [discord] client initialized as 1497048027418984549; awaiting gateway readiness
-2026-07-30T18:17:09.343+00:00 [ws] ⇄ res ✓ config.get 1731ms conn=06d25fb2…f85a id=f5bbf47b…e631
-2026-07-30T18:17:09.501+00:00 [ws] ⇄ res ✓ channels.status 140ms conn=464c1f41…bfdf id=29d90879…6115
-2026-07-30T18:17:10.282+00:00 [ws] ⇄ res ✓ channels.status 133ms conn=f5d4ca3c…0cec id=7a5f0383…9aea
-2026-07-30T18:17:11.066+00:00 [ws] ⇄ res ✓ channels.status 131ms conn=248aec87…3e4c id=a2a1b182…4dce
-2026-07-30T18:17:11.708+00:00 [ws] ⇄ res ✓ channels.status 128ms conn=6a39c0ed…184b id=21c0f9ad…fec1
-2026-07-30T18:17:11.881+00:00 [ws] ⇄ res ✓ config.get 85ms conn=3f110064…545b id=31d3fb6f…00cf
-2026-07-30T18:17:11.982+00:00 [ws] ⇄ res ✓ config.get 90ms conn=2c17d217…d6c0 id=0b90bde6…7e08
-2026-07-30T18:17:12.133+00:00 [ws] ⇄ res ✗ config.patch 4ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=2fe3bcea…7d9d id=ff964e41…d141 \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST |
-| `2026.5.16-beta.5` | - | - | `3,171MB` | `3,171MB` | failed: invalid config.patch params: at root: unexpected property 'replacePaths'
-Gateway logs:
-2026-07-30T18:16:02.631+00:00 [gateway] loading configuration…
-2026-07-30T18:16:04.269+00:00 [gateway] resolving authentication…
-2026-07-30T18:16:04.278+00:00 [gateway] Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.
-2026-07-30T18:16:04.287+00:00 [gateway] starting...
-2026-07-30T18:16:05.215+00:00 [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
-2026-07-30T18:16:08.155+00:00 [gateway] starting HTTP server...
-2026-07-30T18:16:08.356+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-30T18:16:10.356+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-30T18:16:10.358+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 6.1s)
-2026-07-30T18:16:10.360+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-30.log
-2026-07-30T18:16:10.473+00:00 [gateway] starting channels and sidecars...
-2026-07-30T18:16:10.646+00:00 [discord] [sut] starting provider
-2026-07-30T18:16:10.938+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-5jppTs/workspace)
-2026-07-30T18:16:11.176+00:00 [discord] channels resolved: 1496962067029299350/1496962068027281447 (guild:OpenClaw QA Lab; channel:general)
-2026-07-30T18:16:11.595+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT
-2026-07-30T18:16:11.597+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-30T18:16:11.599+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-30T18:16:11.602+00:00 [gateway] ready
-2026-07-30T18:16:11.609+00:00 [heartbeat] started
-2026-07-30T18:16:12.814+00:00 [discord] client initialized as 1496965113469603871; awaiting gateway readiness
-2026-07-30T18:16:14.465+00:00 [ws] ⇄ res ✓ config.get 1619ms conn=1c64bb82…decc id=3822f6da…c400
-2026-07-30T18:16:15.091+00:00 [ws] ⇄ res ✓ channels.status 390ms conn=eff1933f…05e9 id=8722276f…03c3
-2026-07-30T18:16:16.037+00:00 [ws] ⇄ res ✓ channels.status 216ms conn=a3eaa2fd…8233 id=c2cc1db5…e1a5
-2026-07-30T18:16:16.261+00:00 [ws] ⇄ res ✓ config.get 127ms conn=c2ae83d6…7e0b id=4e78ad1e…60c2
-2026-07-30T18:16:16.396+00:00 [ws] ⇄ res ✓ config.get 125ms conn=6c21635b…9633 id=2e7b1888…0632
-2026-07-30T18:16:16.620+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=d13e6395…89ed id=4404cbd5…fe9c \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST
-Gateway logs:
-2026-07-30T18:16:02.631+00:00 [gateway] loading configuration…
-2026-07-30T18:16:04.269+00:00 [gateway] resolving authentication…
-2026-07-30T18:16:04.278+00:00 [gateway] Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.
-2026-07-30T18:16:04.287+00:00 [gateway] starting...
-2026-07-30T18:16:05.215+00:00 [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
-2026-07-30T18:16:08.155+00:00 [gateway] starting HTTP server...
-2026-07-30T18:16:08.356+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-30T18:16:10.356+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-30T18:16:10.358+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 6.1s)
-2026-07-30T18:16:10.360+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-30.log
-2026-07-30T18:16:10.473+00:00 [gateway] starting channels and sidecars...
-2026-07-30T18:16:10.646+00:00 [discord] [sut] starting provider
-2026-07-30T18:16:10.938+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-5jppTs/workspace)
-2026-07-30T18:16:11.176+00:00 [discord] channels resolved: 1496962067029299350/1496962068027281447 (guild:OpenClaw QA Lab; channel:general)
-2026-07-30T18:16:11.595+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT
-2026-07-30T18:16:11.597+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-30T18:16:11.599+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-30T18:16:11.602+00:00 [gateway] ready
-2026-07-30T18:16:11.609+00:00 [heartbeat] started
-2026-07-30T18:16:12.814+00:00 [discord] client initialized as 1496965113469603871; awaiting gateway readiness
-2026-07-30T18:16:14.465+00:00 [ws] ⇄ res ✓ config.get 1619ms conn=1c64bb82…decc id=3822f6da…c400
-2026-07-30T18:16:15.091+00:00 [ws] ⇄ res ✓ channels.status 390ms conn=eff1933f…05e9 id=8722276f…03c3
-2026-07-30T18:16:16.037+00:00 [ws] ⇄ res ✓ channels.status 216ms conn=a3eaa2fd…8233 id=c2cc1db5…e1a5
-2026-07-30T18:16:16.261+00:00 [ws] ⇄ res ✓ config.get 127ms conn=c2ae83d6…7e0b id=4e78ad1e…60c2
-2026-07-30T18:16:16.396+00:00 [ws] ⇄ res ✓ config.get 125ms conn=6c21635b…9633 id=2e7b1888…0632
-2026-07-30T18:16:16.620+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=d13e6395…89ed id=4404cbd5…fe9c \| invalid config.patch params: at root: unexpected property 'replacePaths'
-Gateway logs:
-2026-07-30T18:16:02.631+00:00 [gateway] loading configuration…
-2026-07-30T18:16:04.269+00:00 [gateway] resolving authentication…
-2026-07-30T18:16:04.278+00:00 [gateway] Control UI assets are missing; first startup may spend a few seconds building them before the gateway binds. `pnpm gateway:watch` does not rebuild Control UI assets, so rerun `pnpm ui:build` after UI changes or use `pnpm ui:dev` while developing the Control UI. For a full local dist, run `pnpm build && pnpm ui:build`.
-2026-07-30T18:16:04.287+00:00 [gateway] starting...
-2026-07-30T18:16:05.215+00:00 [gateway] Control UI assets missing; building (ui:build, auto-installs UI deps)…
-2026-07-30T18:16:08.155+00:00 [gateway] starting HTTP server...
-2026-07-30T18:16:08.356+00:00 [health-monitor] started (interval: 300s, startup-grace: 60s, channel-connect-grace: 120s)
-2026-07-30T18:16:10.356+00:00 [gateway] agent model: mock-openai/gpt-5.5 (thinking=medium, fast=off)
-2026-07-30T18:16:10.358+00:00 [gateway] http server listening (3 plugins: acpx, discord, memory-core; 6.1s)
-2026-07-30T18:16:10.360+00:00 [gateway] log file: /tmp/openclaw/openclaw-2026-07-30.log
-2026-07-30T18:16:10.473+00:00 [gateway] starting channels and sidecars...
-2026-07-30T18:16:10.646+00:00 [discord] [sut] starting provider
-2026-07-30T18:16:10.938+00:00 [plugins] embedded acpx runtime backend registered (cwd: /tmp/openclaw/openclaw-qa-suite-5jppTs/workspace)
-2026-07-30T18:16:11.176+00:00 [discord] channels resolved: 1496962067029299350/1496962068027281447 (guild:OpenClaw QA Lab; channel:general)
-2026-07-30T18:16:11.595+00:00 [discord] [sut] Discord bot probe resolved @OpenClaw QA SUT
-2026-07-30T18:16:11.597+00:00 [discord] [sut] Discord Message Content Intent is limited; bots under 100 servers can use it without verification.
-2026-07-30T18:16:11.599+00:00 [plugins] embedded acpx runtime backend ready
-2026-07-30T18:16:11.602+00:00 [gateway] ready
-2026-07-30T18:16:11.609+00:00 [heartbeat] started
-2026-07-30T18:16:12.814+00:00 [discord] client initialized as 1496965113469603871; awaiting gateway readiness
-2026-07-30T18:16:14.465+00:00 [ws] ⇄ res ✓ config.get 1619ms conn=1c64bb82…decc id=3822f6da…c400
-2026-07-30T18:16:15.091+00:00 [ws] ⇄ res ✓ channels.status 390ms conn=eff1933f…05e9 id=8722276f…03c3
-2026-07-30T18:16:16.037+00:00 [ws] ⇄ res ✓ channels.status 216ms conn=a3eaa2fd…8233 id=c2cc1db5…e1a5
-2026-07-30T18:16:16.261+00:00 [ws] ⇄ res ✓ config.get 127ms conn=c2ae83d6…7e0b id=4e78ad1e…60c2
-2026-07-30T18:16:16.396+00:00 [ws] ⇄ res ✓ config.get 125ms conn=6c21635b…9633 id=2e7b1888…0632
-2026-07-30T18:16:16.620+00:00 [ws] ⇄ res ✗ config.patch 3ms errorCode=INVALID_REQUEST errorMessage=invalid config.patch params: at root: unexpected property 'replacePaths' conn=d13e6395…89ed id=4404cbd5…fe9c \| invalid config.patch params: at root: unexpected property 'replacePaths' \| INVALID_REQUEST |
+| `2026.5.16-beta.6` | `7,844ms` | `7,844ms` | `3,193MB` | `3,193MB` | timeout |
+| `2026.5.16-beta.5` | - | - | `3,164MB` | `3,164MB` | timeout |
 | `2026.5.16-beta.4` | `26,263ms` | `28,304ms` | `779MB` | `815MB` | ok |
 | `2026.5.16-beta.3` | `26,771ms` | `28,550ms` | `812MB` | `825MB` | ok |
 | `2026.5.16-beta.2` | `26,639ms` | `27,767ms` | `808MB` | `820MB` | ok |
