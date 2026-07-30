@@ -21,7 +21,7 @@ export const CHANNEL_RTT_CHANNELS = {
   },
   telegram: {
     command: "telegram",
-    defaultScenario: "channel-canary",
+    defaultScenario: "telegram-reply-chain-exact-marker",
     label: "Telegram",
     releaseSkipVersions: {
       "2026.7.1-beta.4":

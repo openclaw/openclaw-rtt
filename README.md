@@ -14,7 +14,7 @@ channel test driver -> OpenClaw channel transport -> gateway/agent turn -> outbo
 
 That path can include channel API latency, polling/webhook timing, gateway routing, provider turn time, outbound send, and driver observation delay. `p50` is the median successful sample; `p95` is the tail sample. RSS appears when the importing workflow collected process resource metrics around the sampled command; older release rows stay blank until an RSS backfill run updates only the resource fields.
 
-Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Telegram release rows use `channel-canary`; Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries. RSS is not pure channel transport memory: for Discord, Slack, and WhatsApp it includes the QA-lab command process and any cold-start overhead. `-` cells mean no successful RTT sample was imported for that channel/version yet, or an imported all-failed run exists but produced no usable RTT value.
+Treat cross-channel numbers as coverage and regression signal, not a pure transport ranking. Current Telegram release rows use `telegram-reply-chain-exact-marker`; historical rows retain `channel-canary`. Discord release rows use `discord-canary`; Slack and WhatsApp use `openclaw qa <channel>` canaries. RSS is not pure channel transport memory: for Discord, Slack, and WhatsApp it includes the QA-lab command process and any cold-start overhead. `-` cells mean no successful RTT sample was imported for that channel/version yet, or an imported all-failed run exists but produced no usable RTT value.
 
 Reports:
 
@@ -259,7 +259,7 @@ Latest imported surface run: `2026-07-28T08:06:15.342Z`
 
 ## Telegram Release Runs
 
-Telegram release runs use the OpenClaw package Telegram live QA lane on Blacksmith with `mock-openai`, scenario `channel-canary`, 20 target RTT checks, a 240s scenario timeout, and a 30s per-check timeout. New rows import aggregate timing from `qa-evidence.json`; older rows imported by the retired package RTT wrapper keep their historical per-sample arrays.
+Telegram release runs use the OpenClaw package Telegram live QA lane on Blacksmith with `mock-openai`, scenario `telegram-reply-chain-exact-marker`, 20 target RTT checks, a 240s scenario timeout, and a 30s per-check timeout. New rows import aggregate timing from `qa-evidence.json`; historical `channel-canary` rows and older rows imported by the retired package RTT wrapper keep their original scenario and per-sample arrays.
 
 The system under test is the published package running its own Telegram bot. The OpenClaw repo only supplies the mock model server and Telegram driver. `p50` is the median normal-reply RTT. Log notes: [2026-05-02 Testbox stable sweep](logs/2026-05-02-testbox-stable-sweep.md).
 

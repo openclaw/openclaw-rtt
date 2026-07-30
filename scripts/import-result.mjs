@@ -11,13 +11,16 @@ import { aggregateResources, readResourceMetrics } from "./resource-metrics.mjs"
 const TELEGRAM_CHANNEL = {
   id: "telegram",
   label: "Telegram",
-  scenario: "channel-canary",
 };
+// Preserve the historical direct-import default; current workflows pass their
+// selected scenario explicitly so old evidence remains importable.
+const DEFAULT_TELEGRAM_SCENARIO = "channel-canary";
 
 function usage() {
   return [
     "Usage: node scripts/import-result.mjs <path-to-qa-evidence.json>",
     "  [--resource-metrics <resource-metrics.env>]",
+    "  [--scenario <scenario-id>]",
     "  --version <version-or-ref> --started-at <iso> --finished-at <iso>",
   ].join("\n");
 }
@@ -32,6 +35,15 @@ function parseArgs(argv) {
     }
     if (arg === "--resource-metrics") {
       args.resourceMetricsPath = argv[(index += 1)];
+      continue;
+    }
+    if (arg === "--scenario") {
+      const scenario = argv[index + 1];
+      if (scenario === undefined) {
+        throw new Error(`--scenario requires a value.\n${usage()}`);
+      }
+      args.scenario = scenario;
+      index += 1;
       continue;
     }
     if (arg === "--version") {
@@ -79,12 +91,20 @@ function safeRunLabel(input) {
   return input.replace(/[^a-zA-Z0-9.-]+/gu, "_").replace(/^_+|_+$/gu, "");
 }
 
-function buildEvidenceRunId(startedAt, spec) {
+function requireScenario(value) {
+  const scenario = requireString(value, "--scenario");
+  if (safeRunLabel(scenario) !== scenario) {
+    throw new Error("--scenario must contain only letters, numbers, dots, and hyphens.");
+  }
+  return scenario;
+}
+
+function buildEvidenceRunId(startedAt, spec, scenario) {
   return [
     startedAt.replaceAll(":", "").replaceAll(".", ""),
     safeRunLabel(spec),
     "telegram",
-    TELEGRAM_CHANNEL.scenario,
+    scenario,
     "rtt",
   ].join("-");
 }
@@ -166,24 +186,30 @@ function buildResultFromEvidence(evidence, args) {
     throw new Error("input must be an OpenClaw qa-evidence.json summary.");
   }
   const { finishedAtMs, startedAtMs } = requireEvidenceArgs(args);
-  const mention = evidenceEntry(evidence, TELEGRAM_CHANNEL.scenario);
+  const scenario =
+    args.scenario === undefined ? DEFAULT_TELEGRAM_SCENARIO : requireScenario(args.scenario);
+  const mention = evidenceEntry(evidence, scenario);
   const packageSpec = packageSpecFromEvidence(mention);
-  const mentionTiming = readTiming(mention, TELEGRAM_CHANNEL.scenario);
+  const mentionTiming = readTiming(mention, scenario);
   const canaryMs = finiteTimingNumber(mentionTiming, "rttMs");
   const sampleCount = requirePositiveTimingNumber(
     mentionTiming,
     "samples",
-    TELEGRAM_CHANNEL.scenario,
+    scenario,
   );
   const mentionReplyMs = finiteTimingNumber(mentionTiming, "p50Ms");
   const failedSamples = finiteTimingNumber(mentionTiming, "failedSamples");
   return {
+    channel: {
+      ...TELEGRAM_CHANNEL,
+      scenario,
+    },
     package: {
       spec: packageSpec,
       version: args.version,
     },
     run: {
-      id: buildEvidenceRunId(args.startedAt, packageSpec),
+      id: buildEvidenceRunId(args.startedAt, packageSpec, scenario),
       startedAt: args.startedAt,
       finishedAt: args.finishedAt,
       durationMs: finishedAtMs - startedAtMs,
@@ -196,7 +222,7 @@ function buildResultFromEvidence(evidence, args) {
     },
     mode: {
       providerMode: providerModeFromEvidence(mention),
-      scenarios: [TELEGRAM_CHANNEL.scenario],
+      scenarios: [scenario],
       source: "qa-evidence",
     },
     rtt: {
@@ -253,10 +279,6 @@ async function main() {
     const resourceMetrics = await readResourceMetrics(path.resolve(args.resourceMetricsPath));
     result.resources = aggregateResources([resourceMetrics], resourceMeasurementForResult(result));
   }
-  result.channel = {
-    ...TELEGRAM_CHANNEL,
-  };
-
   const runDir = path.join(channelRunsDir(TELEGRAM_CHANNEL.id), result.run.id);
   const resultPath = channelResultPath(TELEGRAM_CHANNEL.id, result.run.id);
   result.artifacts = {

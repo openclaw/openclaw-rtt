@@ -298,7 +298,11 @@ function mainSurfaceDashboardRows(rows) {
 
 function mainDashboardRows(telegramRows, discordRows, channelRows) {
   return [
-    mainDashboardEntry("Telegram", "channel-canary", telegramRows),
+    mainDashboardEntry(
+      "Telegram",
+      CHANNEL_CONFIG_BY_LABEL.get("Telegram").defaultScenario,
+      telegramRows,
+    ),
     mainDashboardEntry("Discord", "discord-canary", discordRows),
     ...mainChannelDashboardRows(channelRows),
   ].sort((left, right) => {

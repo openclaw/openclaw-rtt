@@ -177,6 +177,7 @@ jobs:
           git pull --rebase origin main
           node scripts/import-result.mjs "${{ steps.rtt.outputs.evidence_path }}" \
             --version "${{ steps.pack.outputs.package_version }}" \
+            --scenario telegram-reply-chain-exact-marker \
             --started-at "${{ steps.rtt.outputs.started_at }}" \
             --finished-at "${{ steps.rtt.outputs.finished_at }}" \
             --resource-metrics "${{ steps.rtt.outputs.resource_metrics_path }}"

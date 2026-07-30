@@ -266,6 +266,7 @@ jobs:
           while IFS=$'\t' read -r evidence_path metrics_path version started_at finished_at; do
             node scripts/import-result.mjs "$evidence_path" \
               --version "$version" \
+              --scenario telegram-reply-chain-exact-marker \
               --started-at "$started_at" \
               --finished-at "$finished_at" \
               --resource-metrics "$metrics_path"

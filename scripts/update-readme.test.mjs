@@ -126,12 +126,15 @@ test("renders latest main dashboard rows for Telegram, Discord, and live channel
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
-    rttRow({
-      package: { spec: "openclaw@main", version: "2026.5.16+telegram1234" },
-      run: { id: "telegram-run", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
-      rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
-      resources: { maxRssKb: { p50: 153600, p95: 204800, max: 204800 } },
-    }),
+    {
+      channel: { id: "telegram", label: "Telegram", scenario: "channel-canary" },
+      ...rttRow({
+        package: { spec: "openclaw@main", version: "2026.5.16+telegram1234" },
+        run: { id: "telegram-run", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
+        rtt: { warmSamples: [1000, 2000], p50Ms: 1000, p95Ms: 2000 },
+        resources: { maxRssKb: { p50: 153600, p95: 204800, max: 204800 } },
+      }),
+    },
   ]);
   await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     rttRow({

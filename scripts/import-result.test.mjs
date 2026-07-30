@@ -28,7 +28,7 @@ async function readJsonl(pathname) {
     .map((line) => JSON.parse(line));
 }
 
-test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
+test("imports a selected Telegram QA scenario as the existing RTT row shape", async () => {
   const workspace = await makeWorkspace();
   const evidencePath = path.join(workspace, "qa-evidence.json");
   const metricsPath = path.join(workspace, "resource-metrics.env");
@@ -40,7 +40,7 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
       {
         test: {
           kind: "live-transport-check",
-          id: "channel-canary",
+          id: "telegram-reply-chain-exact-marker",
           title: "Telegram mentioned message gets a reply",
         },
         execution: {
@@ -84,6 +84,8 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
       "2026-06-12T20:00:30.000Z",
       "--resource-metrics",
       metricsPath,
+      "--scenario",
+      "telegram-reply-chain-exact-marker",
     ],
     { cwd: workspace },
   );
@@ -94,13 +96,14 @@ test("imports Telegram qa-evidence as the existing RTT row shape", async () => {
   assert.deepEqual(row.channel, {
     id: "telegram",
     label: "Telegram",
-    scenario: "channel-canary",
+    scenario: "telegram-reply-chain-exact-marker",
   });
   assert.equal(row.package.spec, "openclaw@main");
   assert.equal(row.package.version, "2026.6.2+abcdef1234");
   assert.equal(row.run.status, "pass");
   assert.equal(row.run.durationMs, 30_000);
   assert.equal(row.mode.providerMode, "mock-openai");
+  assert.deepEqual(row.mode.scenarios, ["telegram-reply-chain-exact-marker"]);
   assert.equal(row.mode.source, "qa-evidence");
   assert.equal(row.rtt.canaryMs, 1200);
   assert.equal(row.rtt.mentionReplyMs, 1200);
@@ -171,5 +174,92 @@ test("rejects qa-evidence without aggregate Telegram RTT samples", async () => {
       { cwd: workspace },
     ),
     /channel-canary must include positive result\.timing\.samples/u,
+  );
+});
+
+test("rejects a Telegram scenario that could escape the run directory", async () => {
+  const workspace = await makeWorkspace();
+  const evidencePath = path.join(workspace, "qa-evidence.json");
+  await writeJson(evidencePath, {
+    kind: "openclaw.qa.evidence-summary",
+    entries: [],
+  });
+
+  await assert.rejects(
+    execFileAsync(
+      process.execPath,
+      [
+        IMPORT_SCRIPT,
+        evidencePath,
+        "--version",
+        "2026.6.2+abcdef1234",
+        "--scenario",
+        "../outside",
+        "--started-at",
+        "2026-06-12T20:00:00.000Z",
+        "--finished-at",
+        "2026-06-12T20:00:30.000Z",
+      ],
+      { cwd: workspace },
+    ),
+    /--scenario must contain only letters, numbers, dots, and hyphens/u,
+  );
+  await assert.rejects(fs.access(path.join(workspace, "runs/outside")));
+});
+
+test("rejects an explicitly empty Telegram scenario", async () => {
+  const workspace = await makeWorkspace();
+  const evidencePath = path.join(workspace, "qa-evidence.json");
+  await writeJson(evidencePath, {
+    kind: "openclaw.qa.evidence-summary",
+    entries: [],
+  });
+
+  await assert.rejects(
+    execFileAsync(
+      process.execPath,
+      [
+        IMPORT_SCRIPT,
+        evidencePath,
+        "--version",
+        "2026.6.2+abcdef1234",
+        "--scenario",
+        "",
+        "--started-at",
+        "2026-06-12T20:00:00.000Z",
+        "--finished-at",
+        "2026-06-12T20:00:30.000Z",
+      ],
+      { cwd: workspace },
+    ),
+    /--scenario must be a non-empty string/u,
+  );
+});
+
+test("rejects a Telegram scenario flag without a value", async () => {
+  const workspace = await makeWorkspace();
+  const evidencePath = path.join(workspace, "qa-evidence.json");
+  await writeJson(evidencePath, {
+    kind: "openclaw.qa.evidence-summary",
+    entries: [],
+  });
+
+  await assert.rejects(
+    execFileAsync(
+      process.execPath,
+      [
+        IMPORT_SCRIPT,
+        evidencePath,
+        "--version",
+        "2026.6.2+abcdef1234",
+        "--started-at",
+        "2026-06-12T20:00:00.000Z",
+        "--finished-at",
+        "2026-06-12T20:00:30.000Z",
+        "--scenario",
+      ],
+      { cwd: workspace },
+    ),
+    /--scenario requires a value/u,
   );
 });
