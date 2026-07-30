@@ -176,6 +176,7 @@ jobs:
           set -euo pipefail
           git pull --rebase origin main
           node scripts/import-result.mjs "${{ steps.rtt.outputs.evidence_path }}" \
+            --spec openclaw@main \
             --version "${{ steps.pack.outputs.package_version }}" \
             --scenario telegram-reply-chain-exact-marker \
             --started-at "${{ steps.rtt.outputs.started_at }}" \

@@ -46,7 +46,7 @@ test("imports a selected Telegram QA scenario as the existing RTT row shape", as
         execution: {
           packageSource: {
             kind: "npm-package",
-            spec: "openclaw@main",
+            spec: "/package-under-test/openclaw-2026.6.2.tgz",
           },
           provider: {
             id: "openai",
@@ -76,6 +76,8 @@ test("imports a selected Telegram QA scenario as the existing RTT row shape", as
     [
       IMPORT_SCRIPT,
       evidencePath,
+      "--spec",
+      "openclaw@main",
       "--version",
       "2026.6.2+abcdef1234",
       "--started-at",
@@ -261,5 +263,19 @@ test("rejects a Telegram scenario flag without a value", async () => {
       { cwd: workspace },
     ),
     /--scenario requires a value/u,
+  );
+});
+
+test("rejects a package spec flag without a value", async () => {
+  const workspace = await makeWorkspace();
+  const evidencePath = path.join(workspace, "qa-evidence.json");
+  await writeJson(evidencePath, {
+    kind: "openclaw.qa.evidence-summary",
+    entries: [],
+  });
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [IMPORT_SCRIPT, evidencePath, "--spec"], { cwd: workspace }),
+    /--spec requires a value/u,
   );
 });

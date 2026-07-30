@@ -21,6 +21,7 @@ function usage() {
     "Usage: node scripts/import-result.mjs <path-to-qa-evidence.json>",
     "  [--resource-metrics <resource-metrics.env>]",
     "  [--scenario <scenario-id>]",
+    "  [--spec <package-spec>]",
     "  --version <version-or-ref> --started-at <iso> --finished-at <iso>",
   ].join("\n");
 }
@@ -43,6 +44,15 @@ function parseArgs(argv) {
         throw new Error(`--scenario requires a value.\n${usage()}`);
       }
       args.scenario = scenario;
+      index += 1;
+      continue;
+    }
+    if (arg === "--spec") {
+      const spec = argv[index + 1];
+      if (spec === undefined) {
+        throw new Error(`--spec requires a value.\n${usage()}`);
+      }
+      args.spec = spec;
       index += 1;
       continue;
     }
@@ -189,7 +199,10 @@ function buildResultFromEvidence(evidence, args) {
   const scenario =
     args.scenario === undefined ? DEFAULT_TELEGRAM_SCENARIO : requireScenario(args.scenario);
   const mention = evidenceEntry(evidence, scenario);
-  const packageSpec = packageSpecFromEvidence(mention);
+  const packageSpec =
+    args.spec === undefined
+      ? packageSpecFromEvidence(mention)
+      : requireString(args.spec, "--spec");
   const mentionTiming = readTiming(mention, scenario);
   const canaryMs = finiteTimingNumber(mentionTiming, "rttMs");
   const sampleCount = requirePositiveTimingNumber(
