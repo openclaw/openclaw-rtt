@@ -119,17 +119,17 @@ test("auto-requeues failed Discord releases by default", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.5.12", "telegram"),
-    releaseRow("2026.5.16-beta.5", "telegram"),
-    releaseRow("2026.5.16-beta.6", "telegram"),
+    releaseRow("2026.5.16-beta.3", "telegram"),
+    releaseRow("2026.5.16-beta.4", "telegram"),
   ]);
   await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     releaseRow("2026.5.12", "discord"),
-    releaseRow("2026.5.16-beta.5", "discord", "fail"),
+    releaseRow("2026.5.16-beta.3", "discord", "fail"),
   ]);
   const binDir = await writeFakeNpm(workspace, [
     "2026.5.12",
-    "2026.5.16-beta.5",
-    "2026.5.16-beta.6",
+    "2026.5.16-beta.3",
+    "2026.5.16-beta.4",
   ]);
 
   const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
@@ -146,8 +146,8 @@ test("auto-requeues failed Discord releases by default", async () => {
   assert.equal(outputs.missing_baseline_count, "2");
   assert.equal(outputs.reason, "missing-discord-release-versions");
   assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), [
-    "2026.5.16-beta.5",
-    "2026.5.16-beta.6",
+    "2026.5.16-beta.3",
+    "2026.5.16-beta.4",
   ]);
 });
 
@@ -155,15 +155,15 @@ test("queues requested Discord releases even when a failed row was imported", as
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
     releaseRow("2026.5.12", "telegram"),
-    releaseRow("2026.5.16-beta.5", "telegram"),
+    releaseRow("2026.5.16-beta.4", "telegram"),
   ]);
   await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     releaseRow("2026.5.12", "discord"),
-    releaseRow("2026.5.16-beta.5", "discord", "fail"),
+    releaseRow("2026.5.16-beta.4", "discord", "fail"),
   ]);
   const binDir = await writeFakeNpm(workspace, [
     "2026.5.12",
-    "2026.5.16-beta.5",
+    "2026.5.16-beta.4",
   ]);
 
   const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
@@ -171,7 +171,7 @@ test("queues requested Discord releases even when a failed row was imported", as
     env: {
       ...process.env,
       GITHUB_OUTPUT: "",
-      INPUT_VERSIONS: "2026.5.16-beta.5",
+      INPUT_VERSIONS: "2026.5.16-beta.4",
       PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
     },
   });
@@ -180,8 +180,64 @@ test("queues requested Discord releases even when a failed row was imported", as
   assert.equal(outputs.count, "1");
   assert.equal(outputs.missing_baseline_count, "0");
   assert.equal(outputs.reason, "requested-discord-release-versions");
-  assert.equal(outputs.versions, "2026.5.16-beta.5");
-  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.16-beta.5"]);
+  assert.equal(outputs.versions, "2026.5.16-beta.4");
+  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.16-beta.4"]);
+});
+
+test("skips proven historical Discord release gaps", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    releaseRow("2026.5.12", "telegram"),
+    releaseRow("2026.5.16-beta.5", "telegram"),
+    releaseRow("2026.5.16-beta.6", "telegram"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
+    releaseRow("2026.5.12", "discord"),
+    releaseRow("2026.5.16-beta.5", "discord", "fail"),
+    releaseRow("2026.5.16-beta.6", "discord", "fail"),
+  ]);
+  const binDir = await writeFakeNpm(workspace, [
+    "2026.5.12",
+    "2026.5.16-beta.5",
+    "2026.5.16-beta.6",
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.count, "0");
+  assert.equal(outputs.missing_baseline_count, "0");
+  assert.equal(outputs.reason, "no-new-or-missing-discord-release-versions");
+  assert.deepEqual(JSON.parse(outputs.matrix), []);
+});
+
+test("rejects explicit historical Discord release gaps", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    releaseRow("2026.5.12", "telegram"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
+    releaseRow("2026.5.12", "discord"),
+  ]);
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+      cwd: workspace,
+      env: {
+        ...process.env,
+        GITHUB_OUTPUT: "",
+        INPUT_VERSIONS: "2026.5.16-beta.5",
+      },
+    }),
+    /known Discord release protocol gap: 2026\.5\.16-beta\.5/u,
+  );
 });
 
 test("queues Discord release rows missing RSS for backfill", async () => {
