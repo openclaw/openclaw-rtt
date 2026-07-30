@@ -85,6 +85,54 @@ const candidateOwnedAuthStoreWrite = `export async function writeQaAuthProfiles(
     }
   }
 }`;
+const unsupportedReplacePathsAnchor = `function isStaleConfigPatchError(error: unknown) {
+  return formatErrorMessage(error).toLowerCase().includes("config changed since last load");
+}
+
+async function waitForLiveQaGatewayConfigApplied`;
+const unsupportedReplacePathsCompat = `function isStaleConfigPatchError(error: unknown) {
+  return formatErrorMessage(error).toLowerCase().includes("config changed since last load");
+}
+
+function isUnsupportedReplacePathsError(error: unknown) {
+  const message = formatErrorMessage(error).toLowerCase();
+  return message.includes("unexpected property") && message.includes("replacepaths");
+}
+
+async function waitForLiveQaGatewayConfigApplied`;
+const liveConfigPatchAnchor = `      patchResult =
+        ((await params.gateway.call(
+          "config.patch",
+          {
+            raw: JSON.stringify(params.patch, null, 2),
+            baseHash: snapshot.hash,
+            ...(params.replacePaths?.length ? { replacePaths: params.replacePaths } : {}),
+            restartDelayMs: 0,
+          },
+          { timeoutMs: 60_000 },
+        )) as { noop?: boolean } | null | undefined) ?? {};`;
+const releaseCompatibleLiveConfigPatch = `      const raw = JSON.stringify(params.patch, null, 2);
+      const callConfigPatch = async (includeReplacePaths: boolean) =>
+        ((await params.gateway.call(
+          "config.patch",
+          {
+            raw,
+            baseHash: snapshot.hash,
+            ...(includeReplacePaths && params.replacePaths?.length
+              ? { replacePaths: params.replacePaths }
+              : {}),
+            restartDelayMs: 0,
+          },
+          { timeoutMs: 60_000 },
+        )) as { noop?: boolean } | null | undefined) ?? {};
+      try {
+        patchResult = await callConfigPatch(true);
+      } catch (error) {
+        if (!params.replacePaths?.length || !isUnsupportedReplacePathsError(error)) {
+          throw error;
+        }
+        patchResult = await callConfigPatch(false);
+      }`;
 
 function usage() {
   return "Usage: node scripts/patch-openclaw-release-qa-harness.mjs <openclaw-repo-root>";
@@ -136,6 +184,10 @@ async function main() {
     repoRoot,
     "extensions/qa-lab/src/providers/shared/auth-store.ts",
   );
+  const liveGatewayConfigPath = path.resolve(
+    repoRoot,
+    "extensions/qa-lab/src/live-transports/shared/live-gateway-config.runtime.ts",
+  );
   const compatModulePath = path.resolve(
     repoRoot,
     "extensions/qa-lab/src/rtt-release-qa-config-compat.mjs",
@@ -144,9 +196,10 @@ async function main() {
     repoRoot,
     "extensions/qa-lab/src/rtt-release-qa-config-compat.d.mts",
   );
-  const [originalGatewayChild, originalAuthStore] = await Promise.all([
+  const [originalGatewayChild, originalAuthStore, originalLiveGatewayConfig] = await Promise.all([
     fs.readFile(gatewayChildPath, "utf8"),
     fs.readFile(authStorePath, "utf8"),
+    fs.readFile(liveGatewayConfigPath, "utf8"),
   ]);
   const gatewayPatch = replaceExactlyOnce(
     originalGatewayChild,
@@ -161,6 +214,20 @@ async function main() {
     candidateOwnedAuthStoreWrite,
     authStorePath,
     "auth store",
+  );
+  const replacePathsErrorPatch = replaceExactlyOnce(
+    originalLiveGatewayConfig,
+    unsupportedReplacePathsAnchor,
+    unsupportedReplacePathsCompat,
+    liveGatewayConfigPath,
+    "replacePaths error detection",
+  );
+  const liveConfigPatch = replaceExactlyOnce(
+    replacePathsErrorPatch.contents,
+    liveConfigPatchAnchor,
+    releaseCompatibleLiveConfigPatch,
+    liveGatewayConfigPath,
+    "live config patch",
   );
   const [compatModuleAsset, compatDeclarationAsset] = await Promise.all([
     preparePatchAsset(
@@ -180,6 +247,9 @@ async function main() {
   if (authStorePatch.patched) {
     writes.push(fs.writeFile(authStorePath, authStorePatch.contents));
   }
+  if (replacePathsErrorPatch.patched || liveConfigPatch.patched) {
+    writes.push(fs.writeFile(liveGatewayConfigPath, liveConfigPatch.contents));
+  }
   if (compatModuleAsset.staged) {
     writes.push(fs.writeFile(compatModuleAsset.path, compatModuleAsset.contents));
   }
@@ -191,6 +261,7 @@ async function main() {
   const patchCount =
     Number(gatewayPatch.patched) +
     Number(authStorePatch.patched) +
+    Number(replacePathsErrorPatch.patched || liveConfigPatch.patched) +
     Number(compatModuleAsset.staged || compatDeclarationAsset.staged);
   process.stdout.write(
     patchCount > 0
