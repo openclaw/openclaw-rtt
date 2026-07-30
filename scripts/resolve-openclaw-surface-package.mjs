@@ -133,6 +133,11 @@ const measured = new Set(
       .map((row) => `${surfaceId}\0${row.package?.spec}\0${row.package?.version}`),
   ),
 );
+const attempted = new Set(
+  [...rowsBySurface.entries()].flatMap(([surfaceId, rows]) =>
+    rows.map((row) => `${surfaceId}\0${row.package?.spec}\0${row.package?.version}`),
+  ),
+);
 
 const queue = [];
 for (const surfaceId of surfaceIds) {
@@ -159,7 +164,15 @@ for (const surfaceId of surfaceIds) {
               (!minimumVersion || compareVersions(version, minimumVersion) >= 0) &&
               !measured.has(`${surfaceId}\0openclaw@${version}\0${version}`),
           )
-          .sort(compareVersions)
+          .sort((left, right) => {
+            const leftAttempted = attempted.has(
+              `${surfaceId}\0openclaw@${left}\0${left}`,
+            );
+            const rightAttempted = attempted.has(
+              `${surfaceId}\0openclaw@${right}\0${right}`,
+            );
+            return Number(leftAttempted) - Number(rightAttempted) || compareVersions(left, right);
+          })
           .slice(0, versionLimit);
 
   for (const version of versions) {

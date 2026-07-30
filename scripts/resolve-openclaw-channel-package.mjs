@@ -127,6 +127,11 @@ const measured = new Set(
       (row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`,
     ),
 );
+const attempted = new Set(
+  channelRows.map(
+    (row) => `${row.channel?.id}\0${row.package?.spec}\0${row.package?.version}`,
+  ),
+);
 
 const queue = [];
 for (const channelId of channelIds) {
@@ -153,7 +158,15 @@ for (const channelId of channelIds) {
               !measured.has(`${channelId}\0openclaw@${version}\0${version}`) &&
               !channelReleaseSkipReason(channel, version),
           )
-          .sort(compareVersions)
+          .sort((left, right) => {
+            const leftAttempted = attempted.has(
+              `${channelId}\0openclaw@${left}\0${left}`,
+            );
+            const rightAttempted = attempted.has(
+              `${channelId}\0openclaw@${right}\0${right}`,
+            );
+            return Number(leftAttempted) - Number(rightAttempted) || compareVersions(left, right);
+          })
           .slice(0, versionLimit);
 
   for (const version of versions) {
