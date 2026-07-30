@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-29T21:20:48.591Z`
+Latest imported release coverage run: `2026-07-30T02:59:08.880Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -367,7 +367,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.5` | - | - | `1,270MB` | `1,388MB` | failed |
+| `2026.7.2-beta.5` | - | - | `1,255MB` | `1,356MB` | failed |
 | `2026.7.2-beta.4` | - | - | `1,149MB` | `1,171MB` | failed |
 | `2026.7.2-beta.3` | - | - | `1,106MB` | `1,128MB` | failed |
 | `2026.7.2-beta.2` | - | - | `906MB` | `1,074MB` | failed |
@@ -618,10 +618,10 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.5` | - | - | `1,232MB` | `1,232MB` | failed |
-| `2026.7.2-beta.4` | - | - | `1,286MB` | `1,286MB` | failed |
-| `2026.7.2-beta.3` | - | - | `1,153MB` | `1,153MB` | failed |
-| `2026.7.2-beta.2` | - | - | `1,054MB` | `1,054MB` | failed |
+| `2026.7.2-beta.5` | - | - | `1,178MB` | `1,178MB` | failed |
+| `2026.7.2-beta.4` | - | - | `1,194MB` | `1,194MB` | failed |
+| `2026.7.2-beta.3` | - | - | `1,114MB` | `1,114MB` | failed |
+| `2026.7.2-beta.2` | - | - | `1,076MB` | `1,076MB` | failed |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1` | `3,333ms` | `3,333ms` | `899MB` | `899MB` | ok |
 | `2026.7.1-beta.6` | `3,335ms` | `3,335ms` | `916MB` | `916MB` | ok |
@@ -730,9 +730,9 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.10` | - | - | - | - | missing: no imported run |
 | `2026.6.10-beta.2` | - | - | - | - | missing: no imported run |
 | `2026.6.10-beta.1` | - | - | `641MB` | `641MB` | failed |
-| `2026.6.9` | - | - | `668MB` | `668MB` | failed |
-| `2026.6.9-beta.1` | - | - | `668MB` | `668MB` | failed |
-| `2026.6.8` | - | - | `655MB` | `655MB` | failed |
+| `2026.6.9` | - | - | `649MB` | `649MB` | failed |
+| `2026.6.9-beta.1` | - | - | `667MB` | `667MB` | failed |
+| `2026.6.8` | - | - | `645MB` | `645MB` | failed |
 | `2026.6.8-beta.2` | - | - | `665MB` | `665MB` | failed |
 | `2026.6.8-beta.1` | `3,344ms` | `3,344ms` | `1,096MB` | `1,096MB` | ok |
 | `2026.6.7-beta.1` | `3,326ms` | `3,326ms` | `1,098MB` | `1,098MB` | ok |
