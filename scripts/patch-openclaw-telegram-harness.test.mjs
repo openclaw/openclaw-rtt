@@ -85,9 +85,19 @@ test("separates the trusted QA harness from the installed package SUT", async (t
     patched,
     /-v "\$ROOT_DIR\/node_modules:\/openclaw-harness\/node_modules:ro"/u,
   );
+  assert.match(patched, /-v "\$ROOT_DIR\/packages:\/openclaw-harness\/packages:ro"/u);
+  assert.match(patched, /-v "\$ROOT_DIR\/extensions:\/openclaw-harness\/extensions:ro"/u);
   assert.match(patched, /cp \/openclaw-harness\/package\.json \/app\/package\.json/u);
   assert.match(patched, /ln -sfnT \/openclaw-harness\/dist \/app\/dist/u);
   assert.match(patched, /for dependency_dir in \/openclaw-harness\/node_modules\/\*; do/u);
+  assert.match(
+    patched,
+    /\/openclaw-harness\/packages\/\*\/package\.json[\s\S]*\/openclaw-harness\/extensions\/\*\/package\.json/u,
+  );
+  assert.match(
+    patched,
+    /ln -sfnT "\$package_dir" "\/app\/node_modules\/\$package_scope\/\$package_basename"/u,
+  );
   assert.match(patched, /ln -sfnT \/app \/app\/node_modules\/openclaw/u);
   assert.doesNotMatch(patched, /openclaw_package_dir=/u);
   assert.doesNotMatch(patched, /link_installed_package_dependency/u);

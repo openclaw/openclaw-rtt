@@ -91,7 +91,7 @@ jobs:
           time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
           echo "::endgroup::"
           echo "::group::pnpm build"
-          time OPENCLAW_BUILD_PRIVATE_QA=1 pnpm build
+          time pnpm build
           echo "::endgroup::"
           mkdir -p .artifacts/rtt-package
           echo "::group::package OpenClaw"
@@ -109,6 +109,13 @@ jobs:
           package_version="$(node -e 'const fs = require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync("package.json", "utf8")).version)')+$(git rev-parse --short=10 HEAD)"
           echo "package_tgz=${PWD}/${package_tgz}" >>"$GITHUB_OUTPUT"
           echo "package_version=$package_version" >>"$GITHUB_OUTPUT"
+
+      - name: Build OpenClaw QA harness
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          time OPENCLAW_BUILD_PRIVATE_QA=1 pnpm build
 
       - name: Run RTT
         id: rtt

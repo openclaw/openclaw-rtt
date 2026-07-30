@@ -20,7 +20,9 @@ const harnessMountAnchor = `  -v "$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER" \\`;
 const harnessMounts = `${harnessMountAnchor}
   -v "$ROOT_DIR/package.json:/openclaw-harness/package.json:ro" \\
   -v "$ROOT_DIR/dist:/openclaw-harness/dist:ro" \\
-  -v "$ROOT_DIR/node_modules:/openclaw-harness/node_modules:ro" \\`;
+  -v "$ROOT_DIR/node_modules:/openclaw-harness/node_modules:ro" \\
+  -v "$ROOT_DIR/packages:/openclaw-harness/packages:ro" \\
+  -v "$ROOT_DIR/extensions:/openclaw-harness/extensions:ro" \\`;
 
 const legacyRuntimeStart = `mkdir -p /app/node_modules
 openclaw_package_dir="/npm-global/lib/node_modules/openclaw"`;
@@ -53,6 +55,26 @@ for dependency_dir in /openclaw-harness/node_modules/*; do
     *)
       rm -rf "/app/node_modules/$dependency_name"
       ln -sfnT "$dependency_dir" "/app/node_modules/$dependency_name"
+      ;;
+  esac
+done
+for package_json in \\
+  /openclaw-harness/packages/*/package.json \\
+  /openclaw-harness/extensions/*/package.json; do
+  [ -f "$package_json" ] || continue
+  package_name="$(node -p 'require(process.argv[1]).name' "$package_json")"
+  package_dir="$(dirname "$package_json")"
+  case "$package_name" in
+    @*/*)
+      package_scope="\${package_name%%/*}"
+      package_basename="\${package_name#*/}"
+      mkdir -p "/app/node_modules/$package_scope"
+      rm -rf "/app/node_modules/$package_scope/$package_basename"
+      ln -sfnT "$package_dir" "/app/node_modules/$package_scope/$package_basename"
+      ;;
+    *)
+      rm -rf "/app/node_modules/$package_name"
+      ln -sfnT "$package_dir" "/app/node_modules/$package_name"
       ;;
   esac
 done
