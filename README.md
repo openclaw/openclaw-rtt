@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-30T10:34:02.931Z`
+Latest imported release coverage run: `2026-07-30T15:18:56.354Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -84,7 +84,7 @@ Latest imported release coverage run: `2026-07-30T10:34:02.931Z`
 | `2026.7.1-beta.4` | `1,286ms` | n/a | `1,787ms` | `3,378ms` | - | `3,378ms` | `284ms` |
 | `2026.7.1-beta.2` | `960ms` | `1,992ms` | `1,666ms` | `3,352ms` | - | `1,687ms` | `341ms` |
 | `2026.7.1-beta.1` | `1,185ms` | `1,903ms` | `1,889ms` | `3,549ms` | - | `3,549ms` | `407ms` |
-| `2026.6.33` | - | `1,029ms` | - | - | - | - | - |
+| `2026.6.33` | `335ms` | `1,029ms` | - | - | - | - | `360ms` |
 | `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | - | `1,743ms` | `413ms` |
 | `2026.6.11-beta.2` | `1,123ms` | `988ms` | `1,759ms` | `3,174ms` | - | `3,174ms` | `413ms` |
 | `2026.6.11-beta.1` | `1,006ms` | `1,850ms` | `1,876ms` | `3,120ms` | - | `3,120ms` | `407ms` |
@@ -167,7 +167,7 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-07-28T08:06:15.342Z`
+Latest imported surface run: `2026-07-30T15:18:56.354Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
@@ -182,6 +182,7 @@ Latest imported surface run: `2026-07-28T08:06:15.342Z`
 | `2026.7.1-beta.4` | `3,378ms` | `284ms` |
 | `2026.7.1-beta.2` | `1,687ms` | `341ms` |
 | `2026.7.1-beta.1` | `3,549ms` | `407ms` |
+| `2026.6.33` | - | `360ms` |
 | `2026.6.11` | `1,743ms` | `413ms` |
 | `2026.6.11-beta.2` | `3,174ms` | `413ms` |
 | `2026.6.11-beta.1` | `3,120ms` | `407ms` |
@@ -369,7 +370,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.7.2-beta.5` | - | - | `1,240MB` | `1,383MB` | failed |
+| `2026.7.2-beta.5` | - | - | `1,338MB` | `1,437MB` | failed |
 | `2026.7.2-beta.4` | - | - | `1,149MB` | `1,171MB` | failed |
 | `2026.7.2-beta.3` | - | - | `1,106MB` | `1,128MB` | failed |
 | `2026.7.2-beta.2` | - | - | `906MB` | `1,074MB` | failed |
