@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-30T16:31:47.408Z`
+Latest imported release coverage run: `2026-07-30T17:10:50.262Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -86,8 +86,8 @@ Latest imported release coverage run: `2026-07-30T16:31:47.408Z`
 | `2026.7.1-beta.1` | `1,185ms` | `1,903ms` | `1,889ms` | `3,549ms` | - | `3,549ms` | `407ms` |
 | `2026.6.33` | `1,132ms` | `1,029ms` | - | `2,909ms` | - | `2,909ms` | `360ms` |
 | `2026.6.11` | `939ms` | `999ms` | `1,728ms` | `3,213ms` | - | `1,743ms` | `413ms` |
-| `2026.6.11-beta.2` | `1,123ms` | `988ms` | `1,759ms` | `3,174ms` | - | `3,174ms` | `413ms` |
-| `2026.6.11-beta.1` | `1,006ms` | `1,850ms` | `1,876ms` | `3,120ms` | - | `3,120ms` | `407ms` |
+| `2026.6.11-beta.2` | `929ms` | `988ms` | `1,759ms` | `3,174ms` | fail | `1,762ms` | `413ms` |
+| `2026.6.11-beta.1` | `859ms` | `1,850ms` | `1,876ms` | `3,120ms` | fail | `1,877ms` | `407ms` |
 | `2026.6.10` | `1,401ms` | `1,961ms` | `1,790ms` | `4,698ms` | fail | `1,798ms` | `407ms` |
 | `2026.6.10-beta.2` | `910ms` | `1,945ms` | `1,795ms` | `3,275ms` | fail | `1,796ms` | `402ms` |
 | `2026.6.10-beta.1` | `983ms` | `1,955ms` | `1,971ms` | `3,518ms` | fail | `1,984ms` | `411ms` |
@@ -184,8 +184,8 @@ Latest imported surface run: `2026-07-30T16:31:47.408Z`
 | `2026.7.1-beta.1` | `3,549ms` | `407ms` |
 | `2026.6.33` | `2,909ms` | `360ms` |
 | `2026.6.11` | `1,743ms` | `413ms` |
-| `2026.6.11-beta.2` | `3,174ms` | `413ms` |
-| `2026.6.11-beta.1` | `3,120ms` | `407ms` |
+| `2026.6.11-beta.2` | `1,762ms` | `413ms` |
+| `2026.6.11-beta.1` | `1,877ms` | `407ms` |
 | `2026.6.10` | `1,798ms` | `407ms` |
 | `2026.6.10-beta.2` | `1,796ms` | `402ms` |
 | `2026.6.10-beta.1` | `1,984ms` | `411ms` |
@@ -731,8 +731,8 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.7.1-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.6.33` | - | - | - | - | missing: no imported run |
 | `2026.6.11` | - | - | - | - | missing: no imported run |
-| `2026.6.11-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.6.11-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.6.11-beta.2` | - | - | `672MB` | `672MB` | failed |
+| `2026.6.11-beta.1` | - | - | `669MB` | `669MB` | failed |
 | `2026.6.10` | - | - | `635MB` | `635MB` | failed |
 | `2026.6.10-beta.2` | - | - | `659MB` | `659MB` | failed |
 | `2026.6.10-beta.1` | - | - | `641MB` | `641MB` | failed |
