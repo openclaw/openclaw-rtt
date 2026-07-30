@@ -47,12 +47,20 @@ for (const packageJsonPath of process.argv.slice(2)) {
 `;
 const legacyRunner = `const DEFAULT_RTT_CHECK_ID = "channel-canary";
 `;
+const legacyGatewayChild = `async function startGateway(configPath, cfg) {
+      await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
+        encoding: "utf8",
+        mode: 0o600,
+      });
+}
+`;
 const privatePluginSdkSubpaths = ["qa-runtime", "sqlite-runtime-testing"];
 
 async function makeFixture({
   harness = legacyHarness,
   preparePackage = legacyPreparePackage,
   runner = legacyRunner,
+  gatewayChild = legacyGatewayChild,
 } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-telegram-harness-test-"));
   const scriptPath = path.join(root, "scripts/e2e/npm-telegram-live-docker.sh");
@@ -61,6 +69,7 @@ async function makeFixture({
     "scripts/e2e/lib/npm-telegram-live/prepare-package.mjs",
   );
   const runnerPath = path.join(root, "scripts/e2e/npm-telegram-live-runner.ts");
+  const gatewayChildPath = path.join(root, "extensions/qa-lab/src/gateway-child.ts");
   const privateSubpathsPath = path.join(
     root,
     "scripts/lib/plugin-sdk-private-local-only-subpaths.json",
@@ -68,22 +77,25 @@ async function makeFixture({
   await fs.mkdir(path.dirname(scriptPath), { recursive: true });
   await fs.mkdir(path.dirname(preparePackagePath), { recursive: true });
   await fs.mkdir(path.dirname(privateSubpathsPath), { recursive: true });
+  await fs.mkdir(path.dirname(gatewayChildPath), { recursive: true });
   await Promise.all([
     fs.writeFile(scriptPath, harness),
     fs.writeFile(preparePackagePath, preparePackage),
     fs.writeFile(runnerPath, runner),
+    fs.writeFile(gatewayChildPath, gatewayChild),
     fs.writeFile(privateSubpathsPath, `${JSON.stringify(privatePluginSdkSubpaths)}\n`),
   ]);
-  return { preparePackagePath, root, runnerPath, scriptPath };
+  return { gatewayChildPath, preparePackagePath, root, runnerPath, scriptPath };
 }
 
 test("separates the trusted QA harness from the installed package SUT", async (t) => {
-  const { preparePackagePath, root, runnerPath, scriptPath } = await makeFixture();
+  const { gatewayChildPath, preparePackagePath, root, runnerPath, scriptPath } =
+    await makeFixture();
   t.after(() => fs.rm(root, { force: true, recursive: true }));
 
   const first = await execFileAsync(process.execPath, [PATCH_SCRIPT, root]);
   assert.match(first.stdout, /patched 2 Telegram harness stdin consumers/u);
-  assert.match(first.stdout, /patched 5 package harness contracts/u);
+  assert.match(first.stdout, /patched 6 package harness contracts/u);
 
   const patched = await fs.readFile(scriptPath, "utf8");
   assert.match(
@@ -149,6 +161,35 @@ test("separates the trusted QA harness from the installed package SUT", async (t
     patchedRunner,
     /const DEFAULT_RTT_CHECK_ID = "telegram-reply-chain-exact-marker";/u,
   );
+  const patchedGatewayChild = await fs.readFile(gatewayChildPath, "utf8");
+  assert.match(
+    patchedGatewayChild,
+    /await import\("\.\/rtt-telegram-release-config-compat\.mjs"\)/u,
+  );
+  assert.match(
+    patchedGatewayChild,
+    /JSON\.stringify\(releaseCompatibleConfig, null, 2\)/u,
+  );
+  assert.equal(
+    await fs.readFile(
+      path.join(root, "extensions/qa-lab/src/rtt-telegram-release-config-compat.mjs"),
+      "utf8",
+    ),
+    await fs.readFile(
+      path.join(REPO_ROOT, "scripts/telegram-release-config-compat.mjs"),
+      "utf8",
+    ),
+  );
+  assert.equal(
+    await fs.readFile(
+      path.join(root, "extensions/qa-lab/src/rtt-telegram-release-config-compat.d.mts"),
+      "utf8",
+    ),
+    await fs.readFile(
+      path.join(REPO_ROOT, "scripts/telegram-release-config-compat.d.mts"),
+      "utf8",
+    ),
+  );
 
   const second = await execFileAsync(process.execPath, [PATCH_SCRIPT, root]);
   assert.match(second.stdout, /preserved Telegram harness stdin consumers/u);
@@ -156,6 +197,7 @@ test("separates the trusted QA harness from the installed package SUT", async (t
   assert.equal(await fs.readFile(scriptPath, "utf8"), patched);
   assert.equal(await fs.readFile(preparePackagePath, "utf8"), patchedPreparePackage);
   assert.equal(await fs.readFile(runnerPath, "utf8"), patchedRunner);
+  assert.equal(await fs.readFile(gatewayChildPath, "utf8"), patchedGatewayChild);
 });
 
 test("fails closed for an unknown upstream Telegram harness contract", async (t) => {
@@ -166,6 +208,40 @@ test("fails closed for an unknown upstream Telegram harness contract", async (t)
     execFileAsync(process.execPath, [PATCH_SCRIPT, root]),
     /Unsupported Telegram harness logging contract/u,
   );
+});
+
+test("validates patch assets before mutating upstream files", async (t) => {
+  const { gatewayChildPath, preparePackagePath, root, runnerPath, scriptPath } =
+    await makeFixture();
+  t.after(() => fs.rm(root, { force: true, recursive: true }));
+
+  const compatModulePath = path.join(
+    root,
+    "extensions/qa-lab/src/rtt-telegram-release-config-compat.mjs",
+  );
+  const compatDeclarationPath = path.join(
+    root,
+    "extensions/qa-lab/src/rtt-telegram-release-config-compat.d.mts",
+  );
+  await fs.writeFile(compatModulePath, "export const incompatible = true;\n");
+  const originals = await Promise.all(
+    [scriptPath, preparePackagePath, runnerPath, gatewayChildPath, compatModulePath].map((file) =>
+      fs.readFile(file, "utf8"),
+    ),
+  );
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [PATCH_SCRIPT, root]),
+    /Unsupported existing Telegram RTT patch asset/u,
+  );
+
+  const after = await Promise.all(
+    [scriptPath, preparePackagePath, runnerPath, gatewayChildPath, compatModulePath].map((file) =>
+      fs.readFile(file, "utf8"),
+    ),
+  );
+  assert.deepEqual(after, originals);
+  await assert.rejects(fs.access(compatDeclarationPath), { code: "ENOENT" });
 });
 
 test("fails closed for mixed or duplicate Telegram logging contracts", async (t) => {
@@ -205,6 +281,7 @@ test("fails closed for unknown package mount, runtime, or manifest contracts", a
     { harness: legacyHarness.replace('openclaw_package_dir="/npm-global/lib/node_modules/openclaw"', "echo custom") },
     { preparePackage: legacyPreparePackage.replace("fs.writeFileSync", "customWrite") },
     { runner: 'const DEFAULT_RTT_CHECK_ID = "custom";\n' },
+    { gatewayChild: legacyGatewayChild.replace("fs.writeFile", "customWrite") },
   ];
   const roots = [];
   t.after(() => Promise.all(roots.map((root) => fs.rm(root, { force: true, recursive: true }))));
@@ -214,7 +291,7 @@ test("fails closed for unknown package mount, runtime, or manifest contracts", a
     roots.push(root);
     await assert.rejects(
       execFileAsync(process.execPath, [PATCH_SCRIPT, root]),
-      /Unsupported Telegram (harness (mount|env contract|package contract|package manifest)|RTT check contract)/u,
+      /Unsupported Telegram (harness (mount|env contract|package contract|package manifest)|RTT check contract|gateway config contract)/u,
     );
   }
 });
