@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import { promisify } from "node:util";
 import { listChannelRttChannels } from "./channel-rtt-config.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
+import { readRows } from "./read-rows.mjs";
 import { channelReleaseSkipReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -12,6 +13,7 @@ const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
 const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const DEFAULT_CHANNELS = ["slack", "whatsapp"];
 const DEFAULT_VERSION_LIMIT = 4;
+const CHANNEL_RELEASE_MIN_VERSION = "2026.4.24";
 
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
@@ -113,6 +115,11 @@ const availableVersions = await npmVersions();
 const explicitVersions = readListEnv("INPUT_VERSIONS");
 const versionLimit = readPositiveIntegerEnv("INPUT_VERSION_LIMIT", DEFAULT_VERSION_LIMIT);
 const channelRows = releaseRows(await readChannelRttRows());
+const baselineVersions = new Set(
+  releaseRows(await readRows())
+    .filter((row) => row.run?.status === "pass")
+    .map((row) => row.package.version),
+);
 const measured = new Set(
   channelRows
     .filter((row) => row.run?.status === "pass")
@@ -134,7 +141,18 @@ for (const channelId of channelIds) {
     explicitVersions.length > 0
       ? explicitVersions
       : [...availableVersions]
-          .filter((version) => !latestMeasured || compareVersions(version, latestMeasured) > 0)
+          .filter(
+            (version) =>
+              baselineVersions.has(version) ||
+              !latestMeasured ||
+              compareVersions(version, latestMeasured) > 0,
+          )
+          .filter(
+            (version) =>
+              compareVersions(version, CHANNEL_RELEASE_MIN_VERSION) >= 0 &&
+              !measured.has(`${channelId}\0openclaw@${version}\0${version}`) &&
+              !channelReleaseSkipReason(channel, version),
+          )
           .sort(compareVersions)
           .slice(0, versionLimit);
 

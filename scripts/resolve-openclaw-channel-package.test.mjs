@@ -126,6 +126,71 @@ test("auto-requeues failed channel release versions", async () => {
   ]);
 });
 
+test("queues historical channel gaps from the Telegram release baseline", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.16-beta.3.jsonl"), [
+    row("2026.5.16-beta.3"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.16-beta.4.jsonl"), [
+    row("2026.5.16-beta.4"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/slack/2026.5.16-beta.4.jsonl"), [
+    row("2026.5.16-beta.4", "slack"),
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/whatsapp/2026.5.16-beta.4.jsonl"), [
+    row("2026.5.16-beta.4", "whatsapp"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.16-beta.3 2026.5.16-beta.4",
+      INPUT_CHANNELS: "slack whatsapp",
+      INPUT_VERSION_LIMIT: "1",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  const matrix = JSON.parse(outputs.matrix);
+  assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
+    "slack:2026.5.16-beta.3",
+    "whatsapp:2026.5.16-beta.3",
+  ]);
+});
+
+test("does not auto-queue releases before the channel coverage floor", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.4.22.jsonl"), [
+    row("2026.4.22"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.4.22",
+      INPUT_CHANNELS: "slack whatsapp",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  assert.equal(outputs.should_run, "false");
+  assert.deepEqual(JSON.parse(outputs.matrix), []);
+});
+
 test("skips proven historical channel release gaps", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.2.jsonl"), [

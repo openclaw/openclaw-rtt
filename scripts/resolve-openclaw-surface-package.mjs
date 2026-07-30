@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
+import { readRows } from "./read-rows.mjs";
 import { listSurfaceRttSurfaces } from "./surface-rtt-config.mjs";
 import { readSurfaceRows } from "./surface-storage.mjs";
 
@@ -12,6 +13,7 @@ const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][
 const DEFAULT_SURFACES = ["control-ui"];
 const DEFAULT_VERSION_LIMIT = 4;
 const RELEASE_SURFACES = new Set(["control-ui"]);
+const RELEASE_SURFACE_MIN_VERSIONS = new Map([["control-ui", "2026.6.1-beta.3"]]);
 
 function parseVersion(version) {
   const stableMatch = STABLE_VERSION_RE.exec(version);
@@ -115,6 +117,11 @@ for (const surfaceId of surfaceIds) {
 const availableVersions = await npmVersions();
 const explicitVersions = readListEnv("INPUT_VERSIONS");
 const versionLimit = readPositiveIntegerEnv("INPUT_VERSION_LIMIT", DEFAULT_VERSION_LIMIT);
+const baselineVersions = new Set(
+  releaseRows(await readRows())
+    .filter((row) => row.run?.status === "pass")
+    .map((row) => row.package.version),
+);
 const rowsBySurface = new Map();
 for (const surfaceId of surfaceIds) {
   rowsBySurface.set(surfaceId, releaseRows(await readSurfaceRows(surfaceId)));
@@ -136,11 +143,22 @@ for (const surfaceId of surfaceIds) {
     .map((row) => row.package.version)
     .filter((version) => parseVersion(version));
   const latestMeasured = measuredVersions.sort(compareVersions).at(-1);
+  const minimumVersion = RELEASE_SURFACE_MIN_VERSIONS.get(surfaceId);
   const versions =
     explicitVersions.length > 0
       ? explicitVersions
       : [...availableVersions]
-          .filter((version) => !latestMeasured || compareVersions(version, latestMeasured) > 0)
+          .filter(
+            (version) =>
+              baselineVersions.has(version) ||
+              !latestMeasured ||
+              compareVersions(version, latestMeasured) > 0,
+          )
+          .filter(
+            (version) =>
+              (!minimumVersion || compareVersions(version, minimumVersion) >= 0) &&
+              !measured.has(`${surfaceId}\0openclaw@${version}\0${version}`),
+          )
           .sort(compareVersions)
           .slice(0, versionLimit);
 

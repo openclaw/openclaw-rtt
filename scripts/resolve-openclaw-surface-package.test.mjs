@@ -118,6 +118,42 @@ test("auto-requeues failed surface release versions", async () => {
   ]);
 });
 
+test("queues historical surface gaps from the Telegram release baseline", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.6.1-beta.3.jsonl"), [
+    {
+      package: { spec: "openclaw@2026.6.1-beta.3", version: "2026.6.1-beta.3" },
+      run: { id: "telegram-2026.6.1-beta.3", status: "pass" },
+    },
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.6.1-beta.4.jsonl"), [
+    {
+      package: { spec: "openclaw@2026.6.1-beta.4", version: "2026.6.1-beta.4" },
+      run: { id: "telegram-2026.6.1-beta.4", status: "pass" },
+    },
+  ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/control-ui/2026.6.1-beta.4.jsonl"), [
+    row("2026.6.1-beta.4"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.6.1-beta.3 2026.6.1-beta.4",
+      INPUT_SURFACES: "control-ui",
+      INPUT_VERSION_LIMIT: "1",
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  const matrix = JSON.parse(outputs.matrix);
+  assert.deepEqual(matrix.map((entry) => `${entry.surface}:${entry.version}`), [
+    "control-ui:2026.6.1-beta.3",
+  ]);
+});
+
 test("rejects release surfaces without a native release measurer", async () => {
   const workspace = await makeWorkspace();
 
