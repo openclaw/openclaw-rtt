@@ -199,6 +199,18 @@ for (const surfaceId of surfaceIds) {
 }
 
 queue.sort((left, right) => {
+  if (explicitVersions.length === 0) {
+    const leftAttempted = attempted.has(
+      `${left.surface}\0${left.spec}\0${left.version}`,
+    );
+    const rightAttempted = attempted.has(
+      `${right.surface}\0${right.spec}\0${right.version}`,
+    );
+    const attemptDiff = Number(leftAttempted) - Number(rightAttempted);
+    if (attemptDiff !== 0) {
+      return attemptDiff;
+    }
+  }
   const versionDiff = compareVersions(left.version, right.version);
   if (versionDiff !== 0) {
     return versionDiff;

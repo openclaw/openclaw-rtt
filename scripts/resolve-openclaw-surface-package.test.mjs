@@ -113,8 +113,8 @@ test("auto-requeues failed surface release versions", async () => {
   const outputs = parseOutputs(stdout);
   const matrix = JSON.parse(outputs.matrix);
   assert.deepEqual(matrix.map((entry) => `${entry.surface}:${entry.version}`), [
-    "control-ui:2026.6.1-beta.3",
     "control-ui:2026.6.1",
+    "control-ui:2026.6.1-beta.3",
   ]);
 });
 
@@ -143,14 +143,14 @@ test("prioritizes unattempted surface gaps before failed retries", async () => {
       GITHUB_OUTPUT: "",
       INPUT_AVAILABLE_VERSIONS: "2026.6.1-beta.3 2026.6.1-beta.4",
       INPUT_SURFACES: "control-ui",
-      INPUT_VERSION_LIMIT: "1",
+      INPUT_VERSION_LIMIT: "2",
     },
   });
 
   const outputs = parseOutputs(stdout);
   assert.deepEqual(
     JSON.parse(outputs.matrix).map((entry) => `${entry.surface}:${entry.version}`),
-    ["control-ui:2026.6.1-beta.4"],
+    ["control-ui:2026.6.1-beta.4", "control-ui:2026.6.1-beta.3"],
   );
 });
 

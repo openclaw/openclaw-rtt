@@ -119,10 +119,10 @@ test("auto-requeues failed channel release versions", async () => {
   );
   const matrix = JSON.parse(outputs.matrix);
   assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
-    "slack:2026.5.16-beta.6",
     "whatsapp:2026.5.16-beta.6",
     "slack:2026.5.16-beta.7",
     "whatsapp:2026.5.16-beta.7",
+    "slack:2026.5.16-beta.6",
   ]);
 });
 
@@ -145,7 +145,7 @@ test("prioritizes unattempted channel gaps before failed retries", async () => {
       GITHUB_OUTPUT: "",
       INPUT_AVAILABLE_VERSIONS: "2026.5.16-beta.3 2026.5.16-beta.4",
       INPUT_CHANNELS: "slack",
-      INPUT_VERSION_LIMIT: "1",
+      INPUT_VERSION_LIMIT: "2",
     },
   });
 
@@ -157,7 +157,7 @@ test("prioritizes unattempted channel gaps before failed retries", async () => {
   );
   assert.deepEqual(
     JSON.parse(outputs.matrix).map((entry) => `${entry.channel}:${entry.version}`),
-    ["slack:2026.5.16-beta.4"],
+    ["slack:2026.5.16-beta.4", "slack:2026.5.16-beta.3"],
   );
 });
 
