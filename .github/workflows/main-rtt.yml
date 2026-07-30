@@ -91,7 +91,7 @@ jobs:
           time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
           echo "::endgroup::"
           echo "::group::pnpm build"
-          time pnpm build
+          time OPENCLAW_BUILD_PRIVATE_QA=1 pnpm build
           echo "::endgroup::"
           mkdir -p .artifacts/rtt-package
           echo "::group::package OpenClaw"

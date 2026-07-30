@@ -16,8 +16,117 @@ const callSites = [
   },
 ];
 
+const harnessMountAnchor = `  -v "$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER" \\`;
+const harnessMounts = `${harnessMountAnchor}
+  -v "$ROOT_DIR/package.json:/openclaw-harness/package.json:ro" \\
+  -v "$ROOT_DIR/dist:/openclaw-harness/dist:ro" \\
+  -v "$ROOT_DIR/node_modules:/openclaw-harness/node_modules:ro" \\`;
+
+const legacyRuntimeStart = `mkdir -p /app/node_modules
+openclaw_package_dir="/npm-global/lib/node_modules/openclaw"`;
+const trustedRuntimeStart = `mkdir -p /app/node_modules
+# QA source and dependencies belong to the trusted current harness. The installed
+# package remains the SUT through its absolute global openclaw command.`;
+const runtimeEnd = `if [ "\${OPENCLAW_NPM_TELEGRAM_SKIP_HOTPATH:-0}" != "1" ]; then`;
+const trustedRuntime = `${trustedRuntimeStart}
+rm -rf /app/node_modules/openclaw /app/dist
+ln -sfnT /openclaw-harness/dist /app/dist
+cp /openclaw-harness/package.json /app/package.json
+node scripts/e2e/lib/npm-telegram-live/prepare-package.mjs /app/package.json
+for dependency_dir in /openclaw-harness/node_modules/*; do
+  [ -e "$dependency_dir" ] || continue
+  dependency_name="$(basename "$dependency_dir")"
+  case "$dependency_name" in
+    .bin | openclaw)
+      continue
+      ;;
+    @*)
+      [ -d "$dependency_dir" ] || continue
+      mkdir -p "/app/node_modules/$dependency_name"
+      for scoped_dependency_dir in "$dependency_dir"/*; do
+        [ -e "$scoped_dependency_dir" ] || continue
+        scoped_dependency_name="$(basename "$scoped_dependency_dir")"
+        rm -rf "/app/node_modules/$dependency_name/$scoped_dependency_name"
+        ln -sfnT "$scoped_dependency_dir" "/app/node_modules/$dependency_name/$scoped_dependency_name"
+      done
+      ;;
+    *)
+      rm -rf "/app/node_modules/$dependency_name"
+      ln -sfnT "$dependency_dir" "/app/node_modules/$dependency_name"
+      ;;
+  esac
+done
+ln -sfnT /app /app/node_modules/openclaw
+
+`;
+
+const qaExport = `  if (!pkg.exports["./plugin-sdk/qa-runtime"]) {
+    pkg.exports["./plugin-sdk/qa-runtime"] = {
+      types: "./dist/plugin-sdk/qa-runtime.d.ts",
+      default: "./dist/plugin-sdk/qa-runtime.js",
+    };
+  }
+`;
+const prepareWriteAnchor =
+  '  fs.writeFileSync(packageJsonPath, `${JSON.stringify(pkg, null, 2)}\\n`);';
+
 function usage() {
   return "Usage: node scripts/patch-openclaw-telegram-harness.mjs <openclaw-repo-root>";
+}
+
+function replaceRuntime(contents, scriptPath) {
+  const legacyStartIndex = contents.indexOf(legacyRuntimeStart);
+  const trustedStartIndex = contents.indexOf(trustedRuntimeStart);
+  if (legacyStartIndex >= 0 && trustedStartIndex >= 0) {
+    throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
+  }
+  if (trustedStartIndex >= 0) {
+    if (contents.indexOf(runtimeEnd, trustedStartIndex) < 0) {
+      throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
+    }
+    return { contents, patched: false };
+  }
+  if (legacyStartIndex < 0) {
+    throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
+  }
+  const endIndex = contents.indexOf(runtimeEnd, legacyStartIndex);
+  if (endIndex < 0) {
+    throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
+  }
+  return {
+    contents: `${contents.slice(0, legacyStartIndex)}${trustedRuntime}${contents.slice(endIndex)}`,
+    patched: true,
+  };
+}
+
+function patchHarnessMounts(contents, scriptPath) {
+  const anchorCount = contents.split(harnessMountAnchor).length - 1;
+  const patchedCount = contents.split(harnessMounts).length - 1;
+  if (patchedCount === 1 && anchorCount === 1) {
+    return { contents, patched: false };
+  }
+  if (patchedCount !== 0 || anchorCount !== 1) {
+    throw new Error(`Unsupported Telegram harness mount contract in ${scriptPath}`);
+  }
+  return {
+    contents: contents.replace(harnessMountAnchor, harnessMounts),
+    patched: true,
+  };
+}
+
+function patchPrivateQaExport(contents, preparePackagePath) {
+  const exportCount = contents.split(qaExport).length - 1;
+  const anchorCount = contents.split(prepareWriteAnchor).length - 1;
+  if (exportCount === 1 && anchorCount === 1) {
+    return { contents, patched: false };
+  }
+  if (exportCount !== 0 || anchorCount !== 1) {
+    throw new Error(`Unsupported Telegram harness package manifest in ${preparePackagePath}`);
+  }
+  return {
+    contents: contents.replace(prepareWriteAnchor, `${qaExport}${prepareWriteAnchor}`),
+    patched: true,
+  };
 }
 
 async function main() {
@@ -27,8 +136,16 @@ async function main() {
   }
 
   const scriptPath = path.resolve(repoRoot, "scripts/e2e/npm-telegram-live-docker.sh");
-  const original = await fs.readFile(scriptPath, "utf8");
-  const lines = original.split("\n");
+  const preparePackagePath = path.resolve(
+    repoRoot,
+    "scripts/e2e/lib/npm-telegram-live/prepare-package.mjs",
+  );
+  const [originalScript, originalPreparePackage] = await Promise.all([
+    fs.readFile(scriptPath, "utf8"),
+    fs.readFile(preparePackagePath, "utf8"),
+  ]);
+
+  const lines = originalScript.split("\n");
   const states = callSites.map((callSite) => {
     const matches = lines
       .map((line, index) => ({ index, line }))
@@ -45,22 +162,37 @@ async function main() {
     }
     return { kind: "unknown" };
   });
-  const isBrokenContract = states.every((state) => state.kind === "broken");
-  const isFixedContract = states.every((state) => state.kind === "fixed");
-  if (!isBrokenContract && !isFixedContract) {
+  const isBrokenLoggingContract = states.every((state) => state.kind === "broken");
+  const isFixedLoggingContract = states.every((state) => state.kind === "fixed");
+  if (!isBrokenLoggingContract && !isFixedLoggingContract) {
     throw new Error(`Unsupported Telegram harness logging contract in ${scriptPath}`);
   }
-
-  if (isBrokenContract) {
+  if (isBrokenLoggingContract) {
     for (let index = 0; index < callSites.length; index += 1) {
       lines[states[index].index] = callSites[index].fixed;
     }
-    await fs.writeFile(scriptPath, lines.join("\n"));
   }
+
+  const mounts = patchHarnessMounts(lines.join("\n"), scriptPath);
+  const runtime = replaceRuntime(mounts.contents, scriptPath);
+  const qaExportPatch = patchPrivateQaExport(originalPreparePackage, preparePackagePath);
+  const patchedScript = runtime.contents;
+
+  if (patchedScript !== originalScript) {
+    await fs.writeFile(scriptPath, patchedScript);
+  }
+  if (qaExportPatch.contents !== originalPreparePackage) {
+    await fs.writeFile(preparePackagePath, qaExportPatch.contents);
+  }
+
+  const packagePatchCount =
+    Number(mounts.patched) + Number(runtime.patched) + Number(qaExportPatch.patched);
   process.stdout.write(
-    isBrokenContract
-      ? `patched ${callSites.length} Telegram harness stdin consumers\n`
-      : "Telegram harness stdin consumers already preserve input\n",
+    `${isBrokenLoggingContract ? `patched ${callSites.length}` : "preserved"} Telegram harness stdin consumers; ${
+      packagePatchCount > 0
+        ? `patched ${packagePatchCount} package harness contracts`
+        : "package harness contracts already patched"
+    }\n`,
   );
 }
 
