@@ -42,6 +42,7 @@ for (const packageJsonPath of process.argv.slice(2)) {
 `;
 const legacyRunner = `const DEFAULT_RTT_CHECK_ID = "channel-canary";
 `;
+const privatePluginSdkSubpaths = ["qa-runtime", "sqlite-runtime-testing"];
 
 async function makeFixture({
   harness = legacyHarness,
@@ -55,12 +56,18 @@ async function makeFixture({
     "scripts/e2e/lib/npm-telegram-live/prepare-package.mjs",
   );
   const runnerPath = path.join(root, "scripts/e2e/npm-telegram-live-runner.ts");
+  const privateSubpathsPath = path.join(
+    root,
+    "scripts/lib/plugin-sdk-private-local-only-subpaths.json",
+  );
   await fs.mkdir(path.dirname(scriptPath), { recursive: true });
   await fs.mkdir(path.dirname(preparePackagePath), { recursive: true });
+  await fs.mkdir(path.dirname(privateSubpathsPath), { recursive: true });
   await Promise.all([
     fs.writeFile(scriptPath, harness),
     fs.writeFile(preparePackagePath, preparePackage),
     fs.writeFile(runnerPath, runner),
+    fs.writeFile(privateSubpathsPath, `${JSON.stringify(privatePluginSdkSubpaths)}\n`),
   ]);
   return { preparePackagePath, root, runnerPath, scriptPath };
 }
@@ -109,8 +116,25 @@ test("separates the trusted QA harness from the installed package SUT", async (t
   assert.doesNotMatch(patched, /link_installed_package_dependency/u);
 
   const patchedPreparePackage = await fs.readFile(preparePackagePath, "utf8");
-  assert.match(patchedPreparePackage, /"\.\/plugin-sdk\/qa-runtime"/u);
-  assert.match(patchedPreparePackage, /\.\/dist\/plugin-sdk\/qa-runtime\.js/u);
+  assert.match(
+    patchedPreparePackage,
+    /plugin-sdk-private-local-only-subpaths\.json/u,
+  );
+  const packagePath = path.join(root, "package.json");
+  await fs.writeFile(
+    packagePath,
+    `${JSON.stringify({ exports: { "./plugin-sdk/core": "./dist/plugin-sdk/core.js" } })}\n`,
+  );
+  await execFileAsync(process.execPath, [preparePackagePath, packagePath]);
+  const patchedPackage = JSON.parse(await fs.readFile(packagePath, "utf8"));
+  assert.deepEqual(patchedPackage.exports["./plugin-sdk/qa-runtime"], {
+    types: "./dist/plugin-sdk/qa-runtime.d.ts",
+    default: "./dist/plugin-sdk/qa-runtime.js",
+  });
+  assert.deepEqual(patchedPackage.exports["./plugin-sdk/sqlite-runtime-testing"], {
+    types: "./dist/plugin-sdk/sqlite-runtime-testing.d.ts",
+    default: "./dist/plugin-sdk/sqlite-runtime-testing.js",
+  });
   const patchedRunner = await fs.readFile(runnerPath, "utf8");
   assert.match(
     patchedRunner,

@@ -83,10 +83,22 @@ ln -sfnT /app /app/node_modules/openclaw
 
 `;
 
-const qaExport = `  if (!pkg.exports["./plugin-sdk/qa-runtime"]) {
-    pkg.exports["./plugin-sdk/qa-runtime"] = {
-      types: "./dist/plugin-sdk/qa-runtime.d.ts",
-      default: "./dist/plugin-sdk/qa-runtime.js",
+const privateQaExports = `  const privatePluginSdkSubpaths = JSON.parse(
+    fs.readFileSync(
+      new URL("../../../lib/plugin-sdk-private-local-only-subpaths.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  if (!Array.isArray(privatePluginSdkSubpaths)) {
+    throw new Error("private plugin SDK subpaths must be an array");
+  }
+  for (const subpath of privatePluginSdkSubpaths) {
+    if (typeof subpath !== "string" || !/^[a-z0-9][a-z0-9-]*$/u.test(subpath)) {
+      throw new Error(\`invalid private plugin SDK subpath: \${String(subpath)}\`);
+    }
+    pkg.exports[\`./plugin-sdk/\${subpath}\`] ??= {
+      types: \`./dist/plugin-sdk/\${subpath}.d.ts\`,
+      default: \`./dist/plugin-sdk/\${subpath}.js\`,
     };
   }
 `;
@@ -141,7 +153,7 @@ function patchHarnessMounts(contents, scriptPath) {
 }
 
 function patchPrivateQaExport(contents, preparePackagePath) {
-  const exportCount = contents.split(qaExport).length - 1;
+  const exportCount = contents.split(privateQaExports).length - 1;
   const anchorCount = contents.split(prepareWriteAnchor).length - 1;
   if (exportCount === 1 && anchorCount === 1) {
     return { contents, patched: false };
@@ -150,7 +162,7 @@ function patchPrivateQaExport(contents, preparePackagePath) {
     throw new Error(`Unsupported Telegram harness package manifest in ${preparePackagePath}`);
   }
   return {
-    contents: contents.replace(prepareWriteAnchor, `${qaExport}${prepareWriteAnchor}`),
+    contents: contents.replace(prepareWriteAnchor, `${privateQaExports}${prepareWriteAnchor}`),
     patched: true,
   };
 }
