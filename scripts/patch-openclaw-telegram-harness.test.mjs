@@ -40,10 +40,13 @@ for (const packageJsonPath of process.argv.slice(2)) {
   fs.writeFileSync(packageJsonPath, \`\${JSON.stringify(pkg, null, 2)}\\n\`);
 }
 `;
+const legacyRunner = `const DEFAULT_RTT_CHECK_ID = "channel-canary";
+`;
 
 async function makeFixture({
   harness = legacyHarness,
   preparePackage = legacyPreparePackage,
+  runner = legacyRunner,
 } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-telegram-harness-test-"));
   const scriptPath = path.join(root, "scripts/e2e/npm-telegram-live-docker.sh");
@@ -51,22 +54,24 @@ async function makeFixture({
     root,
     "scripts/e2e/lib/npm-telegram-live/prepare-package.mjs",
   );
+  const runnerPath = path.join(root, "scripts/e2e/npm-telegram-live-runner.ts");
   await fs.mkdir(path.dirname(scriptPath), { recursive: true });
   await fs.mkdir(path.dirname(preparePackagePath), { recursive: true });
   await Promise.all([
     fs.writeFile(scriptPath, harness),
     fs.writeFile(preparePackagePath, preparePackage),
+    fs.writeFile(runnerPath, runner),
   ]);
-  return { preparePackagePath, root, scriptPath };
+  return { preparePackagePath, root, runnerPath, scriptPath };
 }
 
 test("separates the trusted QA harness from the installed package SUT", async (t) => {
-  const { preparePackagePath, root, scriptPath } = await makeFixture();
+  const { preparePackagePath, root, runnerPath, scriptPath } = await makeFixture();
   t.after(() => fs.rm(root, { force: true, recursive: true }));
 
   const first = await execFileAsync(process.execPath, [PATCH_SCRIPT, root]);
   assert.match(first.stdout, /patched 2 Telegram harness stdin consumers/u);
-  assert.match(first.stdout, /patched 3 package harness contracts/u);
+  assert.match(first.stdout, /patched 4 package harness contracts/u);
 
   const patched = await fs.readFile(scriptPath, "utf8");
   assert.match(
@@ -106,12 +111,18 @@ test("separates the trusted QA harness from the installed package SUT", async (t
   const patchedPreparePackage = await fs.readFile(preparePackagePath, "utf8");
   assert.match(patchedPreparePackage, /"\.\/plugin-sdk\/qa-runtime"/u);
   assert.match(patchedPreparePackage, /\.\/dist\/plugin-sdk\/qa-runtime\.js/u);
+  const patchedRunner = await fs.readFile(runnerPath, "utf8");
+  assert.match(
+    patchedRunner,
+    /const DEFAULT_RTT_CHECK_ID = "telegram-reply-chain-exact-marker";/u,
+  );
 
   const second = await execFileAsync(process.execPath, [PATCH_SCRIPT, root]);
   assert.match(second.stdout, /preserved Telegram harness stdin consumers/u);
   assert.match(second.stdout, /package harness contracts already patched/u);
   assert.equal(await fs.readFile(scriptPath, "utf8"), patched);
   assert.equal(await fs.readFile(preparePackagePath, "utf8"), patchedPreparePackage);
+  assert.equal(await fs.readFile(runnerPath, "utf8"), patchedRunner);
 });
 
 test("fails closed for an unknown upstream Telegram harness contract", async (t) => {
@@ -154,6 +165,7 @@ test("fails closed for unknown package mount, runtime, or manifest contracts", a
     { harness: legacyHarness.replace("-v \"$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER\"", "-v custom") },
     { harness: legacyHarness.replace('openclaw_package_dir="/npm-global/lib/node_modules/openclaw"', "echo custom") },
     { preparePackage: legacyPreparePackage.replace("fs.writeFileSync", "customWrite") },
+    { runner: 'const DEFAULT_RTT_CHECK_ID = "custom";\n' },
   ];
   const roots = [];
   t.after(() => Promise.all(roots.map((root) => fs.rm(root, { force: true, recursive: true }))));
@@ -163,7 +175,7 @@ test("fails closed for unknown package mount, runtime, or manifest contracts", a
     roots.push(root);
     await assert.rejects(
       execFileAsync(process.execPath, [PATCH_SCRIPT, root]),
-      /Unsupported Telegram harness (mount|package contract|package manifest)/u,
+      /Unsupported Telegram (harness (mount|package contract|package manifest)|RTT check contract)/u,
     );
   }
 });

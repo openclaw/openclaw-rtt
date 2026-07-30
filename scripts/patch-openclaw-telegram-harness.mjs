@@ -92,6 +92,9 @@ const qaExport = `  if (!pkg.exports["./plugin-sdk/qa-runtime"]) {
 `;
 const prepareWriteAnchor =
   '  fs.writeFileSync(packageJsonPath, `${JSON.stringify(pkg, null, 2)}\\n`);';
+const legacyRttCheck = 'const DEFAULT_RTT_CHECK_ID = "channel-canary";';
+const telegramRttCheck =
+  'const DEFAULT_RTT_CHECK_ID = "telegram-reply-chain-exact-marker";';
 
 function usage() {
   return "Usage: node scripts/patch-openclaw-telegram-harness.mjs <openclaw-repo-root>";
@@ -152,6 +155,21 @@ function patchPrivateQaExport(contents, preparePackagePath) {
   };
 }
 
+function patchRttCheck(contents, runnerPath) {
+  const legacyCount = contents.split(legacyRttCheck).length - 1;
+  const telegramCount = contents.split(telegramRttCheck).length - 1;
+  if (telegramCount === 1 && legacyCount === 0) {
+    return { contents, patched: false };
+  }
+  if (legacyCount !== 1 || telegramCount !== 0) {
+    throw new Error(`Unsupported Telegram RTT check contract in ${runnerPath}`);
+  }
+  return {
+    contents: contents.replace(legacyRttCheck, telegramRttCheck),
+    patched: true,
+  };
+}
+
 async function main() {
   const [repoRoot, ...extraArgs] = process.argv.slice(2);
   if (!repoRoot || extraArgs.length > 0) {
@@ -163,9 +181,11 @@ async function main() {
     repoRoot,
     "scripts/e2e/lib/npm-telegram-live/prepare-package.mjs",
   );
-  const [originalScript, originalPreparePackage] = await Promise.all([
+  const runnerPath = path.resolve(repoRoot, "scripts/e2e/npm-telegram-live-runner.ts");
+  const [originalScript, originalPreparePackage, originalRunner] = await Promise.all([
     fs.readFile(scriptPath, "utf8"),
     fs.readFile(preparePackagePath, "utf8"),
+    fs.readFile(runnerPath, "utf8"),
   ]);
 
   const lines = originalScript.split("\n");
@@ -199,6 +219,7 @@ async function main() {
   const mounts = patchHarnessMounts(lines.join("\n"), scriptPath);
   const runtime = replaceRuntime(mounts.contents, scriptPath);
   const qaExportPatch = patchPrivateQaExport(originalPreparePackage, preparePackagePath);
+  const rttCheckPatch = patchRttCheck(originalRunner, runnerPath);
   const patchedScript = runtime.contents;
 
   if (patchedScript !== originalScript) {
@@ -207,9 +228,15 @@ async function main() {
   if (qaExportPatch.contents !== originalPreparePackage) {
     await fs.writeFile(preparePackagePath, qaExportPatch.contents);
   }
+  if (rttCheckPatch.contents !== originalRunner) {
+    await fs.writeFile(runnerPath, rttCheckPatch.contents);
+  }
 
   const packagePatchCount =
-    Number(mounts.patched) + Number(runtime.patched) + Number(qaExportPatch.patched);
+    Number(mounts.patched) +
+    Number(runtime.patched) +
+    Number(qaExportPatch.patched) +
+    Number(rttCheckPatch.patched);
   process.stdout.write(
     `${isBrokenLoggingContract ? `patched ${callSites.length}` : "preserved"} Telegram harness stdin consumers; ${
       packagePatchCount > 0
