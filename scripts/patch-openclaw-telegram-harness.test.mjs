@@ -17,6 +17,11 @@ run_logged_print_heartbeat "npm-telegram-live-suite" 60 docker_e2e_run_with_harn
   -v "$ROOT_DIR/.artifacts:/app/.artifacts" \\
   -v "$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER" \\
   -v "$ROOT_DIR/extensions/qa-lab:/app/extensions/qa-lab:ro" \\
+for key in \\
+  OPENCLAW_NPM_TELEGRAM_SKIP_HOTPATH \\
+  OPENCLAW_NPM_TELEGRAM_ALLOW_FAILURES; do
+  forward_env_if_set "$key"
+done
 mkdir -p /app/node_modules
 openclaw_package_dir="/npm-global/lib/node_modules/openclaw"
 rm -rf /app/node_modules/openclaw
@@ -78,7 +83,7 @@ test("separates the trusted QA harness from the installed package SUT", async (t
 
   const first = await execFileAsync(process.execPath, [PATCH_SCRIPT, root]);
   assert.match(first.stdout, /patched 2 Telegram harness stdin consumers/u);
-  assert.match(first.stdout, /patched 4 package harness contracts/u);
+  assert.match(first.stdout, /patched 5 package harness contracts/u);
 
   const patched = await fs.readFile(scriptPath, "utf8");
   assert.match(
@@ -100,6 +105,10 @@ test("separates the trusted QA harness from the installed package SUT", async (t
   assert.match(patched, /-v "\$ROOT_DIR\/taxonomy\.yaml:\/app\/taxonomy\.yaml:ro"/u);
   assert.match(patched, /-v "\$ROOT_DIR\/packages:\/openclaw-harness\/packages:ro"/u);
   assert.match(patched, /-v "\$ROOT_DIR\/extensions:\/openclaw-harness\/extensions:ro"/u);
+  assert.match(
+    patched,
+    /OPENCLAW_ALLOW_OLDER_BINARY_DESTRUCTIVE_ACTIONS \\\n  OPENCLAW_NPM_TELEGRAM_SKIP_HOTPATH/u,
+  );
   assert.match(patched, /cp \/openclaw-harness\/package\.json \/app\/package\.json/u);
   assert.match(patched, /ln -sfnT \/openclaw-harness\/dist \/app\/dist/u);
   assert.match(patched, /for dependency_dir in \/openclaw-harness\/node_modules\/\*; do/u);
@@ -187,6 +196,12 @@ run_logged_print_heartbeat "npm-telegram-package-install" 60 docker_e2e_docker_r
 test("fails closed for unknown package mount, runtime, or manifest contracts", async (t) => {
   const fixtures = [
     { harness: legacyHarness.replace("-v \"$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER\"", "-v custom") },
+    {
+      harness: legacyHarness.replace(
+        "  OPENCLAW_NPM_TELEGRAM_SKIP_HOTPATH \\",
+        "  OPENCLAW_NPM_TELEGRAM_CUSTOM_ENV \\",
+      ),
+    },
     { harness: legacyHarness.replace('openclaw_package_dir="/npm-global/lib/node_modules/openclaw"', "echo custom") },
     { preparePackage: legacyPreparePackage.replace("fs.writeFileSync", "customWrite") },
     { runner: 'const DEFAULT_RTT_CHECK_ID = "custom";\n' },
@@ -199,7 +214,7 @@ test("fails closed for unknown package mount, runtime, or manifest contracts", a
     roots.push(root);
     await assert.rejects(
       execFileAsync(process.execPath, [PATCH_SCRIPT, root]),
-      /Unsupported Telegram (harness (mount|package contract|package manifest)|RTT check contract)/u,
+      /Unsupported Telegram (harness (mount|env contract|package contract|package manifest)|RTT check contract)/u,
     );
   }
 });

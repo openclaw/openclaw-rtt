@@ -25,6 +25,10 @@ const harnessMounts = `${harnessMountAnchor}
   -v "$ROOT_DIR/packages:/openclaw-harness/packages:ro" \\
   -v "$ROOT_DIR/extensions:/openclaw-harness/extensions:ro" \\`;
 
+const forwardedEnvAnchor = `  OPENCLAW_NPM_TELEGRAM_SKIP_HOTPATH \\`;
+const forwardedDowngradeEnv = `  OPENCLAW_ALLOW_OLDER_BINARY_DESTRUCTIVE_ACTIONS \\
+${forwardedEnvAnchor}`;
+
 const legacyRuntimeStart = `mkdir -p /app/node_modules
 openclaw_package_dir="/npm-global/lib/node_modules/openclaw"`;
 const trustedRuntimeStart = `mkdir -p /app/node_modules
@@ -152,6 +156,21 @@ function patchHarnessMounts(contents, scriptPath) {
   };
 }
 
+function patchForwardedDowngradeEnv(contents, scriptPath) {
+  const patchedCount = contents.split(forwardedDowngradeEnv).length - 1;
+  const anchorCount = contents.split(forwardedEnvAnchor).length - 1;
+  if (patchedCount === 1 && anchorCount === 1) {
+    return { contents, patched: false };
+  }
+  if (patchedCount !== 0 || anchorCount !== 1) {
+    throw new Error(`Unsupported Telegram harness env contract in ${scriptPath}`);
+  }
+  return {
+    contents: contents.replace(forwardedEnvAnchor, forwardedDowngradeEnv),
+    patched: true,
+  };
+}
+
 function patchPrivateQaExport(contents, preparePackagePath) {
   const exportCount = contents.split(privateQaExports).length - 1;
   const anchorCount = contents.split(prepareWriteAnchor).length - 1;
@@ -229,7 +248,8 @@ async function main() {
   }
 
   const mounts = patchHarnessMounts(lines.join("\n"), scriptPath);
-  const runtime = replaceRuntime(mounts.contents, scriptPath);
+  const forwardedEnv = patchForwardedDowngradeEnv(mounts.contents, scriptPath);
+  const runtime = replaceRuntime(forwardedEnv.contents, scriptPath);
   const qaExportPatch = patchPrivateQaExport(originalPreparePackage, preparePackagePath);
   const rttCheckPatch = patchRttCheck(originalRunner, runnerPath);
   const patchedScript = runtime.contents;
@@ -246,6 +266,7 @@ async function main() {
 
   const packagePatchCount =
     Number(mounts.patched) +
+    Number(forwardedEnv.patched) +
     Number(runtime.patched) +
     Number(qaExportPatch.patched) +
     Number(rttCheckPatch.patched);

@@ -138,6 +138,7 @@ jobs:
         if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill == 'true'
         working-directory: openclaw
         env:
+          OPENCLAW_ALLOW_OLDER_BINARY_DESTRUCTIVE_ACTIONS: "1"
           OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
           OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
           OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
@@ -206,6 +207,7 @@ jobs:
         id: rtt
         working-directory: openclaw
         env:
+          OPENCLAW_ALLOW_OLDER_BINARY_DESTRUCTIVE_ACTIONS: "1"
           OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
           OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
           OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
