@@ -11,15 +11,16 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.6.8",
     "startedAt": "2026-06-22T20:46:29.707Z",
-    "finishedAt": "2026-06-22T20:54:01.999Z",
-    "durationMs": 452292,
+    "finishedAt": "2026-07-31T21:02:26.399Z",
+    "durationMs": 3370556692,
     "status": "pass"
   },
   "mode": {
     "providerMode": "mixed",
     "source": "channel-rtt-backfill",
     "sourceChannels": [
-      "discord"
+      "discord",
+      "slack"
     ]
   },
   "rtt": {
@@ -43,15 +44,16 @@
       2351,
       2209,
       2184,
-      2451
+      2451,
+      3363
     ],
     "failedSamples": 0,
     "sources": [
       "backfill:summary-rtt"
     ],
-    "avgMs": 2428.1,
-    "p50Ms": 2340,
-    "p95Ms": 2485,
+    "avgMs": 2472.6190476190477,
+    "p50Ms": 2351,
+    "p95Ms": 3363,
     "maxMs": 4523
   },
   "resources": {
@@ -61,20 +63,22 @@
       "command": "backfill from data/channels"
     },
     "maxRssKbSamples": [
-      1047104
+      1047104,
+      1033956
     ],
     "elapsedSecondsSamples": [
-      23.59
+      23.59,
+      22.92
     ],
     "maxRssKb": {
-      "avg": 1047104,
-      "p50": 1047104,
+      "avg": 1040530,
+      "p50": 1033956,
       "p95": 1047104,
       "max": 1047104
     },
     "elapsedSeconds": {
-      "avg": 23.59,
-      "p50": 23.59,
+      "avg": 23.255000000000003,
+      "p50": 22.92,
       "p95": 23.59,
       "max": 23.59
     }
@@ -397,6 +401,22 @@
       "rttSource": "backfill:summary-rtt",
       "rttMeasurement": {
         "finalMatchedReplyRttMs": 2451,
+        "source": "backfill:summary-rtt"
+      }
+    },
+    {
+      "index": 21,
+      "status": "pass",
+      "channel": {
+        "id": "slack",
+        "label": "Slack",
+        "scenario": "slack-canary"
+      },
+      "sourceRunId": "2026-07-31T210226399Z-openclaw_2026.6.8-slack-slack-canary-rtt",
+      "rttMs": 3363,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 3363,
         "source": "backfill:summary-rtt"
       }
     }

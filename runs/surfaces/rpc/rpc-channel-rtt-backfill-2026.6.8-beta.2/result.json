@@ -11,15 +11,16 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.6.8-beta.2",
     "startedAt": "2026-06-22T20:29:38.167Z",
-    "finishedAt": "2026-06-22T20:36:53.721Z",
-    "durationMs": 435554,
+    "finishedAt": "2026-07-31T20:36:29.673Z",
+    "durationMs": 3370011506,
     "status": "pass"
   },
   "mode": {
     "providerMode": "mixed",
     "source": "channel-rtt-backfill",
     "sourceChannels": [
-      "discord"
+      "discord",
+      "slack"
     ]
   },
   "rtt": {
@@ -43,16 +44,17 @@
       2024,
       2054,
       1973,
-      1954
+      1954,
+      4978
     ],
     "failedSamples": 0,
     "sources": [
       "backfill:summary-rtt"
     ],
-    "avgMs": 2018,
+    "avgMs": 2158.9523809523807,
     "p50Ms": 2016,
-    "p95Ms": 2140,
-    "maxMs": 2184
+    "p95Ms": 2184,
+    "maxMs": 4978
   },
   "resources": {
     "measurement": {
@@ -61,22 +63,24 @@
       "command": "backfill from data/channels"
     },
     "maxRssKbSamples": [
-      1057136
+      1057136,
+      1049748
     ],
     "elapsedSecondsSamples": [
-      22.95
+      22.95,
+      33.04
     ],
     "maxRssKb": {
-      "avg": 1057136,
-      "p50": 1057136,
+      "avg": 1053442,
+      "p50": 1049748,
       "p95": 1057136,
       "max": 1057136
     },
     "elapsedSeconds": {
-      "avg": 22.95,
+      "avg": 27.994999999999997,
       "p50": 22.95,
-      "p95": 22.95,
-      "max": 22.95
+      "p95": 33.04,
+      "max": 33.04
     }
   },
   "samples": [
@@ -397,6 +401,22 @@
       "rttSource": "backfill:summary-rtt",
       "rttMeasurement": {
         "finalMatchedReplyRttMs": 1954,
+        "source": "backfill:summary-rtt"
+      }
+    },
+    {
+      "index": 21,
+      "status": "pass",
+      "channel": {
+        "id": "slack",
+        "label": "Slack",
+        "scenario": "slack-canary"
+      },
+      "sourceRunId": "2026-07-31T203629673Z-openclaw_2026.6.8-beta.2-slack-slack-canary-rtt",
+      "rttMs": 4978,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 4978,
         "source": "backfill:summary-rtt"
       }
     }
