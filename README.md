@@ -69,15 +69,15 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-31T02:36:14.264Z`
+Latest imported release coverage run: `2026-07-31T08:59:18.216Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.7.2-beta.5` | `3,845ms` | `1,031ms` | `9,209ms` | fail | - | `0ms` | `102ms` |
-| `2026.7.2-beta.4` | `854ms` | `1,024ms` | `2,125ms` | fail | - | `0ms` | `113ms` |
-| `2026.7.2-beta.3` | `2,424ms` | `1,024ms` | `5,977ms` | fail | - | `0ms` | `313ms` |
-| `2026.7.2-beta.2` | `784ms` | `1,018ms` | `2,042ms` | fail | - | `0ms` | `314ms` |
-| `2026.7.2-beta.1` | `1,516ms` | `1,024ms` | `1,872ms` | `4,764ms` | - | `1,898ms` | `306ms` |
+| `2026.7.2-beta.4` | `854ms` | `1,024ms` | `2,125ms` | fail | fail | `0ms` | `113ms` |
+| `2026.7.2-beta.3` | `2,424ms` | `1,024ms` | `5,977ms` | fail | fail | `0ms` | `313ms` |
+| `2026.7.2-beta.2` | `784ms` | `1,018ms` | `2,042ms` | fail | fail | `0ms` | `314ms` |
+| `2026.7.2-beta.1` | `1,516ms` | `1,024ms` | `1,872ms` | `4,764ms` | fail | `1,898ms` | `306ms` |
 | `2026.7.1` | `1,015ms` | `1,022ms` | `1,797ms` | `3,333ms` | fail | `1,797ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,003ms` | `1,024ms` | `1,808ms` | `3,335ms` | fail | `1,814ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,533ms` | `984ms` | `1,776ms` | `4,778ms` | fail | `1,789ms` | `288ms` |
@@ -563,10 +563,10 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | `2026.7.2-beta.5` | - | - | - | - | missing: no imported run |
-| `2026.7.2-beta.4` | - | - | - | - | missing: no imported run |
-| `2026.7.2-beta.3` | - | - | - | - | missing: no imported run |
-| `2026.7.2-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.7.2-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.7.2-beta.4` | - | - | `559MB` | `559MB` | failed: QA command exited with status 1 before writing a summary. |
+| `2026.7.2-beta.3` | - | - | `763MB` | `763MB` | failed: QA command exited with status 1 before writing a summary. |
+| `2026.7.2-beta.2` | - | - | `750MB` | `750MB` | failed: QA command exited with status 1 before writing a summary. |
+| `2026.7.2-beta.1` | - | - | `1,085MB` | `1,085MB` | failed |
 | `2026.7.1` | - | - | `721MB` | `721MB` | failed |
 | `2026.7.1-beta.6` | - | - | `729MB` | `729MB` | failed |
 | `2026.7.1-beta.5` | - | - | `736MB` | `736MB` | failed |
