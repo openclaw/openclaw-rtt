@@ -11,8 +11,8 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.7.1",
     "startedAt": "2026-07-14T01:52:41.404Z",
-    "finishedAt": "2026-07-18T04:04:50.942Z",
-    "durationMs": 353529538,
+    "finishedAt": "2026-07-18T04:32:07.180Z",
+    "durationMs": 355165776,
     "status": "pass"
   },
   "mode": {
@@ -45,14 +45,16 @@
       1742,
       1869,
       1750,
-      3333
+      3333,
+      0
     ],
-    "failedSamples": 0,
+    "failedSamples": 1,
     "sources": [
+      "backfill:channel-rtt-backfill",
       "backfill:summary-rtt"
     ],
-    "avgMs": 1993.904761904762,
-    "p50Ms": 1819,
+    "avgMs": 1903.2727272727273,
+    "p50Ms": 1797,
     "p95Ms": 3333,
     "maxMs": 4092
   },
@@ -64,23 +66,25 @@
     },
     "maxRssKbSamples": [
       1084472,
-      921044
+      921044,
+      1399976
     ],
     "elapsedSecondsSamples": [
       32.21,
-      21.36
+      21.36,
+      42.22
     ],
     "maxRssKb": {
-      "avg": 1002758,
-      "p50": 921044,
-      "p95": 1084472,
-      "max": 1084472
+      "avg": 1135164,
+      "p50": 1084472,
+      "p95": 1399976,
+      "max": 1399976
     },
     "elapsedSeconds": {
-      "avg": 26.785,
-      "p50": 21.36,
-      "p95": 32.21,
-      "max": 32.21
+      "avg": 31.929999999999996,
+      "p50": 32.21,
+      "p95": 42.22,
+      "max": 42.22
     }
   },
   "samples": [
@@ -418,6 +422,22 @@
       "rttMeasurement": {
         "finalMatchedReplyRttMs": 3333,
         "source": "backfill:summary-rtt"
+      }
+    },
+    {
+      "index": 22,
+      "status": "pass",
+      "channel": {
+        "id": "discord",
+        "label": "Discord",
+        "scenario": "discord-canary"
+      },
+      "sourceRunId": "2026-07-18T043207180Z-openclaw_2026.7.1-discord-rtt",
+      "rttMs": 0,
+      "rttSource": "backfill:channel-rtt-backfill",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 0,
+        "source": "backfill:channel-rtt-backfill"
       }
     }
   ],
