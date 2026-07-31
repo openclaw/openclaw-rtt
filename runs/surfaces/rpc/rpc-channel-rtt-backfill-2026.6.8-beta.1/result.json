@@ -11,8 +11,8 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.6.8-beta.1",
     "startedAt": "2026-06-22T20:28:28.294Z",
-    "finishedAt": "2026-07-20T20:31:00.424Z",
-    "durationMs": 2419352130,
+    "finishedAt": "2026-07-31T14:45:55.220Z",
+    "durationMs": 3349046926,
     "status": "pass"
   },
   "mode": {
@@ -20,6 +20,7 @@
     "source": "channel-rtt-backfill",
     "sourceChannels": [
       "discord",
+      "slack",
       "whatsapp"
     ]
   },
@@ -45,15 +46,16 @@
       2060,
       1971,
       2199,
-      3344
+      3344,
+      3096
     ],
     "failedSamples": 0,
     "sources": [
       "backfill:summary-rtt"
     ],
-    "avgMs": 2144.714285714286,
+    "avgMs": 2187.9545454545455,
     "p50Ms": 2085,
-    "p95Ms": 2255,
+    "p95Ms": 3096,
     "maxMs": 3344
   },
   "resources": {
@@ -64,20 +66,22 @@
     },
     "maxRssKbSamples": [
       1054796,
-      1122808
+      1122808,
+      971108
     ],
     "elapsedSecondsSamples": [
       23.06,
-      42.68
+      42.68,
+      21.29
     ],
     "maxRssKb": {
-      "avg": 1088802,
+      "avg": 1049570.6666666667,
       "p50": 1054796,
       "p95": 1122808,
       "max": 1122808
     },
     "elapsedSeconds": {
-      "avg": 32.87,
+      "avg": 29.01,
       "p50": 23.06,
       "p95": 42.68,
       "max": 42.68
@@ -417,6 +421,22 @@
       "rttSource": "backfill:summary-rtt",
       "rttMeasurement": {
         "finalMatchedReplyRttMs": 3344,
+        "source": "backfill:summary-rtt"
+      }
+    },
+    {
+      "index": 22,
+      "status": "pass",
+      "channel": {
+        "id": "slack",
+        "label": "Slack",
+        "scenario": "slack-canary"
+      },
+      "sourceRunId": "2026-07-31T144555220Z-openclaw_2026.6.8-beta.1-slack-slack-canary-rtt",
+      "rttMs": 3096,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 3096,
         "source": "backfill:summary-rtt"
       }
     }

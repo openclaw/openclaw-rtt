@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-07-31T10:36:16.053Z`
+Latest imported release coverage run: `2026-07-31T15:05:16.243Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -95,8 +95,8 @@ Latest imported release coverage run: `2026-07-31T10:36:16.053Z`
 | `2026.6.9-beta.1` | `739ms` | `1,970ms` | `2,167ms` | fail | fail | `2,167ms` | `405ms` |
 | `2026.6.8` | `795ms` | `1,984ms` | `2,340ms` | fail | fail | `2,340ms` | `417ms` |
 | `2026.6.8-beta.2` | `708ms` | `1,927ms` | `2,016ms` | fail | fail | `2,016ms` | `354ms` |
-| `2026.6.8-beta.1` | `953ms` | `1,971ms` | `2,075ms` | fail | `3,344ms` | `2,085ms` | `349ms` |
-| `2026.6.7-beta.1` | `1,035ms` | `1,003ms` | `2,107ms` | fail | `3,326ms` | `2,114ms` | `316ms` |
+| `2026.6.8-beta.1` | `967ms` | `1,971ms` | `2,075ms` | `3,096ms` | `3,344ms` | `2,085ms` | `349ms` |
+| `2026.6.7-beta.1` | `1,041ms` | `1,003ms` | `2,107ms` | `2,947ms` | `3,326ms` | `2,114ms` | `316ms` |
 | `2026.6.6` | `1,010ms` | `1,038ms` | `2,249ms` | `3,172ms` | fail | `2,260ms` | `307ms` |
 | `2026.6.6-beta.2` | `937ms` | `1,109ms` | `1,929ms` | `3,199ms` | fail | `1,964ms` | `407ms` |
 | `2026.6.5` | `1,069ms` | `1,002ms` | `2,068ms` | `3,148ms` | `3,135ms` | `2,636ms` | `308ms` |
@@ -136,7 +136,7 @@ Latest imported release coverage run: `2026-07-31T10:36:16.053Z`
 | `2026.5.19-beta.2` | `2,487ms` | `1,036ms` | `7,279ms` | `4,713ms` | `7,769ms` | `6,938ms` | n/a |
 | `2026.5.19-beta.1` | `2,113ms` | `1,224ms` | `5,092ms` | `4,551ms` | `7,852ms` | `5,071ms` | n/a |
 | `2026.5.18` | `2,473ms` | `1,061ms` | `7,318ms` | `4,253ms` | `7,618ms` | `6,758ms` | n/a |
-| `2026.5.18-beta.1` | `2,541ms` | `1,017ms` | `5,957ms` | blocked | `7,875ms` | `5,977ms` | n/a |
+| `2026.5.18-beta.1` | `2,541ms` | `1,017ms` | `5,957ms` | fail | `7,875ms` | `5,977ms` | n/a |
 | `2026.5.16-beta.7` | `2,190ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` | `6,055ms` | n/a |
 | `2026.5.16-beta.6` | `2,216ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` | `4,732ms` | n/a |
 | `2026.5.16-beta.5` | `2,287ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` | `4,740ms` | n/a |
@@ -488,8 +488,8 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.6.9-beta.1` | - | - | `1,049MB` | `1,049MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8` | - | - | `996MB` | `996MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.8-beta.2` | - | - | `995MB` | `995MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.8-beta.1` | - | - | `985MB` | `985MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.7-beta.1` | - | - | `965MB` | `965MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.8-beta.1` | `3,096ms` | `3,096ms` | `948MB` | `948MB` | ok |
+| `2026.6.7-beta.1` | `2,947ms` | `2,947ms` | `1,012MB` | `1,012MB` | ok |
 | `2026.6.6` | `3,172ms` | `3,237ms` | `981MB` | `993MB` | ok |
 | `2026.6.6-beta.2` | `3,199ms` | `4,534ms` | `977MB` | `992MB` | ok |
 | `2026.6.5` | `3,148ms` | `3,600ms` | `975MB` | `984MB` | ok |
@@ -529,10 +529,10 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.19-beta.2` | `4,713ms` | `5,988ms` | `713MB` | `751MB` | ok |
 | `2026.5.19-beta.1` | `4,551ms` | `5,896ms` | `718MB` | `754MB` | ok |
 | `2026.5.18` | `4,253ms` | `5,549ms` | `710MB` | `767MB` | ok |
-| `2026.5.18-beta.1` | - | - | `569MB` | `569MB` | blocked: credential pool exhausted |
+| `2026.5.18-beta.1` | - | - | `724MB` | `724MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `699MB` | `762MB` | ok |
 | `2026.5.16-beta.6` | `4,719ms` | `5,051ms` | `724MB` | `760MB` | ok |
-| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `744MB` | `744MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `754MB` | `754MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.4` | `4,255ms` | `5,484ms` | `671MB` | `709MB` | ok |
 | `2026.5.16-beta.3` | `4,690ms` | `5,929ms` | `673MB` | `723MB` | ok |
 | `2026.5.16-beta.2` | `4,751ms` | `5,868ms` | `672MB` | `696MB` | ok |
@@ -583,11 +583,11 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.9` | - | - | `636MB` | `636MB` | failed |
 | `2026.6.9-beta.1` | - | - | `667MB` | `667MB` | failed |
 | `2026.6.8` | - | - | `667MB` | `667MB` | failed |
-| `2026.6.8-beta.2` | - | - | `617MB` | `617MB` | failed |
+| `2026.6.8-beta.2` | - | - | `655MB` | `655MB` | failed |
 | `2026.6.8-beta.1` | `3,344ms` | `3,344ms` | `1,096MB` | `1,096MB` | ok |
 | `2026.6.7-beta.1` | `3,326ms` | `3,326ms` | `1,098MB` | `1,098MB` | ok |
-| `2026.6.6` | - | - | `1,032MB` | `1,032MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.6.6-beta.2` | - | - | `648MB` | `648MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.6` | - | - | `660MB` | `660MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.6.6-beta.2` | - | - | `632MB` | `632MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.6.5` | `3,135ms` | `3,936ms` | `1,013MB` | `1,036MB` | ok |
 | `2026.6.5-beta.6` | `3,125ms` | `4,420ms` | `1,017MB` | `1,041MB` | ok |
 | `2026.6.5-beta.5` | `2,668ms` | `3,611ms` | `1,060MB` | `1,073MB` | ok |
@@ -626,7 +626,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
 | `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
 | `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
-| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `838MB` | `2,714MB` | partial: 13/14 samples passed; blocked: credential pool exhausted |
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `629MB` | `629MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` | ok |
