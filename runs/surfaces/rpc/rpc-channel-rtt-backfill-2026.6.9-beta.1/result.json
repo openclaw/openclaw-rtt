@@ -11,15 +11,16 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.6.9-beta.1",
     "startedAt": "2026-06-22T20:46:52.446Z",
-    "finishedAt": "2026-06-22T20:55:17.111Z",
-    "durationMs": 504665,
+    "finishedAt": "2026-08-01T02:44:01.225Z",
+    "durationMs": 3391028779,
     "status": "pass"
   },
   "mode": {
     "providerMode": "mixed",
     "source": "channel-rtt-backfill",
     "sourceChannels": [
-      "discord"
+      "discord",
+      "slack"
     ]
   },
   "rtt": {
@@ -43,16 +44,17 @@
       2160,
       2041,
       2265,
-      2175
+      2175,
+      3293
     ],
     "failedSamples": 0,
     "sources": [
       "backfill:summary-rtt"
     ],
-    "avgMs": 2183.9,
-    "p50Ms": 2167,
-    "p95Ms": 2332,
-    "maxMs": 2335
+    "avgMs": 2236.714285714286,
+    "p50Ms": 2175,
+    "p95Ms": 2335,
+    "maxMs": 3293
   },
   "resources": {
     "measurement": {
@@ -61,20 +63,22 @@
       "command": "backfill from data/channels"
     },
     "maxRssKbSamples": [
-      1222124
+      1222124,
+      945296
     ],
     "elapsedSecondsSamples": [
-      26.51
+      26.51,
+      19.7
     ],
     "maxRssKb": {
-      "avg": 1222124,
-      "p50": 1222124,
+      "avg": 1083710,
+      "p50": 945296,
       "p95": 1222124,
       "max": 1222124
     },
     "elapsedSeconds": {
-      "avg": 26.51,
-      "p50": 26.51,
+      "avg": 23.105,
+      "p50": 19.7,
       "p95": 26.51,
       "max": 26.51
     }
@@ -397,6 +401,22 @@
       "rttSource": "backfill:summary-rtt",
       "rttMeasurement": {
         "finalMatchedReplyRttMs": 2175,
+        "source": "backfill:summary-rtt"
+      }
+    },
+    {
+      "index": 21,
+      "status": "pass",
+      "channel": {
+        "id": "slack",
+        "label": "Slack",
+        "scenario": "slack-canary"
+      },
+      "sourceRunId": "2026-08-01T024401225Z-openclaw_2026.6.9-beta.1-slack-slack-canary-rtt",
+      "rttMs": 3293,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 3293,
         "source": "backfill:summary-rtt"
       }
     }
