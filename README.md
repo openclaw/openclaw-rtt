@@ -69,11 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-08-01T07:09:16.754Z`
+Latest imported release coverage run: `2026-08-01T07:24:45.349Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.7.2-beta.6` | - | `1,051ms` | - | - | - | - | - |
+| `2026.7.2-beta.6` | `473ms` | `1,051ms` | - | - | - | - | `106ms` |
 | `2026.7.2-beta.5` | `1,593ms` | `1,031ms` | `3,938ms` | fail | fail | `0ms` | `102ms` |
 | `2026.7.2-beta.4` | `863ms` | `1,024ms` | `2,149ms` | fail | fail | `0ms` | `113ms` |
 | `2026.7.2-beta.3` | `2,424ms` | `1,024ms` | `5,977ms` | fail | fail | `0ms` | `313ms` |
@@ -168,10 +168,11 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-07-30T16:09:56.192Z`
+Latest imported surface run: `2026-08-01T07:24:45.349Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
+| `2026.7.2-beta.6` | - | `106ms` |
 | `2026.7.2-beta.5` | `0ms` | `102ms` |
 | `2026.7.2-beta.4` | `0ms` | `113ms` |
 | `2026.7.2-beta.3` | `0ms` | `313ms` |
