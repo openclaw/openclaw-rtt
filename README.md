@@ -69,10 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-08-02T02:50:55.680Z`
+Latest imported release coverage run: `2026-08-02T08:06:34.101Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
+| `2026.7.2-beta.7` | - | - | - | fail | fail | - | - |
 | `2026.7.2-beta.6` | `1,254ms` | `1,051ms` | `2,996ms` | fail | fail | `2,996ms` | `106ms` |
 | `2026.7.2-beta.5` | `1,593ms` | `1,031ms` | `3,938ms` | fail | fail | `0ms` | `102ms` |
 | `2026.7.2-beta.4` | `863ms` | `1,024ms` | `2,149ms` | fail | fail | `0ms` | `113ms` |
@@ -271,6 +272,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.7.2-beta.7` | - | - | - | - | missing: no imported run |
 | `2026.7.2-beta.6` | `1,051ms` | `1,937ms` | `149MB` | `149MB` | ok |
 | `2026.7.2-beta.5` | `1,031ms` | `2,042ms` | `149MB` | `149MB` | ok |
 | `2026.7.2-beta.4` | `1,024ms` | `2,057ms` | `149MB` | `149MB` | ok |
@@ -373,6 +375,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.7.2-beta.7` | - | - | - | - | missing: no imported run |
 | `2026.7.2-beta.6` | `2,996ms` | `3,327ms` | `3,147MB` | `3,176MB` | ok |
 | `2026.7.2-beta.5` | `3,938ms` | `4,181ms` | `3,141MB` | `3,170MB` | ok |
 | `2026.7.2-beta.4` | `2,149ms` | `2,367ms` | `3,135MB` | `3,166MB` | ok |
@@ -470,6 +473,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.7.2-beta.7` | - | - | `1,196MB` | `1,196MB` | failed |
 | `2026.7.2-beta.6` | - | - | `1,237MB` | `1,237MB` | failed |
 | `2026.7.2-beta.5` | - | - | `1,247MB` | `1,247MB` | failed |
 | `2026.7.2-beta.4` | - | - | `1,147MB` | `1,147MB` | failed |
@@ -567,6 +571,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.7.2-beta.7` | - | - | `626MB` | `626MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.7.2-beta.6` | - | - | `631MB` | `631MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.7.2-beta.5` | - | - | `611MB` | `611MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.7.2-beta.4` | - | - | `559MB` | `559MB` | failed: QA command exited with status 1 before writing a summary. |
