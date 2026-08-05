@@ -9,6 +9,7 @@ on:
       - "scripts/import-surface-rtt.mjs"
       - "scripts/measure-control-ui-rtt.mjs"
       - "scripts/measure-rpc-rtt.mjs"
+      - "scripts/measure-rpc-rtt.test.mjs"
       - "scripts/read-surface-rtt-rows.mjs"
       - "scripts/surface-rtt-config.mjs"
       - "scripts/surface-rtt-summary.mjs"
@@ -98,6 +99,13 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/ensure-playwright-chromium.mjs
+
+      - name: Build OpenClaw
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm build
 
       - name: Resolve OpenClaw ref
         id: openclaw_ref

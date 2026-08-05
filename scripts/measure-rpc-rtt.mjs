@@ -1,10 +1,15 @@
 import { randomUUID } from "node:crypto";
+import { once } from "node:events";
 import fs from "node:fs/promises";
 import net from "node:net";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { performance } from "node:perf_hooks";
+import { setTimeout as wait } from "node:timers/promises";
 import { pathToFileURL } from "node:url";
+
+const REQUEST_TIMEOUT_MS = 10_000;
+const WARMUP_TIMEOUT_MS = 30_000;
 
 function usage() {
   return [
@@ -87,10 +92,6 @@ function stats(samples) {
   };
 }
 
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function findFreePort() {
   const server = net.createServer();
   await new Promise((resolve, reject) => {
@@ -108,34 +109,60 @@ async function findFreePort() {
   return address.port;
 }
 
-async function waitForReady(port, deadlineMs) {
+export function resolveOpenClawLaunch(repoRoot) {
+  // The workflow builds once before measurement. Bypass the mutable source runner so
+  // the timed probe uses that exact dist and cannot refresh plugin inputs at startup.
+  return {
+    command: process.execPath,
+    args: [path.join(repoRoot, "openclaw.mjs")],
+  };
+}
+
+export async function prepareBenchmarkConfig(tempDir) {
+  const configPath = path.join(tempDir, "openclaw.json");
+  // Local RPC RTT must not include hosted model-catalog network latency.
+  await fs.writeFile(
+    configPath,
+    `${JSON.stringify({ models: { catalogRefresh: { enabled: false } } }, null, 2)}\n`,
+  );
+  return configPath;
+}
+
+async function waitForReady(port, deadlineMs, { signal } = {}) {
   const url = `http://127.0.0.1:${port}/readyz`;
   let lastError;
   while (Date.now() < deadlineMs) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal });
       if (response.ok) {
         return;
       }
       lastError = new Error(`${url} returned ${response.status}`);
     } catch (error) {
+      if (signal?.aborted) {
+        throw signal.reason;
+      }
       lastError = error;
     }
-    await wait(150);
+    await wait(150, undefined, { signal });
   }
   throw new Error(
     `Gateway did not become ready: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
   );
 }
 
-async function spawnGateway({ repoRoot, outputDir, tempDir, port, token }) {
-  const stdout = await fs.open(path.join(outputDir, "gateway.stdout.log"), "a");
-  const stderr = await fs.open(path.join(outputDir, "gateway.stderr.log"), "a");
+async function spawnGateway({ repoRoot, outputDir, tempDir, configPath, port, token }) {
+  const stdoutPath = path.join(outputDir, "gateway.stdout.log");
+  const stderrPath = path.join(outputDir, "gateway.stderr.log");
+  const stderrOffset = (await fs.stat(stderrPath).catch(() => ({ size: 0 }))).size;
+  const stdout = await fs.open(stdoutPath, "a");
+  const stderr = await fs.open(stderrPath, "a");
+  const launcher = resolveOpenClawLaunch(repoRoot);
   try {
-    return spawn(
-      "pnpm",
+    const child = spawn(
+      launcher.command,
       [
-        "openclaw",
+        ...launcher.args,
         "gateway",
         "run",
         "--port",
@@ -154,7 +181,7 @@ async function spawnGateway({ repoRoot, outputDir, tempDir, port, token }) {
           XDG_CONFIG_HOME: path.join(tempDir, "xdg-config"),
           XDG_CACHE_HOME: path.join(tempDir, "xdg-cache"),
           XDG_DATA_HOME: path.join(tempDir, "xdg-data"),
-          OPENCLAW_CONFIG_PATH: path.join(tempDir, "openclaw.json"),
+          OPENCLAW_CONFIG_PATH: configPath,
           OPENCLAW_STATE_DIR: path.join(tempDir, "state"),
           OPENCLAW_GATEWAY_TOKEN: token,
           OPENCLAW_SKIP_CHANNELS: "1",
@@ -165,9 +192,71 @@ async function spawnGateway({ repoRoot, outputDir, tempDir, port, token }) {
         stdio: ["ignore", stdout.fd, stderr.fd],
       },
     );
+    return { child, stderrOffset, stderrPath };
   } finally {
     await Promise.all([stdout.close(), stderr.close()]);
   }
+}
+
+async function readGatewayStderr(gateway) {
+  const contents = await fs.readFile(gateway.stderrPath);
+  return contents.subarray(gateway.stderrOffset).toString("utf8");
+}
+
+export class GatewayExitedBeforeReadyError extends Error {
+  constructor({ code, signal, stderr, cause }) {
+    const exit = signal ? `signal ${signal}` : `code ${code ?? "unknown"}`;
+    const diagnostic = stderr.trim();
+    super(
+      `Gateway exited before readiness (${exit})${diagnostic ? `:\n${diagnostic}` : ""}`,
+      cause ? { cause } : undefined,
+    );
+    this.name = "GatewayExitedBeforeReadyError";
+    this.code = code;
+    this.signal = signal;
+    this.stderr = stderr;
+  }
+}
+
+export async function waitForGatewayReady(
+  gateway,
+  port,
+  deadlineMs,
+  { readGatewayStderrFn = readGatewayStderr, waitForReadyFn = waitForReady } = {},
+) {
+  const readinessAbort = new AbortController();
+  const exitAbort = new AbortController();
+  const ready = waitForReadyFn(port, deadlineMs, { signal: readinessAbort.signal }).then(
+    () => ({ kind: "ready" }),
+    (error) => ({ error, kind: "ready-error" }),
+  );
+  const exited =
+    gateway.child.exitCode !== null || gateway.child.signalCode !== null
+      ? Promise.resolve({
+          kind: "exit",
+          result: { code: gateway.child.exitCode, signal: gateway.child.signalCode },
+        })
+      : once(gateway.child, "exit", { signal: exitAbort.signal }).then(
+          ([code, signal]) => ({ kind: "exit", result: { code, signal } }),
+          (error) => ({ error, kind: "exit-error" }),
+        );
+  const outcome = await Promise.race([ready, exited]);
+  if (outcome.kind === "ready") {
+    exitAbort.abort();
+    return;
+  }
+  if (outcome.kind === "ready-error") {
+    exitAbort.abort();
+    throw outcome.error;
+  }
+  readinessAbort.abort(new Error("Gateway process exited before readiness."));
+  const stderr = await readGatewayStderrFn(gateway);
+  throw new GatewayExitedBeforeReadyError({
+    code: outcome.result?.code ?? gateway.child.exitCode,
+    signal: outcome.result?.signal ?? gateway.child.signalCode,
+    stderr,
+    cause: outcome.error,
+  });
 }
 
 async function stopGateway(child) {
@@ -221,26 +310,28 @@ async function connectGateway({ GatewayClient, port, token }) {
   return client;
 }
 
-async function timeGatewayRequest(client, method) {
+async function timeGatewayRequest(client, method, timeoutMs) {
   const startedAt = performance.now();
-  await client.request(method, method === "config.get" ? {} : undefined, { timeoutMs: 10_000 });
+  await client.request(method, method === "config.get" ? {} : undefined, { timeoutMs });
   return Math.max(0, Math.round(performance.now() - startedAt));
 }
 
-async function measureMethod(client, method, iterations, warmups) {
+export async function measureMethod(client, method, iterations, warmups) {
   const warmupSamples = [];
   const samples = [];
   const failures = [];
   for (let index = 0; index < warmups; index += 1) {
     try {
-      warmupSamples.push(await timeGatewayRequest(client, method));
+      // Gateway readiness precedes background runtime pre-warming. Give only the
+      // untimed warmup enough budget to cross that startup boundary.
+      warmupSamples.push(await timeGatewayRequest(client, method, WARMUP_TIMEOUT_MS));
     } catch (error) {
       failures.push(error instanceof Error ? error.message : String(error));
     }
   }
   for (let index = 0; index < iterations; index += 1) {
     try {
-      samples.push(await timeGatewayRequest(client, method));
+      samples.push(await timeGatewayRequest(client, method, REQUEST_TIMEOUT_MS));
     } catch (error) {
       failures.push(error instanceof Error ? error.message : String(error));
     }
@@ -254,6 +345,7 @@ async function main() {
   const outputDir = path.resolve(args.outputDir);
   await fs.mkdir(outputDir, { recursive: true });
   const tempDir = await fs.mkdtemp(path.join(outputDir, "..", ".rpc-rtt-"));
+  const configPath = await prepareBenchmarkConfig(tempDir);
   const token = `rtt-${randomUUID()}`;
   const port = await findFreePort();
   const startedAt = new Date();
@@ -265,8 +357,9 @@ async function main() {
   const methodResults = [];
 
   try {
-    gatewayChild = await spawnGateway({ repoRoot, outputDir, tempDir, port, token });
-    await waitForReady(port, Date.now() + 45_000);
+    const gateway = await spawnGateway({ repoRoot, outputDir, tempDir, configPath, port, token });
+    gatewayChild = gateway.child;
+    await waitForGatewayReady(gateway, port, Date.now() + 45_000);
     const { GatewayClient } = await loadGatewayClient(repoRoot);
     const connectStartedAt = performance.now();
     client = await connectGateway({ GatewayClient, port, token });
@@ -366,7 +459,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}
