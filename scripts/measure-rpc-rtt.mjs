@@ -282,7 +282,7 @@ async function loadGatewayClient(repoRoot) {
   return await import(clientUrl);
 }
 
-async function connectGateway({ GatewayClient, port, token }) {
+export async function connectGateway({ GatewayClient, port, token }) {
   let client;
   const connected = new Promise((resolve, reject) => {
     client = new GatewayClient({
@@ -294,7 +294,7 @@ async function connectGateway({ GatewayClient, port, token }) {
       platform: process.platform,
       mode: "backend",
       role: "operator",
-      scopes: ["operator.admin"],
+      scopes: ["operator.read"],
       requestTimeoutMs: 10_000,
       connectChallengeTimeoutMs: 10_000,
       env: {
@@ -322,8 +322,7 @@ export async function measureMethod(client, method, iterations, warmups) {
   const failures = [];
   for (let index = 0; index < warmups; index += 1) {
     try {
-      // Gateway readiness precedes background runtime pre-warming. Give only the
-      // untimed warmup enough budget to cross that startup boundary.
+      // Keep startup variance out of measured samples while bounding the untimed warmup.
       warmupSamples.push(await timeGatewayRequest(client, method, WARMUP_TIMEOUT_MS));
     } catch (error) {
       failures.push(error instanceof Error ? error.message : String(error));

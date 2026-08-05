@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
+  connectGateway,
   GatewayExitedBeforeReadyError,
   measureMethod,
   prepareBenchmarkConfig,
@@ -14,6 +15,29 @@ import {
 } from "./measure-rpc-rtt.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+test("connects with the least-privilege read scope", async () => {
+  let options;
+  class FakeGatewayClient {
+    constructor(receivedOptions) {
+      options = receivedOptions;
+    }
+
+    start() {
+      options.onHelloOk();
+    }
+  }
+
+  const client = await connectGateway({
+    GatewayClient: FakeGatewayClient,
+    port: 18789,
+    token: "test-token",
+  });
+
+  assert.ok(client instanceof FakeGatewayClient);
+  assert.deepEqual(options.scopes, ["operator.read"]);
+  assert.equal(options.scopes.includes("operator.admin"), false);
+});
 
 test("launches the built OpenClaw entry without the mutable source runner", () => {
   assert.deepEqual(resolveOpenClawLaunch("/repo"), {
