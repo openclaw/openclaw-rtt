@@ -54,7 +54,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Preserve Telegram harness stdin
+      - name: Patch current Telegram QA harness
         working-directory: openclaw-rtt
         run: node scripts/patch-openclaw-telegram-harness.mjs ../openclaw
 

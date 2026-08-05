@@ -3,21 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PATCH_ASSET_ROOT = path.dirname(fileURLToPath(import.meta.url));
-
-const callSites = [
-  {
-    label: "npm-telegram-package-install",
-    broken:
-      'run_logged_print_heartbeat "npm-telegram-package-install" 60 docker_e2e_docker_run_cmd run --rm \\',
-    fixed: 'run_logged_print "npm-telegram-package-install" docker_e2e_docker_run_cmd run --rm \\',
-  },
-  {
-    label: "npm-telegram-live-suite",
-    broken:
-      'run_logged_print_heartbeat "npm-telegram-live-suite" 60 docker_e2e_run_with_harness \\',
-    fixed: 'run_logged_print "npm-telegram-live-suite" docker_e2e_run_with_harness \\',
-  },
-];
+const RELEASE_COMPAT_FLAG = "--release-compat";
 
 const harnessMountAnchor = `  -v "$OUTPUT_DIR_HOST:$OUTPUT_DIR_CONTAINER" \\`;
 const harnessMounts = `${harnessMountAnchor}
@@ -114,17 +100,17 @@ const prepareWriteAnchor =
 const legacyRttCheck = 'const DEFAULT_RTT_CHECK_ID = "channel-canary";';
 const telegramRttCheck =
   'const DEFAULT_RTT_CHECK_ID = "telegram-reply-chain-exact-marker";';
-const gatewayConfigWriteAnchor = `      await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
-        encoding: "utf8",
-        mode: 0o600,
-      });`;
-const adaptedGatewayConfigWrite = `      const releaseCompatibleConfig = (
-        await import("./rtt-telegram-release-config-compat.mjs")
-      ).adaptTelegramReleaseGatewayConfig(cfg, process.env.OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC);
-      await fs.writeFile(configPath, \`\${JSON.stringify(releaseCompatibleConfig, null, 2)}\\n\`, {
-        encoding: "utf8",
-        mode: 0o600,
-      });`;
+const gatewayConfigWriteAnchor = `        await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
+          encoding: "utf8",
+          mode: 0o600,
+        });`;
+const adaptedGatewayConfigWrite = `        const releaseCompatibleConfig = (
+          await import("./rtt-telegram-release-config-compat.mjs")
+        ).adaptTelegramReleaseGatewayConfig(cfg, process.env.OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC);
+        await fs.writeFile(configPath, \`\${JSON.stringify(releaseCompatibleConfig, null, 2)}\\n\`, {
+          encoding: "utf8",
+          mode: 0o600,
+        });`;
 const authStoreWriteAnchor = `export async function writeQaAuthProfiles(params: {
   agentDir: string;
   profiles: Record<string, QaAuthProfileCredential>;
@@ -194,26 +180,50 @@ const candidateOwnedAuthStoreWrite = `export async function writeQaAuthProfiles(
 }`;
 
 function usage() {
-  return "Usage: node scripts/patch-openclaw-telegram-harness.mjs <openclaw-repo-root>";
+  return `Usage: node scripts/patch-openclaw-telegram-harness.mjs [${RELEASE_COMPAT_FLAG}] <openclaw-repo-root>`;
+}
+
+function parseArgs(args) {
+  const releaseCompat = args[0] === RELEASE_COMPAT_FLAG;
+  const positionalArgs = releaseCompat ? args.slice(1) : args;
+  if (
+    positionalArgs.length !== 1 ||
+    positionalArgs[0].startsWith("-") ||
+    args.some((arg, index) => arg.startsWith("-") && !(index === 0 && releaseCompat))
+  ) {
+    throw new Error(usage());
+  }
+  return {
+    releaseCompat,
+    repoRoot: positionalArgs[0],
+  };
 }
 
 function replaceRuntime(contents, scriptPath) {
+  const legacyStartCount = contents.split(legacyRuntimeStart).length - 1;
+  const trustedStartCount = contents.split(trustedRuntimeStart).length - 1;
+  const trustedContract = `${trustedRuntime}${runtimeEnd}`;
+  const trustedContractCount = contents.split(trustedContract).length - 1;
+  const runtimeEndCount = contents.split(runtimeEnd).length - 1;
   const legacyStartIndex = contents.indexOf(legacyRuntimeStart);
-  const trustedStartIndex = contents.indexOf(trustedRuntimeStart);
-  if (legacyStartIndex >= 0 && trustedStartIndex >= 0) {
-    throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
-  }
-  if (trustedStartIndex >= 0) {
-    if (contents.indexOf(runtimeEnd, trustedStartIndex) < 0) {
-      throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
-    }
+  if (
+    legacyStartCount === 0 &&
+    trustedStartCount === 1 &&
+    trustedContractCount === 1 &&
+    runtimeEndCount === 1
+  ) {
     return { contents, patched: false };
   }
-  if (legacyStartIndex < 0) {
+  if (
+    legacyStartCount !== 1 ||
+    trustedStartCount !== 0 ||
+    trustedContractCount !== 0 ||
+    runtimeEndCount !== 1
+  ) {
     throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
   }
   const endIndex = contents.indexOf(runtimeEnd, legacyStartIndex);
-  if (endIndex < 0) {
+  if (endIndex <= legacyStartIndex) {
     throw new Error(`Unsupported Telegram harness package contract in ${scriptPath}`);
   }
   return {
@@ -333,10 +343,7 @@ async function preparePatchAsset(sourcePath, targetPath) {
 }
 
 async function main() {
-  const [repoRoot, ...extraArgs] = process.argv.slice(2);
-  if (!repoRoot || extraArgs.length > 0) {
-    throw new Error(usage());
-  }
+  const { releaseCompat, repoRoot } = parseArgs(process.argv.slice(2));
 
   const scriptPath = path.resolve(repoRoot, "scripts/e2e/npm-telegram-live-docker.sh");
   const preparePackagePath = path.resolve(
@@ -344,121 +351,102 @@ async function main() {
     "scripts/e2e/lib/npm-telegram-live/prepare-package.mjs",
   );
   const runnerPath = path.resolve(repoRoot, "scripts/e2e/npm-telegram-live-runner.ts");
-  const gatewayChildPath = path.resolve(repoRoot, "extensions/qa-lab/src/gateway-child.ts");
-  const authStorePath = path.resolve(
-    repoRoot,
-    "extensions/qa-lab/src/providers/shared/auth-store.ts",
-  );
-  const compatModulePath = path.resolve(
-    repoRoot,
-    "extensions/qa-lab/src/rtt-telegram-release-config-compat.mjs",
-  );
-  const compatDeclarationPath = path.resolve(
-    repoRoot,
-    "extensions/qa-lab/src/rtt-telegram-release-config-compat.d.mts",
-  );
-  const [
-    originalScript,
-    originalPreparePackage,
-    originalRunner,
-    originalGatewayChild,
-    originalAuthStore,
-  ] = await Promise.all([
+  const [originalScript, originalPreparePackage, originalRunner] = await Promise.all([
     fs.readFile(scriptPath, "utf8"),
     fs.readFile(preparePackagePath, "utf8"),
     fs.readFile(runnerPath, "utf8"),
-    fs.readFile(gatewayChildPath, "utf8"),
-    fs.readFile(authStorePath, "utf8"),
   ]);
 
-  const lines = originalScript.split("\n");
-  const states = callSites.map((callSite) => {
-    const matches = lines
-      .map((line, index) => ({ index, line }))
-      .filter(({ line }) => line.includes(`"${callSite.label}"`));
-    if (matches.length !== 1) {
-      return { kind: "unknown" };
-    }
-    const [match] = matches;
-    if (match.line === callSite.broken) {
-      return { index: match.index, kind: "broken" };
-    }
-    if (match.line === callSite.fixed) {
-      return { index: match.index, kind: "fixed" };
-    }
-    return { kind: "unknown" };
-  });
-  const isBrokenLoggingContract = states.every((state) => state.kind === "broken");
-  const isFixedLoggingContract = states.every((state) => state.kind === "fixed");
-  if (!isBrokenLoggingContract && !isFixedLoggingContract) {
-    throw new Error(`Unsupported Telegram harness logging contract in ${scriptPath}`);
-  }
-  if (isBrokenLoggingContract) {
-    for (let index = 0; index < callSites.length; index += 1) {
-      lines[states[index].index] = callSites[index].fixed;
-    }
-  }
-
-  const mounts = patchHarnessMounts(lines.join("\n"), scriptPath);
-  const forwardedEnv = patchForwardedDowngradeEnv(mounts.contents, scriptPath);
+  const mounts = patchHarnessMounts(originalScript, scriptPath);
+  const forwardedEnv = releaseCompat
+    ? patchForwardedDowngradeEnv(mounts.contents, scriptPath)
+    : { contents: mounts.contents, patched: false };
   const runtime = replaceRuntime(forwardedEnv.contents, scriptPath);
   const qaExportPatch = patchPrivateQaExport(originalPreparePackage, preparePackagePath);
   const rttCheckPatch = patchRttCheck(originalRunner, runnerPath);
-  const gatewayConfigPatch = patchGatewayConfigWrite(originalGatewayChild, gatewayChildPath);
-  const authStorePatch = patchCandidateOwnedAuthStore(originalAuthStore, authStorePath);
-  const [compatModuleAsset, compatDeclarationAsset] = await Promise.all([
-    preparePatchAsset(
-      path.join(PATCH_ASSET_ROOT, "telegram-release-config-compat.mjs"),
-      compatModulePath,
-    ),
-    preparePatchAsset(
-      path.join(PATCH_ASSET_ROOT, "telegram-release-config-compat.d.mts"),
-      compatDeclarationPath,
-    ),
-  ]);
   const patchedScript = runtime.contents;
 
   const writes = [];
   if (patchedScript !== originalScript) {
-    writes.push(fs.writeFile(scriptPath, patchedScript));
+    writes.push({ contents: patchedScript, path: scriptPath });
   }
   if (qaExportPatch.contents !== originalPreparePackage) {
-    writes.push(fs.writeFile(preparePackagePath, qaExportPatch.contents));
+    writes.push({ contents: qaExportPatch.contents, path: preparePackagePath });
   }
   if (rttCheckPatch.contents !== originalRunner) {
-    writes.push(fs.writeFile(runnerPath, rttCheckPatch.contents));
+    writes.push({ contents: rttCheckPatch.contents, path: runnerPath });
   }
-  if (gatewayConfigPatch.contents !== originalGatewayChild) {
-    writes.push(fs.writeFile(gatewayChildPath, gatewayConfigPatch.contents));
-  }
-  if (authStorePatch.contents !== originalAuthStore) {
-    writes.push(fs.writeFile(authStorePath, authStorePatch.contents));
-  }
-  if (compatModuleAsset.staged) {
-    writes.push(fs.writeFile(compatModuleAsset.path, compatModuleAsset.contents));
-  }
-  if (compatDeclarationAsset.staged) {
-    writes.push(fs.writeFile(compatDeclarationAsset.path, compatDeclarationAsset.contents));
-  }
-  await Promise.all(writes);
 
-  const packagePatchCount =
+  let releasePatchCount = 0;
+  if (releaseCompat) {
+    const gatewayChildPath = path.resolve(repoRoot, "extensions/qa-lab/src/gateway-child.ts");
+    const authStorePath = path.resolve(
+      repoRoot,
+      "extensions/qa-lab/src/providers/shared/auth-store.ts",
+    );
+    const compatModulePath = path.resolve(
+      repoRoot,
+      "extensions/qa-lab/src/rtt-telegram-release-config-compat.mjs",
+    );
+    const compatDeclarationPath = path.resolve(
+      repoRoot,
+      "extensions/qa-lab/src/rtt-telegram-release-config-compat.d.mts",
+    );
+    const [originalGatewayChild, originalAuthStore] = await Promise.all([
+      fs.readFile(gatewayChildPath, "utf8"),
+      fs.readFile(authStorePath, "utf8"),
+    ]);
+    const gatewayConfigPatch = patchGatewayConfigWrite(originalGatewayChild, gatewayChildPath);
+    const authStorePatch = patchCandidateOwnedAuthStore(originalAuthStore, authStorePath);
+    const [compatModuleAsset, compatDeclarationAsset] = await Promise.all([
+      preparePatchAsset(
+        path.join(PATCH_ASSET_ROOT, "telegram-release-config-compat.mjs"),
+        compatModulePath,
+      ),
+      preparePatchAsset(
+        path.join(PATCH_ASSET_ROOT, "telegram-release-config-compat.d.mts"),
+        compatDeclarationPath,
+      ),
+    ]);
+    if (gatewayConfigPatch.contents !== originalGatewayChild) {
+      writes.push({ contents: gatewayConfigPatch.contents, path: gatewayChildPath });
+    }
+    if (authStorePatch.contents !== originalAuthStore) {
+      writes.push({ contents: authStorePatch.contents, path: authStorePath });
+    }
+    if (compatModuleAsset.staged) {
+      writes.push(compatModuleAsset);
+    }
+    if (compatDeclarationAsset.staged) {
+      writes.push(compatDeclarationAsset);
+    }
+    releasePatchCount =
+      Number(forwardedEnv.patched) +
+      Number(
+        gatewayConfigPatch.patched ||
+          compatModuleAsset.staged ||
+          compatDeclarationAsset.staged,
+      ) +
+      Number(authStorePatch.patched);
+  }
+  await Promise.all(writes.map((write) => fs.writeFile(write.path, write.contents)));
+
+  const sharedPatchCount =
     Number(mounts.patched) +
-    Number(forwardedEnv.patched) +
     Number(runtime.patched) +
     Number(qaExportPatch.patched) +
-    Number(rttCheckPatch.patched) +
-    Number(
-      gatewayConfigPatch.patched ||
-        compatModuleAsset.staged ||
-        compatDeclarationAsset.staged,
-    ) +
-    Number(authStorePatch.patched);
+    Number(rttCheckPatch.patched);
   process.stdout.write(
-    `${isBrokenLoggingContract ? `patched ${callSites.length}` : "preserved"} Telegram harness stdin consumers; ${
-      packagePatchCount > 0
-        ? `patched ${packagePatchCount} package harness contracts`
-        : "package harness contracts already patched"
+    `${
+      sharedPatchCount > 0
+        ? `patched ${sharedPatchCount} shared Telegram harness contracts`
+        : "shared Telegram harness contracts already patched"
+    }${
+      releaseCompat
+        ? releasePatchCount > 0
+          ? `; patched ${releasePatchCount} release compatibility contracts`
+          : "; release compatibility contracts already patched"
+        : ""
     }\n`,
   );
 }
