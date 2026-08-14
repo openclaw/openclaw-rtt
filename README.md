@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-08-13T09:01:59.799Z`
+Latest imported release coverage run: `2026-08-14T02:20:54.519Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -486,8 +486,8 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.7.2-beta.6` | - | - | `1,237MB` | `1,237MB` | failed |
 | `2026.7.2-beta.5` | - | - | `1,247MB` | `1,247MB` | failed |
 | `2026.7.2-beta.4` | - | - | `1,147MB` | `1,147MB` | failed |
-| `2026.7.2-beta.3` | - | - | `1,310MB` | `1,310MB` | failed |
-| `2026.7.2-beta.2` | - | - | `1,220MB` | `1,220MB` | failed |
+| `2026.7.2-beta.3` | - | - | `1,221MB` | `1,221MB` | failed |
+| `2026.7.2-beta.2` | - | - | `1,145MB` | `1,145MB` | failed |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1` | `3,333ms` | `3,333ms` | `899MB` | `899MB` | ok |
 | `2026.7.1-beta.6` | `3,335ms` | `3,335ms` | `916MB` | `916MB` | ok |
