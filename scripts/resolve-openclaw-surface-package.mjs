@@ -1,48 +1,20 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
+import {
+  compareOpenClawVersions,
+  isOpenClawReleaseSpec,
+  parseOpenClawVersion,
+} from "./openclaw-version.mjs";
 import { readRows } from "./read-rows.mjs";
 import { listSurfaceRttSurfaces } from "./surface-rtt-config.mjs";
 import { readSurfaceRows } from "./surface-storage.mjs";
 
 const execFileAsync = promisify(execFile);
-const RELEASE_SPEC_RE =
-  /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
-const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
-const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const DEFAULT_SURFACES = ["control-ui"];
 const DEFAULT_VERSION_LIMIT = 4;
 const RELEASE_SURFACES = new Set(["control-ui"]);
 const RELEASE_SURFACE_MIN_VERSIONS = new Map([["control-ui", "2026.6.1-beta.3"]]);
-
-function parseVersion(version) {
-  const stableMatch = STABLE_VERSION_RE.exec(version);
-  if (stableMatch) {
-    return [...stableMatch.slice(1).map(Number), Number.MAX_SAFE_INTEGER];
-  }
-
-  const betaMatch = BETA_VERSION_RE.exec(version);
-  if (betaMatch) {
-    return betaMatch.slice(1).map(Number);
-  }
-
-  return undefined;
-}
-
-function compareVersions(left, right) {
-  const leftParts = parseVersion(left);
-  const rightParts = parseVersion(right);
-  if (!leftParts || !rightParts) {
-    throw new Error(`Cannot compare unsupported versions: ${left}, ${right}`);
-  }
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const diff = leftParts[index] - rightParts[index];
-    if (diff !== 0) {
-      return diff;
-    }
-  }
-  return 0;
-}
 
 function readList(value) {
   if (!value) {
@@ -72,7 +44,7 @@ function readPositiveIntegerEnv(name, fallback) {
 async function npmVersions() {
   const fixture = process.env.INPUT_AVAILABLE_VERSIONS;
   if (fixture) {
-    return new Set(readList(fixture).filter((version) => parseVersion(version)));
+    return new Set(readList(fixture).filter((version) => parseOpenClawVersion(version)));
   }
   const { stdout } = await execFileAsync("npm", ["view", "openclaw", "versions", "--json"], {
     timeout: 30_000,
@@ -81,16 +53,18 @@ async function npmVersions() {
   if (!Array.isArray(parsed)) {
     throw new Error("npm view openclaw versions --json must return an array.");
   }
-  return new Set(parsed.filter((version) => typeof version === "string" && parseVersion(version)));
+  return new Set(
+    parsed.filter((version) => typeof version === "string" && parseOpenClawVersion(version)),
+  );
 }
 
 function releaseRows(rows) {
   return rows.filter(
     (row) =>
       typeof row.package?.spec === "string" &&
-      RELEASE_SPEC_RE.test(row.package.spec) &&
+      isOpenClawReleaseSpec(row.package.spec) &&
       typeof row.package?.version === "string" &&
-      parseVersion(row.package.version),
+      parseOpenClawVersion(row.package.version),
   );
 }
 
@@ -146,8 +120,8 @@ for (const surfaceId of surfaceIds) {
   const measuredVersions = surfaceRows
     .filter((row) => row.run?.status === "pass")
     .map((row) => row.package.version)
-    .filter((version) => parseVersion(version));
-  const latestMeasured = measuredVersions.sort(compareVersions).at(-1);
+    .filter((version) => parseOpenClawVersion(version));
+  const latestMeasured = measuredVersions.sort(compareOpenClawVersions).at(-1);
   const minimumVersion = RELEASE_SURFACE_MIN_VERSIONS.get(surfaceId);
   const versions =
     explicitVersions.length > 0
@@ -157,11 +131,12 @@ for (const surfaceId of surfaceIds) {
             (version) =>
               baselineVersions.has(version) ||
               !latestMeasured ||
-              compareVersions(version, latestMeasured) > 0,
+              compareOpenClawVersions(version, latestMeasured) > 0,
           )
           .filter(
             (version) =>
-              (!minimumVersion || compareVersions(version, minimumVersion) >= 0) &&
+              (!minimumVersion ||
+                compareOpenClawVersions(version, minimumVersion) >= 0) &&
               !measured.has(`${surfaceId}\0openclaw@${version}\0${version}`),
           )
           .sort((left, right) => {
@@ -171,12 +146,13 @@ for (const surfaceId of surfaceIds) {
             const rightAttempted = attempted.has(
               `${surfaceId}\0openclaw@${right}\0${right}`,
             );
-            return Number(leftAttempted) - Number(rightAttempted) || compareVersions(left, right);
+            const attemptDiff = Number(leftAttempted) - Number(rightAttempted);
+            return attemptDiff || compareOpenClawVersions(left, right);
           })
           .slice(0, versionLimit);
 
   for (const version of versions) {
-    if (!parseVersion(version)) {
+    if (!parseOpenClawVersion(version)) {
       throw new Error(`Unsupported version: ${version}`);
     }
     if (!availableVersions.has(version)) {
@@ -211,7 +187,7 @@ queue.sort((left, right) => {
       return attemptDiff;
     }
   }
-  const versionDiff = compareVersions(left.version, right.version);
+  const versionDiff = compareOpenClawVersions(left.version, right.version);
   if (versionDiff !== 0) {
     return versionDiff;
   }

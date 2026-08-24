@@ -185,3 +185,30 @@ test("skips registered Telegram release gaps", async () => {
     /Skipping telegram openclaw@2026\.7\.1-beta\.4: published package omits @openclaw\/ai/u,
   );
 });
+
+test("discovers numeric post releases after a post-release stable anchor", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram.jsonl"), [
+    releaseRow("2026.7.1"),
+    releaseRow("2026.7.1-1"),
+  ]);
+  const binDir = await writeFakeNpm(workspace, [
+    "2026.7.1-beta.4",
+    "2026.7.1",
+    "2026.7.1-1",
+    "2026.7.1-2",
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.equal(outputs.anchor, "2026.7.1-1");
+  assert.equal(outputs.versions, "2026.7.1-2");
+});

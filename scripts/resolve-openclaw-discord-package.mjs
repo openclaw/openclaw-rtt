@@ -1,44 +1,18 @@
 import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
+import {
+  compareOpenClawVersions,
+  isOpenClawReleaseSpec,
+  isStableOpenClawVersion,
+  parseOpenClawVersion,
+} from "./openclaw-version.mjs";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
 import { discordReleaseGapReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
-const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
-const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
-const RELEASE_SPEC_RE =
-  /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const DISCORD_RELEASE_MIN_VERSION = "2026.4.24";
-function parseVersion(version) {
-  const stableMatch = STABLE_VERSION_RE.exec(version);
-  if (stableMatch) {
-    return [...stableMatch.slice(1).map(Number), Number.MAX_SAFE_INTEGER];
-  }
-
-  const betaMatch = BETA_VERSION_RE.exec(version);
-  if (betaMatch) {
-    return betaMatch.slice(1).map(Number);
-  }
-
-  return undefined;
-}
-
-function compareVersions(left, right) {
-  const leftParts = parseVersion(left);
-  const rightParts = parseVersion(right);
-  if (!leftParts || !rightParts) {
-    throw new Error(`Cannot compare unsupported versions: ${left}, ${right}`);
-  }
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const diff = leftParts[index] - rightParts[index];
-    if (diff !== 0) {
-      return diff;
-    }
-  }
-  return 0;
-}
 
 async function npmVersions() {
   const { stdout } = await execFileAsync("npm", ["view", "openclaw", "versions", "--json"], {
@@ -54,16 +28,16 @@ async function npmVersions() {
 function latestReleaseVersion(rows) {
   return rows
     .map((row) => row.package?.version)
-    .filter((version) => typeof version === "string" && parseVersion(version))
-    .sort(compareVersions)
+    .filter((version) => typeof version === "string" && parseOpenClawVersion(version))
+    .sort(compareOpenClawVersions)
     .at(-1);
 }
 
 function latestStableVersion(rows) {
   return rows
     .map((row) => row.package?.version)
-    .filter((version) => typeof version === "string" && STABLE_VERSION_RE.test(version))
-    .sort(compareVersions)
+    .filter((version) => typeof version === "string" && isStableOpenClawVersion(version))
+    .sort(compareOpenClawVersions)
     .at(-1);
 }
 
@@ -75,7 +49,7 @@ function releaseVersionSet(rows) {
   return new Set(
     rows
       .map((row) => row.package?.version)
-      .filter((version) => typeof version === "string" && parseVersion(version)),
+      .filter((version) => typeof version === "string" && parseOpenClawVersion(version)),
   );
 }
 
@@ -83,9 +57,9 @@ function releaseRows(rows) {
   return rows.filter(
     (row) =>
       typeof row.package?.spec === "string" &&
-      RELEASE_SPEC_RE.test(row.package.spec) &&
+      isOpenClawReleaseSpec(row.package.spec) &&
       typeof row.package?.version === "string" &&
-      parseVersion(row.package.version),
+      parseOpenClawVersion(row.package.version),
   );
 }
 
@@ -114,10 +88,10 @@ function readRequestedVersionsEnv(name) {
     ),
   ];
   for (const version of versions) {
-    if (!parseVersion(version)) {
+    if (!parseOpenClawVersion(version)) {
       throw new Error(`${name} contains unsupported OpenClaw version: ${version}`);
     }
-    if (compareVersions(version, DISCORD_RELEASE_MIN_VERSION) < 0) {
+    if (compareOpenClawVersions(version, DISCORD_RELEASE_MIN_VERSION) < 0) {
       throw new Error(
         `${name} contains Discord release version before ${DISCORD_RELEASE_MIN_VERSION}: ${version}`,
       );
@@ -144,7 +118,7 @@ const baselineRows = releaseRows(await readRows());
 const successfulBaselineRows = successfulReleaseRows(baselineRows);
 const baselineVersions = releaseVersionSet(
   successfulBaselineRows.filter(
-    (row) => compareVersions(row.package.version, DISCORD_RELEASE_MIN_VERSION) >= 0,
+    (row) => compareOpenClawVersions(row.package.version, DISCORD_RELEASE_MIN_VERSION) >= 0,
   ),
 );
 const anchor = latestReleaseVersion(successfulDiscordRows) ?? latestStableVersion(successfulBaselineRows);
@@ -165,7 +139,7 @@ if (requestedVersions.length > 0) {
       }
       return { version, spec: `openclaw@${version}`, tag: `v${version}` };
     })
-    .sort((left, right) => compareVersions(left.version, right.version));
+    .sort((left, right) => compareOpenClawVersions(left.version, right.version));
 } else if (rssBackfill) {
   queue = discordRows
     .filter((row) => row.resources?.maxRssKb?.max === undefined)
@@ -174,23 +148,24 @@ if (requestedVersions.length > 0) {
       spec: row.package.spec,
       tag: `v${row.package.version}`,
     }))
-    .sort((left, right) => compareVersions(right.version, left.version))
+    .sort((left, right) => compareOpenClawVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
 } else {
   const measured = new Set(
     successfulDiscordRows.map((row) => `${row.package.spec}\0${row.package.version}`),
   );
   queue = (await npmVersions())
-    .filter((version) => typeof version === "string" && parseVersion(version))
+    .filter((version) => typeof version === "string" && parseOpenClawVersion(version))
     .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))
-    .filter((pkg) => compareVersions(pkg.version, DISCORD_RELEASE_MIN_VERSION) >= 0)
+    .filter((pkg) => compareOpenClawVersions(pkg.version, DISCORD_RELEASE_MIN_VERSION) >= 0)
     .filter((pkg) => !discordReleaseGapReason(pkg.version))
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
     .filter(
       (pkg) =>
-        baselineVersions.has(pkg.version) || compareVersions(pkg.version, anchor) > 0,
+        baselineVersions.has(pkg.version) ||
+        compareOpenClawVersions(pkg.version, anchor) > 0,
     )
-    .sort((left, right) => compareVersions(left.version, right.version));
+    .sort((left, right) => compareOpenClawVersions(left.version, right.version));
 }
 const missingBaselineCount =
   rssBackfill || requestedVersions.length > 0

@@ -4,12 +4,13 @@ const LEGACY_CONFIG_CUTOFF = {
   major: 2026,
   minor: 7,
   patch: 2,
-  prerelease: 4,
+  releaseRank: 0,
+  releaseNumber: 4,
 };
 
 function parseExactPackageVersion(packageSpec) {
   const match =
-    /^openclaw@(?<version>(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-beta\.(?<prerelease>\d+))?)$/u.exec(
+    /^openclaw@(?<version>(?<major>[0-9]{4})\.(?<minor>[1-9][0-9]*)\.(?<patch>[1-9][0-9]*)(?:(?:-beta\.(?<beta>[1-9][0-9]*))|(?:-(?<post>[1-9][0-9]*)))?)$/u.exec(
       packageSpec ?? "",
     );
   if (!match?.groups) {
@@ -20,15 +21,13 @@ function parseExactPackageVersion(packageSpec) {
     major: Number(match.groups.major),
     minor: Number(match.groups.minor),
     patch: Number(match.groups.patch),
-    prerelease:
-      match.groups.prerelease === undefined
-        ? Number.POSITIVE_INFINITY
-        : Number(match.groups.prerelease),
+    releaseRank: match.groups.beta ? 0 : match.groups.post ? 2 : 1,
+    releaseNumber: Number(match.groups.beta ?? match.groups.post ?? 0),
   };
 }
 
 function compareVersions(left, right) {
-  for (const key of ["major", "minor", "patch", "prerelease"]) {
+  for (const key of ["major", "minor", "patch", "releaseRank", "releaseNumber"]) {
     const difference = left[key] - right[key];
     if (difference !== 0) {
       return difference;

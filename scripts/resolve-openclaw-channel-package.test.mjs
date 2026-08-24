@@ -265,3 +265,32 @@ test("skips proven historical channel release gaps", async () => {
     "whatsapp:2026.5.16-beta.3",
   ]);
 });
+
+test("queues explicit numeric post releases for sibling channels", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.7.1-2.jsonl"), [
+    row("2026.7.1-2"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.7.1-2",
+      INPUT_CHANNELS: "slack whatsapp",
+      INPUT_VERSIONS: "2026.7.1-2",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  assert.deepEqual(
+    JSON.parse(outputs.matrix).map((entry) => `${entry.channel}:${entry.version}`),
+    ["slack:2026.7.1-2", "whatsapp:2026.7.1-2"],
+  );
+});

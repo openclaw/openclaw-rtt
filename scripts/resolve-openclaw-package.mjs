@@ -2,50 +2,16 @@ import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
 import { resolveChannelRttChannel } from "./channel-rtt-config.mjs";
+import {
+  compareOpenClawVersions,
+  isStableOpenClawVersion,
+  parseOpenClawVersion,
+} from "./openclaw-version.mjs";
 import { readRows } from "./read-rows.mjs";
 import { channelReleaseSkipReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
 const TELEGRAM_CHANNEL = resolveChannelRttChannel("telegram");
-const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
-const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
-
-function parseVersion(version) {
-  const stableMatch = STABLE_VERSION_RE.exec(version);
-  if (stableMatch) {
-    return [...stableMatch.slice(1).map(Number), Number.MAX_SAFE_INTEGER];
-  }
-
-  const betaMatch = BETA_VERSION_RE.exec(version);
-  if (betaMatch) {
-    return betaMatch.slice(1).map(Number);
-  }
-
-  return undefined;
-}
-
-function parseStableRelease(version) {
-  const match = STABLE_VERSION_RE.exec(version);
-  if (!match) {
-    return undefined;
-  }
-  return match.slice(1).map(Number);
-}
-
-function compareVersions(left, right) {
-  const leftParts = parseVersion(left);
-  const rightParts = parseVersion(right);
-  if (!leftParts || !rightParts) {
-    throw new Error(`Cannot compare unsupported versions: ${left}, ${right}`);
-  }
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const diff = leftParts[index] - rightParts[index];
-    if (diff !== 0) {
-      return diff;
-    }
-  }
-  return 0;
-}
 
 async function npmVersions() {
   const { stdout } = await execFileAsync("npm", ["view", "openclaw", "versions", "--json"], {
@@ -61,8 +27,8 @@ async function npmVersions() {
 function latestMeasuredStable(rows) {
   const latestStable = rows
     .map((row) => row.package.version)
-    .filter((version) => typeof version === "string" && parseStableRelease(version))
-    .sort(compareVersions)
+    .filter((version) => typeof version === "string" && isStableOpenClawVersion(version))
+    .sort(compareOpenClawVersions)
     .at(-1);
 
   if (!latestStable) {
@@ -78,7 +44,7 @@ function releaseRows(rows) {
       typeof row.package?.spec === "string" &&
       typeof row.package?.version === "string" &&
       row.package.spec === `openclaw@${row.package.version}` &&
-      parseVersion(row.package.version)
+      parseOpenClawVersion(row.package.version)
     ) {
       byVersion.set(row.package.version, row);
     }
@@ -128,7 +94,7 @@ function readRequestedVersionsEnv(name) {
     ),
   ];
   for (const version of versions) {
-    if (!parseVersion(version)) {
+    if (!parseOpenClawVersion(version)) {
       throw new Error(`${name} contains unsupported OpenClaw version: ${version}`);
     }
   }
@@ -163,25 +129,25 @@ if (requestedVersions.length > 0) {
   queue = requestedVersions
     .map((version) => ({ version, spec: `openclaw@${version}` }))
     .filter(isMeasurableRelease)
-    .sort((left, right) => compareVersions(left.version, right.version));
+    .sort((left, right) => compareOpenClawVersions(left.version, right.version));
 } else if (rssBackfill) {
   queue = releaseRows(rows)
     .filter((row) => row.resources?.maxRssKb?.max === undefined)
     .filter((row) => !rssBackfillSkipVersions.has(row.package.version))
     .map((row) => ({ version: row.package.version, spec: row.package.spec }))
-    .sort((left, right) => compareVersions(right.version, left.version))
+    .sort((left, right) => compareOpenClawVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
 } else {
   const measured = new Set(
     successfulReleaseRows(rows).map((row) => `${row.package.spec}\0${row.package.version}`),
   );
   queue = (await npmVersions())
-    .filter((version) => typeof version === "string" && parseVersion(version))
-    .filter((version) => compareVersions(version, anchor) > 0)
+    .filter((version) => typeof version === "string" && parseOpenClawVersion(version))
+    .filter((version) => compareOpenClawVersions(version, anchor) > 0)
     .map((version) => ({ version, spec: `openclaw@${version}` }))
     .filter(isMeasurableRelease)
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))
-    .sort((left, right) => compareVersions(left.version, right.version));
+    .sort((left, right) => compareOpenClawVersions(left.version, right.version));
 }
 
 await writeOutput({
