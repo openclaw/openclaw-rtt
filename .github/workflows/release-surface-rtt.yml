@@ -142,7 +142,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/ensure-playwright-chromium.mjs
+          node --import tsx scripts/ensure-playwright-chromium.mts
 
       - name: Verify OpenClaw release ref
         working-directory: openclaw
