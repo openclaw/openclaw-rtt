@@ -650,3 +650,44 @@ test("keeps prior release RTT visible when a newer import has only RSS", async (
     /\| `2026\.5\.16-beta\.6` \| `7,800ms` \| `7,900ms` \| `768MB` \| `780MB` \|/u,
   );
 });
+
+test("renders numeric post releases after stable in descending release order", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  const versions = [
+    "2026.7.1-beta.4",
+    "2026.7.1",
+    "2026.7.1-1",
+    "2026.7.1-2",
+  ];
+  await writeJsonl(
+    path.join(workspace, "data/channels/telegram.jsonl"),
+    versions.map((version, index) =>
+      rttRow({
+        package: { spec: `openclaw@${version}`, version },
+        run: {
+          id: `telegram-${version}`,
+          startedAt: `2026-07-01T00:0${index}:00.000Z`,
+          status: "pass",
+        },
+        rtt: { warmSamples: [1000 + index], p50Ms: 1000 + index, p95Ms: 2000 + index },
+      }),
+    ),
+  );
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const telegramSection = readme.slice(
+    readme.indexOf("<!-- release-sweep:start -->"),
+    readme.indexOf("<!-- release-sweep:end -->"),
+  );
+  const positions = versions.map((version) => telegramSection.indexOf(`\`${version}\``));
+  assert.ok(positions.every((position) => position >= 0));
+  assert.deepEqual([...positions].sort((left, right) => left - right), [
+    positions[3],
+    positions[2],
+    positions[1],
+    positions[0],
+  ]);
+});

@@ -2,6 +2,10 @@ import fs from "node:fs/promises";
 import { listChannelRttChannels } from "./channel-rtt-config.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
+import {
+  compareOpenClawVersions,
+  isOpenClawReleaseSpec,
+} from "./openclaw-version.mjs";
 import { readRows } from "./read-rows.mjs";
 import { readSurfaceRttRows } from "./read-surface-rtt-rows.mjs";
 import {
@@ -43,14 +47,10 @@ const SURFACE_DASHBOARD_ORDER = new Map([
 const CHANNEL_CONFIG_BY_LABEL = new Map(
   listChannelRttChannels().map((channel) => [channel.label, channel]),
 );
-const RELEASE_SPEC_RE =
-  /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
 const RELEASE_COVERAGE_MIN_VERSION = "2026.4.24";
 const SURFACE_RELEASE_COVERAGE_MIN_VERSIONS = new Map([
   ["Control UI", "2026.6.1-beta.3"],
 ]);
-const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
-const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
 
 function formatMs(value) {
@@ -69,35 +69,6 @@ function formatVersion(value) {
 
 function escapeMarkdownTableCell(value) {
   return value.replaceAll("|", "\\|");
-}
-
-function parseVersion(version) {
-  const stableMatch = STABLE_VERSION_RE.exec(version);
-  if (stableMatch) {
-    return [...stableMatch.slice(1).map(Number), Number.MAX_SAFE_INTEGER];
-  }
-
-  const betaMatch = BETA_VERSION_RE.exec(version);
-  if (betaMatch) {
-    return betaMatch.slice(1).map(Number);
-  }
-
-  return undefined;
-}
-
-function compareVersions(left, right) {
-  const leftParts = parseVersion(left);
-  const rightParts = parseVersion(right);
-  if (!leftParts || !rightParts) {
-    throw new Error(`Cannot compare unsupported versions: ${left}, ${right}`);
-  }
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const diff = leftParts[index] - rightParts[index];
-    if (diff !== 0) {
-      return diff;
-    }
-  }
-  return 0;
 }
 
 function latestMainRow({ label, row, rssP50 = "n/a", rssP95 = "n/a", status = "missing" }) {
@@ -369,10 +340,10 @@ function surfaceLatestTableFor(surfaceRows) {
   ].join("\n");
 }
 
-function releaseRows(rows, specRe = RELEASE_SPEC_RE) {
+function releaseRows(rows) {
   const byVersion = new Map();
   for (const row of rows) {
-    if (!specRe.test(row.package.spec)) {
+    if (!isOpenClawReleaseSpec(row.package.spec)) {
       continue;
     }
     const existing = byVersion.get(row.package.version) ?? [];
@@ -382,15 +353,19 @@ function releaseRows(rows, specRe = RELEASE_SPEC_RE) {
   return [...byVersion.values()]
     .map(latestReleaseSummaryRow)
     .filter(Boolean)
-    .sort((left, right) => compareVersions(right.package.version, left.package.version));
+    .sort((left, right) =>
+      compareOpenClawVersions(right.package.version, left.package.version),
+    );
 }
 
 function releaseVersionAxis(...rowGroups) {
   return [
     ...new Set(rowGroups.flatMap((rows) => releaseRows(rows).map((row) => row.package.version))),
   ]
-    .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
-    .sort((left, right) => compareVersions(right, left));
+    .filter(
+      (version) => compareOpenClawVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0,
+    )
+    .sort((left, right) => compareOpenClawVersions(right, left));
 }
 
 function releaseTableVersions(tableRows, versionAxis) {
@@ -401,9 +376,11 @@ function releaseTableVersions(tableRows, versionAxis) {
   return [
     ...new Set([
       ...versionAxis,
-      ...ownVersions.filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) < 0),
+      ...ownVersions.filter(
+        (version) => compareOpenClawVersions(version, RELEASE_COVERAGE_MIN_VERSION) < 0,
+      ),
     ]),
-  ].sort((left, right) => compareVersions(right, left));
+  ].sort((left, right) => compareOpenClawVersions(right, left));
 }
 
 function releaseSkipReason(label, version) {
@@ -415,7 +392,8 @@ function releaseSkipReason(label, version) {
     return channelReleaseSkipReason(channel, version);
   }
   const surfaceMinVersion = SURFACE_RELEASE_COVERAGE_MIN_VERSIONS.get(label);
-  return surfaceMinVersion && compareVersions(version, surfaceMinVersion) < 0
+  return surfaceMinVersion &&
+    compareOpenClawVersions(version, surfaceMinVersion) < 0
     ? `surface release coverage starts at ${surfaceMinVersion}`
     : undefined;
 }
@@ -581,8 +559,10 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows, surface
   const versions = [
     ...new Set([...rowsByTarget.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
   ]
-    .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
-    .sort((left, right) => compareVersions(right, left));
+    .filter(
+      (version) => compareOpenClawVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0,
+    )
+    .sort((left, right) => compareOpenClawVersions(right, left));
   if (versions.length === 0) {
     return [
       RELEASE_COVERAGE_START,
@@ -623,8 +603,10 @@ function surfaceReleaseCoverageTableFor(surfaceRows) {
   const versions = [
     ...new Set([...rowsBySurface.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
   ]
-    .filter((version) => compareVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0)
-    .sort((left, right) => compareVersions(right, left));
+    .filter(
+      (version) => compareOpenClawVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0,
+    )
+    .sort((left, right) => compareOpenClawVersions(right, left));
   if (versions.length === 0) {
     return [
       SURFACE_RELEASE_COVERAGE_START,

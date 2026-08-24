@@ -2,52 +2,24 @@ import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
 import { listChannelRttChannels } from "./channel-rtt-config.mjs";
+import {
+  compareOpenClawVersions,
+  isOpenClawReleaseSpec,
+  parseOpenClawVersion,
+} from "./openclaw-version.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
 import { channelReleaseSkipReason } from "./release-gap-reasons.mjs";
 
 const execFileAsync = promisify(execFile);
-const RELEASE_SPEC_RE =
-  /^openclaw@[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(?:-beta\.[1-9][0-9]*)?$/u;
-const STABLE_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)$/u;
-const BETA_VERSION_RE = /^([0-9]{4})\.([1-9][0-9]*)\.([1-9][0-9]*)-beta\.([1-9][0-9]*)$/u;
 const DEFAULT_CHANNELS = ["slack", "whatsapp"];
 const DEFAULT_VERSION_LIMIT = 4;
 const CHANNEL_RELEASE_MIN_VERSION = "2026.4.24";
 
-function parseVersion(version) {
-  const stableMatch = STABLE_VERSION_RE.exec(version);
-  if (stableMatch) {
-    return [...stableMatch.slice(1).map(Number), Number.MAX_SAFE_INTEGER];
-  }
-
-  const betaMatch = BETA_VERSION_RE.exec(version);
-  if (betaMatch) {
-    return betaMatch.slice(1).map(Number);
-  }
-
-  return undefined;
-}
-
-function compareVersions(left, right) {
-  const leftParts = parseVersion(left);
-  const rightParts = parseVersion(right);
-  if (!leftParts || !rightParts) {
-    throw new Error(`Cannot compare unsupported versions: ${left}, ${right}`);
-  }
-  for (let index = 0; index < leftParts.length; index += 1) {
-    const diff = leftParts[index] - rightParts[index];
-    if (diff !== 0) {
-      return diff;
-    }
-  }
-  return 0;
-}
-
 async function npmVersions() {
   const fixture = process.env.INPUT_AVAILABLE_VERSIONS;
   if (fixture) {
-    return new Set(readList(fixture).filter((version) => parseVersion(version)));
+    return new Set(readList(fixture).filter((version) => parseOpenClawVersion(version)));
   }
   const { stdout } = await execFileAsync("npm", ["view", "openclaw", "versions", "--json"], {
     timeout: 30_000,
@@ -56,7 +28,9 @@ async function npmVersions() {
   if (!Array.isArray(parsed)) {
     throw new Error("npm view openclaw versions --json must return an array.");
   }
-  return new Set(parsed.filter((version) => typeof version === "string" && parseVersion(version)));
+  return new Set(
+    parsed.filter((version) => typeof version === "string" && parseOpenClawVersion(version)),
+  );
 }
 
 function readList(value) {
@@ -88,9 +62,9 @@ function releaseRows(rows) {
   return rows.filter(
     (row) =>
       typeof row.package?.spec === "string" &&
-      RELEASE_SPEC_RE.test(row.package.spec) &&
+      isOpenClawReleaseSpec(row.package.spec) &&
       typeof row.package?.version === "string" &&
-      parseVersion(row.package.version),
+      parseOpenClawVersion(row.package.version),
   );
 }
 
@@ -140,8 +114,8 @@ for (const channelId of channelIds) {
     .filter((row) => row.channel?.id === channelId)
     .filter((row) => row.run?.status === "pass")
     .map((row) => row.package.version)
-    .filter((version) => parseVersion(version));
-  const latestMeasured = measuredVersions.sort(compareVersions).at(-1);
+    .filter((version) => parseOpenClawVersion(version));
+  const latestMeasured = measuredVersions.sort(compareOpenClawVersions).at(-1);
   const versions =
     explicitVersions.length > 0
       ? explicitVersions
@@ -150,11 +124,11 @@ for (const channelId of channelIds) {
             (version) =>
               baselineVersions.has(version) ||
               !latestMeasured ||
-              compareVersions(version, latestMeasured) > 0,
+              compareOpenClawVersions(version, latestMeasured) > 0,
           )
           .filter(
             (version) =>
-              compareVersions(version, CHANNEL_RELEASE_MIN_VERSION) >= 0 &&
+              compareOpenClawVersions(version, CHANNEL_RELEASE_MIN_VERSION) >= 0 &&
               !measured.has(`${channelId}\0openclaw@${version}\0${version}`) &&
               !channelReleaseSkipReason(channel, version),
           )
@@ -165,12 +139,13 @@ for (const channelId of channelIds) {
             const rightAttempted = attempted.has(
               `${channelId}\0openclaw@${right}\0${right}`,
             );
-            return Number(leftAttempted) - Number(rightAttempted) || compareVersions(left, right);
+            const attemptDiff = Number(leftAttempted) - Number(rightAttempted);
+            return attemptDiff || compareOpenClawVersions(left, right);
           })
           .slice(0, versionLimit);
 
   for (const version of versions) {
-    if (!parseVersion(version)) {
+    if (!parseOpenClawVersion(version)) {
       throw new Error(`Unsupported version: ${version}`);
     }
     if (!availableVersions.has(version)) {
@@ -213,7 +188,7 @@ queue.sort((left, right) => {
       return attemptDiff;
     }
   }
-  const versionDiff = compareVersions(left.version, right.version);
+  const versionDiff = compareOpenClawVersions(left.version, right.version);
   if (versionDiff !== 0) {
     return versionDiff;
   }

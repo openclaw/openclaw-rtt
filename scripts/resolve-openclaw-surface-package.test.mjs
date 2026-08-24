@@ -203,3 +203,23 @@ test("rejects release surfaces without a native release measurer", async () => {
     },
   }), /Surface rpc is not supported by release surface RTT/u);
 });
+
+test("queues explicit numeric post releases for release surfaces", async () => {
+  const workspace = await makeWorkspace();
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.7.1-2",
+      INPUT_SURFACES: "control-ui",
+      INPUT_VERSIONS: "2026.7.1-2",
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.deepEqual(JSON.parse(outputs.matrix).map((entry) => entry.version), [
+    "2026.7.1-2",
+  ]);
+});
