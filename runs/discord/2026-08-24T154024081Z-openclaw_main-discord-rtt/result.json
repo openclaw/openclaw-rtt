@@ -1,0 +1,72 @@
+{
+  "channel": {
+    "id": "discord",
+    "label": "Discord",
+    "scenario": "discord-canary"
+  },
+  "package": {
+    "spec": "openclaw@main",
+    "version": "2026.8.1+61bc753da3"
+  },
+  "run": {
+    "id": "2026-08-24T154024081Z-openclaw_main-discord-rtt",
+    "startedAt": "2026-08-24T15:40:24.081Z",
+    "finishedAt": "2026-08-24T15:40:24.081Z",
+    "durationMs": 0,
+    "status": "fail"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "discord-canary"
+    ],
+    "credentialSource": "mock-openai",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 1,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa discord"
+    },
+    "maxRssKbSamples": [
+      811624
+    ],
+    "elapsedSecondsSamples": [
+      37.21
+    ],
+    "maxRssKb": {
+      "avg": 811624,
+      "p50": 811624,
+      "p95": 811624,
+      "max": 811624
+    },
+    "elapsedSeconds": {
+      "avg": 37.21,
+      "p50": 37.21,
+      "p95": 37.21,
+      "max": 37.21
+    }
+  },
+  "discord": {
+    "samples": [
+      {
+        "index": 1,
+        "status": "fail",
+        "durationRttMs": 0,
+        "resources": {
+          "maxRssKb": 811624,
+          "elapsedSeconds": 37.21
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "resultPath": "runs/discord/2026-08-24T154024081Z-openclaw_main-discord-rtt/result.json"
+  }
+}
