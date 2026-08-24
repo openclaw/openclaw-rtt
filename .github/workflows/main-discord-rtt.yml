@@ -80,13 +80,6 @@ jobs:
           set -euo pipefail
           time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
-      - name: Patch Discord RTT measurement
-        working-directory: openclaw-rtt
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/patch-openclaw-rtt-harness.mjs ../openclaw
-
       - name: Resolve OpenClaw ref
         id: openclaw_ref
         working-directory: openclaw

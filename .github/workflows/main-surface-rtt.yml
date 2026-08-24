@@ -97,7 +97,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/ensure-playwright-chromium.mjs
+          node --import tsx scripts/ensure-playwright-chromium.mts
 
       - name: Resolve OpenClaw ref
         id: openclaw_ref

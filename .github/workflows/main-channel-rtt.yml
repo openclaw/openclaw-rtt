@@ -3,18 +3,6 @@ name: Main Channel RTT
 on:
   schedule:
     - cron: "45 */6 * * *"
-  pull_request:
-    paths:
-      - ".github/actionlint.yaml"
-      - ".github/workflows/ci.yml"
-      - ".github/workflows/codeql.yml"
-      - ".github/workflows/main-channel-rtt.yml"
-      - "scripts/channel-rtt-config.mjs"
-      - "scripts/channel-rtt-summary.mjs"
-      - "scripts/import-live-transport-rtt.mjs"
-      - "scripts/patch-openclaw-rtt-harness.mjs"
-      - "scripts/read-channel-rtt-rows.mjs"
-      - "scripts/validate.mjs"
   workflow_dispatch:
     inputs:
       channels:
@@ -160,13 +148,6 @@ jobs:
         run: |
           set -euo pipefail
           time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
-
-      - name: Patch structured RTT evidence
-        working-directory: openclaw-rtt
-        shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/patch-openclaw-rtt-harness.mjs ../openclaw
 
       - name: Resolve OpenClaw ref
         id: openclaw_ref
@@ -366,6 +347,8 @@ jobs:
           path: ${{ runner.temp }}/channel-rtt-imports
 
       - name: Import channel RTT results
+        env:
+          MEASURE_RESULT: ${{ needs.measure.result }}
         shell: bash
         run: |
           set -euo pipefail
@@ -379,8 +362,12 @@ jobs:
             import_dirs=("$import_root")
           fi
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
-            echo "No channel RTT import artifacts downloaded." >&2
-            exit 1
+            if [[ "$MEASURE_RESULT" == "success" ]]; then
+              echo "No channel RTT import artifacts downloaded after a successful measure job." >&2
+              exit 1
+            fi
+            echo "No channel RTT import artifacts downloaded; measure job result was ${MEASURE_RESULT}."
+            exit 0
           fi
           get_metadata() {
             local metadata_path="$1"
