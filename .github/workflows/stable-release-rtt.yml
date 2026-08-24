@@ -81,11 +81,6 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Patch release-compatible Telegram QA harness
-        if: steps.release.outputs.should_run == 'true'
-        working-directory: openclaw-rtt
-        run: node scripts/patch-openclaw-telegram-harness.mjs --release-compat ../openclaw
-
       - name: Set up Blacksmith Docker Builder
         if: steps.release.outputs.should_run == 'true'
         uses: useblacksmith/setup-docker-builder@a5256a73e30f09e37e3eceb8ca36043d17621d24 # v2
@@ -157,7 +152,7 @@ jobs:
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
             OPENCLAW_NPM_TELEGRAM_PROVIDER_MODE=mock-openai \
-            OPENCLAW_NPM_TELEGRAM_SCENARIOS=telegram-reply-chain-exact-marker \
+            OPENCLAW_NPM_TELEGRAM_RTT_CHECKS=telegram-reply-chain-exact-marker \
             OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
               /usr/bin/time \
@@ -229,7 +224,7 @@ jobs:
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="$spec" \
             OPENCLAW_NPM_TELEGRAM_OUTPUT_DIR="$output/raw" \
             OPENCLAW_NPM_TELEGRAM_PROVIDER_MODE=mock-openai \
-            OPENCLAW_NPM_TELEGRAM_SCENARIOS=telegram-reply-chain-exact-marker \
+            OPENCLAW_NPM_TELEGRAM_RTT_CHECKS=telegram-reply-chain-exact-marker \
             OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES=20 \
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000 \
               /usr/bin/time \
@@ -255,6 +250,18 @@ jobs:
             printf '%s\t%s\t%s\t%s\t%s\n' "$evidence_path" "$metrics_path" "$version" "$started_at" "$finished_at" >>"$result_paths"
           done
           echo "result_paths=$result_paths" >>"$GITHUB_OUTPUT"
+
+      - name: Verify OpenClaw checkout is clean
+        if: always() && steps.release.outputs.should_run == 'true'
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git status --short
+            echo "OpenClaw checkout was modified by the Telegram RTT harness." >&2
+            exit 1
+          fi
 
       - name: Import result
         if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill != 'true'
