@@ -1,0 +1,75 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import test from "node:test";
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const WORKFLOW_PATHS = [
+  ".github/workflows/main-rtt.yml",
+  ".github/workflows/stable-release-rtt.yml",
+];
+const RETIRED_HELPER_PATHS = [
+  "scripts/patch-openclaw-telegram-harness.mjs",
+  "scripts/patch-openclaw-telegram-harness.test.mjs",
+  "scripts/telegram-release-config-compat.mjs",
+  "scripts/telegram-release-config-compat.d.mts",
+  "scripts/telegram-release-config-compat.test.mjs",
+];
+const RTT_SELECTION =
+  "OPENCLAW_NPM_TELEGRAM_RTT_CHECKS=telegram-reply-chain-exact-marker";
+const IMPORT_SCENARIO = "--scenario telegram-reply-chain-exact-marker";
+
+function countOccurrences(contents, value) {
+  return contents.split(value).length - 1;
+}
+
+test("Telegram RTT workflows use the upstream harness contract", async () => {
+  const workflows = await Promise.all(
+    WORKFLOW_PATHS.map(async (relativePath) => ({
+      contents: await fs.readFile(path.join(REPO_ROOT, relativePath), "utf8"),
+      relativePath,
+    })),
+  );
+
+  assert.equal(countOccurrences(workflows[0].contents, RTT_SELECTION), 1);
+  assert.equal(countOccurrences(workflows[1].contents, RTT_SELECTION), 2);
+
+  for (const { contents, relativePath } of workflows) {
+    assert.equal(
+      countOccurrences(contents, IMPORT_SCENARIO),
+      1,
+      `${relativePath} must import the same exact-marker scenario`,
+    );
+    assert.doesNotMatch(contents, /OPENCLAW_NPM_TELEGRAM_SCENARIOS/u);
+    assert.doesNotMatch(contents, /patch-openclaw-telegram-harness/u);
+    assert.doesNotMatch(contents, /telegram-release-config-compat/u);
+
+    const runIndex = contents.indexOf("- name: Run RTT");
+    const cleanIndex = contents.indexOf("- name: Verify OpenClaw checkout is clean");
+    assert.ok(runIndex >= 0 && cleanIndex > runIndex, `${relativePath} must verify after RTT`);
+    assert.match(
+      contents.slice(cleanIndex),
+      /working-directory: openclaw[\s\S]*git status --porcelain[\s\S]*git status --short[\s\S]*exit 1/u,
+    );
+  }
+});
+
+test("retired Telegram harness helpers are absent and unreferenced", async () => {
+  for (const relativePath of RETIRED_HELPER_PATHS) {
+    await assert.rejects(fs.access(path.join(REPO_ROOT, relativePath)), { code: "ENOENT" });
+  }
+
+  const scriptNames = await fs.readdir(path.join(REPO_ROOT, "scripts"));
+  const currentTest = path.basename(fileURLToPath(import.meta.url));
+  const remainingScripts = scriptNames.filter(
+    (name) =>
+      name !== currentTest &&
+      (name.endsWith(".mjs") || name.endsWith(".mts")),
+  );
+  for (const name of remainingScripts) {
+    const contents = await fs.readFile(path.join(REPO_ROOT, "scripts", name), "utf8");
+    assert.doesNotMatch(contents, /patch-openclaw-telegram-harness/u);
+    assert.doesNotMatch(contents, /telegram-release-config-compat/u);
+  }
+});
