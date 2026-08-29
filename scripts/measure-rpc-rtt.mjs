@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
+import { stopGateway } from "./stop-gateway.mjs";
 import { waitForReady } from "./wait-for-ready.mjs";
 
 function usage() {
@@ -88,10 +89,6 @@ function stats(samples) {
   };
 }
 
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function findFreePort() {
   const server = net.createServer();
   await new Promise((resolve, reject) => {
@@ -148,24 +145,6 @@ async function spawnGateway({ repoRoot, outputDir, tempDir, port, token }) {
     );
   } finally {
     await Promise.all([stdout.close(), stderr.close()]);
-  }
-}
-
-async function stopGateway(child) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) {
-    return;
-  }
-  const exit = new Promise((resolve) => child.once("exit", resolve));
-  child.kill("SIGTERM");
-  try {
-    await Promise.race([
-      exit,
-      wait(5_000).then(() => {
-        child.kill("SIGKILL");
-      }),
-    ]);
-  } catch {
-    child.kill("SIGKILL");
   }
 }
 
