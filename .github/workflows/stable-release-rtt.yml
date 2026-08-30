@@ -134,9 +134,10 @@ jobs:
         working-directory: openclaw
         env:
           OPENCLAW_ALLOW_OLDER_BINARY_DESTRUCTIVE_ACTIONS: "1"
-          OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
-          OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
-          OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
+          OPENCLAW_QA_CREDENTIAL_SOURCE: convex
+          OPENCLAW_QA_CREDENTIAL_ROLE: ci
+          OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
+          OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
         shell: bash
         run: |
           set -euo pipefail
@@ -203,9 +204,10 @@ jobs:
         working-directory: openclaw
         env:
           OPENCLAW_ALLOW_OLDER_BINARY_DESTRUCTIVE_ACTIONS: "1"
-          OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
-          OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
-          OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
+          OPENCLAW_QA_CREDENTIAL_SOURCE: convex
+          OPENCLAW_QA_CREDENTIAL_ROLE: ci
+          OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
+          OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
         shell: bash
         run: |
           set -euo pipefail

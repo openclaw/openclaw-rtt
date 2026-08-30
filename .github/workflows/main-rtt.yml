@@ -117,9 +117,10 @@ jobs:
         id: rtt
         working-directory: openclaw
         env:
-          OPENCLAW_QA_TELEGRAM_GROUP_ID: ${{ secrets.OPENCLAW_QA_TELEGRAM_GROUP_ID }}
-          OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_DRIVER_BOT_TOKEN }}
-          OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN: ${{ secrets.OPENCLAW_QA_TELEGRAM_SUT_BOT_TOKEN }}
+          OPENCLAW_QA_CREDENTIAL_SOURCE: convex
+          OPENCLAW_QA_CREDENTIAL_ROLE: ci
+          OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}
+          OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}
           INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '20' }}
         shell: bash
         run: |
