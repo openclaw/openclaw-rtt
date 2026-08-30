@@ -19,6 +19,8 @@ const RETIRED_HELPER_PATHS = [
 const RTT_SELECTION =
   "OPENCLAW_NPM_TELEGRAM_RTT_CHECKS=telegram-reply-chain-exact-marker";
 const IMPORT_SCENARIO = "--scenario telegram-reply-chain-exact-marker";
+const CONVEX_SOURCE = "OPENCLAW_QA_CREDENTIAL_SOURCE: convex";
+const CONVEX_ROLE = "OPENCLAW_QA_CREDENTIAL_ROLE: ci";
 
 function countOccurrences(contents, value) {
   return contents.split(value).length - 1;
@@ -32,10 +34,22 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
     })),
   );
 
-  assert.equal(countOccurrences(workflows[0].contents, RTT_SELECTION), 1);
-  assert.equal(countOccurrences(workflows[1].contents, RTT_SELECTION), 2);
+  const expectedRuns = [1, 2];
+  assert.equal(countOccurrences(workflows[0].contents, RTT_SELECTION), expectedRuns[0]);
+  assert.equal(countOccurrences(workflows[1].contents, RTT_SELECTION), expectedRuns[1]);
 
-  for (const { contents, relativePath } of workflows) {
+  for (const [index, { contents, relativePath }] of workflows.entries()) {
+    assert.equal(countOccurrences(contents, CONVEX_SOURCE), expectedRuns[index]);
+    assert.equal(countOccurrences(contents, CONVEX_ROLE), expectedRuns[index]);
+    assert.equal(
+      countOccurrences(contents, "OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}"),
+      expectedRuns[index],
+    );
+    assert.equal(
+      countOccurrences(contents, "OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}"),
+      expectedRuns[index],
+    );
+    assert.doesNotMatch(contents, /OPENCLAW_QA_TELEGRAM_(?:GROUP_ID|DRIVER_BOT_TOKEN|SUT_BOT_TOKEN)/u);
     assert.equal(
       countOccurrences(contents, IMPORT_SCENARIO),
       1,
