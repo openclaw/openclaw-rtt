@@ -46,6 +46,10 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
     assert.equal(countOccurrences(contents, CONVEX_SOURCE), expectedRuns[index]);
     assert.equal(countOccurrences(contents, CONVEX_ROLE), expectedRuns[index]);
     assert.equal(
+      countOccurrences(contents, 'OPENCLAW_NPM_TELEGRAM_SKIP_HOTPATH: "1"'),
+      expectedRuns[index],
+    );
+    assert.equal(
       countOccurrences(contents, "OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}"),
       expectedRuns[index],
     );
