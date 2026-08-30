@@ -41,6 +41,7 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
 
   for (const [index, { contents, relativePath }] of workflows.entries()) {
     assert.equal(countOccurrences(contents, PNPM_VERSION), 1);
+    assert.equal(countOccurrences(contents, "uses: pnpm/action-setup@v6.0.10"), 1);
     assert.equal(countOccurrences(contents, CONVEX_SOURCE), expectedRuns[index]);
     assert.equal(countOccurrences(contents, CONVEX_ROLE), expectedRuns[index]);
     assert.equal(

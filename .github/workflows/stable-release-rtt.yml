@@ -89,11 +89,9 @@ jobs:
 
       - name: Setup pnpm
         if: steps.release.outputs.should_run == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+        uses: pnpm/action-setup@v6.0.10
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Locate pnpm store
         if: steps.release.outputs.should_run == 'true'
