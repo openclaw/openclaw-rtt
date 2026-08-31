@@ -100,7 +100,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
+          store_path="$(pnpm store path --silent)"
+          test -n "$store_path"
+          printf 'path=%s\n' "$store_path" >>"$GITHUB_OUTPUT"
 
       - name: Restore pnpm store
         if: steps.release.outputs.should_run == 'true'
