@@ -33,7 +33,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
-  PNPM_VERSION: "11.2.2"
+  PNPM_VERSION: "12.1.0"
 
 jobs:
   resolve:
@@ -108,11 +108,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Setup pnpm
-        shell: bash
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+        uses: pnpm/action-setup@v6.0.10
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Locate pnpm store
         id: pnpm-store
@@ -120,7 +118,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "path=$(pnpm store path --silent)" >>"$GITHUB_OUTPUT"
+          store_path="$(pnpm store path --silent)"
+          test -n "$store_path"
+          printf 'path=%s\n' "$store_path" >>"$GITHUB_OUTPUT"
 
       - name: Restore pnpm store
         uses: actions/cache@v6
@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          time pnpm install --frozen-lockfile --prefer-offline --ignore-scripts=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
       - name: Install Playwright Chromium
         working-directory: openclaw
