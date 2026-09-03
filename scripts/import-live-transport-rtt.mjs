@@ -100,7 +100,7 @@ function validateSummary(value) {
 
 function normalizeEvidenceSummary(value, scenarioId) {
   if (value?.kind !== "openclaw.qa.evidence-summary") {
-    return value;
+    return { summary: value };
   }
   const entries = Array.isArray(value.entries) ? value.entries : [];
   const entry = entries.find((item) => item?.test?.id === scenarioId);
@@ -114,26 +114,30 @@ function normalizeEvidenceSummary(value, scenarioId) {
     timing && typeof timing === "object" && !Array.isArray(timing) ? timing.rttMs : undefined;
   const passed = entries.filter((item) => item?.result?.status === "pass").length;
   return {
-    startedAt: generatedAt,
-    finishedAt: generatedAt,
-    counts: {
-      total: entries.length,
-      passed,
-      failed: entries.length - passed,
-    },
-    scenarios: [
-      {
-        id: scenarioId,
-        status: result.status === "pass" ? "pass" : "fail",
-        ...(typeof rttMs === "number" && Number.isFinite(rttMs)
-          ? { rttMs: Math.max(0, Math.round(rttMs)) }
-          : {}),
-        ...(typeof result.details === "string" ? { details: result.details } : {}),
+    evidenceEntry: entry,
+    summary: {
+      startedAt: generatedAt,
+      finishedAt: generatedAt,
+      counts: {
+        total: entries.length,
+        passed,
+        failed: entries.length - passed,
       },
-    ],
-    credentials: {
-      source: entry.execution?.provider?.fixture ?? entry.execution?.provider?.auth,
-      role: "ci",
+      scenarios: [
+        {
+          id: scenarioId,
+          title: entry.test?.title,
+          status: result.status === "pass" ? "pass" : "fail",
+          ...(typeof rttMs === "number" && Number.isFinite(rttMs)
+            ? { rttMs: Math.max(0, Math.round(rttMs)) }
+            : {}),
+          ...(typeof result.details === "string" ? { details: result.details } : {}),
+        },
+      ],
+      credentials: {
+        source: entry.execution?.provider?.fixture ?? entry.execution?.provider?.auth,
+        role: "ci",
+      },
     },
   };
 }
@@ -238,6 +242,86 @@ function extractScenarioMeasurement(scenario) {
   };
 }
 
+// Some released evidence declared a suite summary but omitted structured RTT.
+// Follow only that exact sibling artifact so arbitrary files or prose cannot become measurements.
+function selectQaSuiteArtifact(entry) {
+  const artifacts = Array.isArray(entry?.execution?.artifacts)
+    ? entry.execution.artifacts.filter(
+        (artifact) => artifact?.kind === "summary" && artifact?.source === "qa-suite",
+      )
+    : [];
+  if (artifacts.length === 0) {
+    return undefined;
+  }
+  if (artifacts.length !== 1) {
+    throw new Error("qa evidence must declare exactly one qa-suite summary artifact.");
+  }
+  const artifactPath = artifacts[0]?.path;
+  if (typeof artifactPath !== "string" || artifactPath.length === 0) {
+    throw new Error("qa-suite summary artifact path must be a non-empty string.");
+  }
+  if (artifactPath.includes("\0")) {
+    throw new Error("qa-suite summary artifact path must not contain NUL.");
+  }
+  if (path.posix.isAbsolute(artifactPath) || path.win32.isAbsolute(artifactPath)) {
+    throw new Error("qa-suite summary artifact path must be relative.");
+  }
+  if (artifactPath.includes("/") || artifactPath.includes("\\")) {
+    throw new Error("qa-suite summary artifact path must be a filename.");
+  }
+  if (artifactPath === "." || artifactPath === "..") {
+    throw new Error("qa-suite summary artifact path must not traverse directories.");
+  }
+  if (artifactPath !== "qa-suite-summary.json") {
+    throw new Error("qa-suite summary artifact path must be qa-suite-summary.json.");
+  }
+  return artifactPath;
+}
+
+async function extractQaSuiteRtt(evidenceEntry, summaryPath) {
+  if (evidenceEntry?.result?.status !== "pass") {
+    return undefined;
+  }
+  const artifactFilename = selectQaSuiteArtifact(evidenceEntry);
+  if (!artifactFilename) {
+    return undefined;
+  }
+  let suite;
+  try {
+    suite = await readJson(path.join(path.dirname(summaryPath), artifactFilename));
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      // Some immutable runs declared the suite artifact but did not upload it.
+      // That leaves timing unprovable, so retain the sample as failed.
+      return undefined;
+    }
+    throw error;
+  }
+  const title = evidenceEntry.test?.title;
+  if (typeof title !== "string" || !Array.isArray(suite?.scenarios)) {
+    return undefined;
+  }
+  // Historical suite scenarios expose no stable id. Their exact unique title
+  // is the only cross-artifact key; ambiguity must not produce a measurement.
+  const scenarios = suite.scenarios.filter((scenario) => scenario?.name === title);
+  if (scenarios.length !== 1 || scenarios[0]?.status !== "pass") {
+    return undefined;
+  }
+  const steps = Array.isArray(scenarios[0].steps) ? scenarios[0].steps : [];
+  const matches = steps.flatMap((step) => {
+    if (step?.name !== title || step?.status !== "pass" || typeof step.details !== "string") {
+      return [];
+    }
+    const match = /^reply matched in ([1-9][0-9]*)ms(?:;|$)/u.exec(step.details);
+    if (!match) {
+      return [];
+    }
+    const rttMs = Number(match[1]);
+    return Number.isSafeInteger(rttMs) ? [rttMs] : [];
+  });
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
 async function readResourceMetrics(pathname) {
   if (!pathname) {
     return {};
@@ -296,9 +380,9 @@ function selectScenario(summary, scenarioId) {
 }
 
 async function readSample(entry, index, scenarioId) {
-  const summary = validateSummary(
-    normalizeEvidenceSummary(await readJson(path.resolve(entry.summaryPath)), scenarioId),
-  );
+  const summaryPath = path.resolve(entry.summaryPath);
+  const normalized = normalizeEvidenceSummary(await readJson(summaryPath), scenarioId);
+  const summary = validateSummary(normalized.summary);
   const scenario = selectScenario(summary, scenarioId);
   const rttMeasurement = extractScenarioMeasurement(scenario);
   const summaryRttMs =
@@ -311,6 +395,10 @@ async function readSample(entry, index, scenarioId) {
   if (rttMs === undefined && entry.observedMessagesPath) {
     rttMs = extractObservedRtt(await readJson(path.resolve(entry.observedMessagesPath)), scenarioId);
     rttSource = rttMs === undefined ? undefined : "observed-message";
+  }
+  if (rttMs === undefined && normalized.evidenceEntry) {
+    rttMs = await extractQaSuiteRtt(normalized.evidenceEntry, summaryPath);
+    rttSource = rttMs === undefined ? undefined : "qa-suite-details";
   }
   const resourceMetrics = await readResourceMetrics(entry.resourceMetricsPath);
   const attempts = readAttemptCount(resourceMetrics.attempts);
