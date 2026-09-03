@@ -1,0 +1,73 @@
+{
+  "channel": {
+    "id": "whatsapp",
+    "label": "WhatsApp",
+    "scenario": "whatsapp-canary"
+  },
+  "package": {
+    "spec": "openclaw@2026.5.16-beta.7",
+    "version": "2026.5.16-beta.7"
+  },
+  "run": {
+    "id": "2026-09-03T082126211Z-openclaw_2026.5.16-beta.7-whatsapp-whatsapp-canary-rtt",
+    "startedAt": "2026-09-03T08:21:26.211Z",
+    "finishedAt": "2026-09-03T08:24:26.350Z",
+    "durationMs": 180139,
+    "status": "fail"
+  },
+  "polling": {
+    "attemptSamples": [
+      3
+    ],
+    "retryCount": 2,
+    "maxAttempts": 3
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "credentialSource": "convex",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 1,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa whatsapp"
+    },
+    "maxRssKbSamples": [
+      651128
+    ],
+    "elapsedSecondsSamples": [
+      183.05
+    ],
+    "maxRssKb": {
+      "avg": 651128,
+      "p50": 651128,
+      "p95": 651128,
+      "max": 651128
+    },
+    "elapsedSeconds": {
+      "avg": 183.05,
+      "p50": 183.05,
+      "p95": 183.05,
+      "max": 183.05
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "fail",
+      "attempts": 3,
+      "maxRssKb": 651128,
+      "elapsedSeconds": 183.05,
+      "details": "Convex credential pool exhausted for kind \"whatsapp\" after 180000ms. | No available credential for kind \"whatsapp\"."
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/whatsapp/2026-09-03T082126211Z-openclaw_2026.5.16-beta.7-whatsapp-whatsapp-canary-rtt/result.json"
+  }
+}

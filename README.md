@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T07:38:14.409Z`
+Latest imported release coverage run: `2026-09-03T08:21:26.211Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -150,7 +150,7 @@ Latest imported release coverage run: `2026-09-03T07:38:14.409Z`
 | `2026.5.18-beta.1` | `2,541ms` | `1,017ms` | `5,957ms` | fail | `7,875ms` | `5,977ms` | n/a |
 | `2026.5.16-beta.7` | `2,190ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` | `6,055ms` | n/a |
 | `2026.5.16-beta.6` | `2,216ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` | `4,732ms` | n/a |
-| `2026.5.16-beta.5` | `2,287ms` | `1,386ms` | timeout | `4,703ms` | `7,853ms` | `4,740ms` | n/a |
+| `2026.5.16-beta.5` | `2,289ms` | `1,386ms` | timeout | `4,877ms` | `7,853ms` | `4,791ms` | n/a |
 | `2026.5.16-beta.4` | `8,826ms` | `1,221ms` | `26,263ms` | `4,255ms` | `6,888ms` | `6,975ms` | n/a |
 | `2026.5.16-beta.3` | `8,856ms` | `1,112ms` | `26,771ms` | `4,690ms` | `8,644ms` | `8,644ms` | n/a |
 | `2026.5.16-beta.2` | `8,873ms` | `1,050ms` | `26,639ms` | `4,751ms` | `8,377ms` | `7,308ms` | n/a |
@@ -258,7 +258,7 @@ Latest imported surface run: `2026-09-03T06:06:54.676Z`
 | `2026.5.18-beta.1` | `5,977ms` | n/a |
 | `2026.5.16-beta.7` | `6,055ms` | n/a |
 | `2026.5.16-beta.6` | `4,732ms` | n/a |
-| `2026.5.16-beta.5` | `4,740ms` | n/a |
+| `2026.5.16-beta.5` | `4,791ms` | n/a |
 | `2026.5.16-beta.4` | `6,975ms` | n/a |
 | `2026.5.16-beta.3` | `8,644ms` | n/a |
 | `2026.5.16-beta.2` | `7,308ms` | n/a |
@@ -586,7 +586,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.18-beta.1` | - | - | `733MB` | `733MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `735MB` | `735MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.6` | `4,719ms` | `5,051ms` | `724MB` | `760MB` | ok |
-| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `759MB` | `759MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.5.16-beta.5` | `4,877ms` | `4,877ms` | `904MB` | `904MB` | ok |
 | `2026.5.16-beta.4` | `4,255ms` | `5,484ms` | `671MB` | `709MB` | ok |
 | `2026.5.16-beta.3` | `4,690ms` | `5,929ms` | `673MB` | `723MB` | ok |
 | `2026.5.16-beta.2` | `4,751ms` | `5,868ms` | `672MB` | `696MB` | ok |
@@ -691,7 +691,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
 | `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
 | `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
-| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `661MB` | `661MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `636MB` | `636MB` | blocked: credential pool exhausted |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` | ok |
