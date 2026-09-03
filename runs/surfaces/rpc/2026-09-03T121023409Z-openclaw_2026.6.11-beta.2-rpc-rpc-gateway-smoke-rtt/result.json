@@ -1,0 +1,278 @@
+{
+  "surface": {
+    "id": "rpc",
+    "label": "RPC",
+    "scenario": "rpc-gateway-smoke"
+  },
+  "package": {
+    "spec": "openclaw@2026.6.11-beta.2",
+    "version": "2026.6.11-beta.2"
+  },
+  "run": {
+    "id": "2026-09-03T121023409Z-openclaw_2026.6.11-beta.2-rpc-rpc-gateway-smoke-rtt",
+    "startedAt": "2026-09-03T12:10:23.409Z",
+    "finishedAt": "2026-09-03T12:11:29.522Z",
+    "durationMs": 66113,
+    "status": "pass"
+  },
+  "polling": {
+    "attemptSamples": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "retryCount": 0,
+    "maxAttempts": 1
+  },
+  "mode": {
+    "providerMode": "gateway-rpc",
+    "source": "surface-import"
+  },
+  "rtt": {
+    "warmSamples": [
+      8,
+      6,
+      5,
+      7,
+      6,
+      5,
+      5,
+      5,
+      16,
+      7
+    ],
+    "failedSamples": 0,
+    "sources": [
+      "gateway-rpc"
+    ],
+    "avgMs": 7,
+    "p50Ms": 6,
+    "p95Ms": 16,
+    "maxMs": 16
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs --output-dir <dir>"
+    },
+    "maxRssKbSamples": [
+      104280,
+      88936,
+      87972,
+      88212,
+      88632,
+      88936,
+      88864,
+      88372,
+      88816,
+      90012
+    ],
+    "elapsedSecondsSamples": [
+      16.55,
+      6.15,
+      6.26,
+      5.16,
+      5.15,
+      5.07,
+      5.2,
+      5.35,
+      5.27,
+      5.96
+    ],
+    "maxRssKb": {
+      "avg": 90303.2,
+      "p50": 88816,
+      "p95": 104280,
+      "max": 104280
+    },
+    "elapsedSeconds": {
+      "avg": 6.612,
+      "p50": 5.27,
+      "p95": 16.55,
+      "max": 16.55
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 8,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 8,
+        "requestStartedAt": "2026-09-03T12:10:23.409Z",
+        "responseObservedAt": "2026-09-03T12:10:39.891Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 104280,
+      "elapsedSeconds": 16.55,
+      "details": "{\"connectMs\":226,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":27,\"p50Ms\":8,\"p95Ms\":55,\"maxMs\":56},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[85],\"avgMs\":49,\"p50Ms\":48,\"p95Ms\":56,\"maxMs\":56},\"config.get\":{\"failures\":0,\"warmupSamples\":[262],\"avgMs\":5,\"p50Ms\":4,\"p95Ms\":8,\"maxMs\":8}}}"
+    },
+    {
+      "index": 2,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 6,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 6,
+        "requestStartedAt": "2026-09-03T12:10:39.985Z",
+        "responseObservedAt": "2026-09-03T12:10:46.051Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88936,
+      "elapsedSeconds": 6.15,
+      "details": "{\"connectMs\":92,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":24,\"p50Ms\":6,\"p95Ms\":57,\"maxMs\":70},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[193],\"avgMs\":44,\"p50Ms\":34,\"p95Ms\":70,\"maxMs\":70},\"config.get\":{\"failures\":0,\"warmupSamples\":[207],\"avgMs\":3,\"p50Ms\":3,\"p95Ms\":6,\"maxMs\":6}}}"
+    },
+    {
+      "index": 3,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 5,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 5,
+        "requestStartedAt": "2026-09-03T12:10:46.123Z",
+        "responseObservedAt": "2026-09-03T12:10:52.315Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 87972,
+      "elapsedSeconds": 6.26,
+      "details": "{\"connectMs\":82,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":20,\"p50Ms\":5,\"p95Ms\":41,\"maxMs\":45},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[164],\"avgMs\":37,\"p50Ms\":36,\"p95Ms\":45,\"maxMs\":45},\"config.get\":{\"failures\":0,\"warmupSamples\":[213],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":5,\"maxMs\":5}}}"
+    },
+    {
+      "index": 4,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 7,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 7,
+        "requestStartedAt": "2026-09-03T12:10:52.394Z",
+        "responseObservedAt": "2026-09-03T12:10:57.485Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88212,
+      "elapsedSeconds": 5.16,
+      "details": "{\"connectMs\":116,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":18,\"p50Ms\":7,\"p95Ms\":39,\"maxMs\":41},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[166],\"avgMs\":34,\"p50Ms\":32,\"p95Ms\":41,\"maxMs\":41},\"config.get\":{\"failures\":0,\"warmupSamples\":[184],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":7,\"maxMs\":7}}}"
+    },
+    {
+      "index": 5,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 6,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 6,
+        "requestStartedAt": "2026-09-03T12:10:57.554Z",
+        "responseObservedAt": "2026-09-03T12:11:02.642Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88632,
+      "elapsedSeconds": 5.15,
+      "details": "{\"connectMs\":90,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":21,\"p50Ms\":6,\"p95Ms\":44,\"maxMs\":55},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[188],\"avgMs\":39,\"p50Ms\":36,\"p95Ms\":55,\"maxMs\":55},\"config.get\":{\"failures\":0,\"warmupSamples\":[203],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":6,\"maxMs\":6}}}"
+    },
+    {
+      "index": 6,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 5,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 5,
+        "requestStartedAt": "2026-09-03T12:11:02.707Z",
+        "responseObservedAt": "2026-09-03T12:11:07.722Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88936,
+      "elapsedSeconds": 5.07,
+      "details": "{\"connectMs\":161,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":23,\"p50Ms\":5,\"p95Ms\":49,\"maxMs\":49},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[195],\"avgMs\":43,\"p50Ms\":43,\"p95Ms\":49,\"maxMs\":49},\"config.get\":{\"failures\":0,\"warmupSamples\":[213],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":5,\"maxMs\":5}}}"
+    },
+    {
+      "index": 7,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 5,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 5,
+        "requestStartedAt": "2026-09-03T12:11:07.798Z",
+        "responseObservedAt": "2026-09-03T12:11:12.924Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88864,
+      "elapsedSeconds": 5.2,
+      "details": "{\"connectMs\":486,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":25,\"p50Ms\":5,\"p95Ms\":50,\"maxMs\":64},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[62],\"avgMs\":47,\"p50Ms\":46,\"p95Ms\":64,\"maxMs\":64},\"config.get\":{\"failures\":0,\"warmupSamples\":[214],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":5,\"maxMs\":5}}}"
+    },
+    {
+      "index": 8,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 5,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 5,
+        "requestStartedAt": "2026-09-03T12:11:12.994Z",
+        "responseObservedAt": "2026-09-03T12:11:18.281Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88372,
+      "elapsedSeconds": 5.35,
+      "details": "{\"connectMs\":56,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":22,\"p50Ms\":5,\"p95Ms\":43,\"maxMs\":61},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[219],\"avgMs\":40,\"p50Ms\":39,\"p95Ms\":61,\"maxMs\":61},\"config.get\":{\"failures\":0,\"warmupSamples\":[190],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":5,\"maxMs\":5}}}"
+    },
+    {
+      "index": 9,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 16,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 16,
+        "requestStartedAt": "2026-09-03T12:11:18.348Z",
+        "responseObservedAt": "2026-09-03T12:11:23.555Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 88816,
+      "elapsedSeconds": 5.27,
+      "details": "{\"connectMs\":73,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":29,\"p50Ms\":16,\"p95Ms\":58,\"maxMs\":120},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[119],\"avgMs\":50,\"p50Ms\":39,\"p95Ms\":120,\"maxMs\":120},\"config.get\":{\"failures\":0,\"warmupSamples\":[264],\"avgMs\":8,\"p50Ms\":6,\"p95Ms\":16,\"maxMs\":16}}}"
+    },
+    {
+      "index": 10,
+      "status": "pass",
+      "attempts": 1,
+      "rttMs": 7,
+      "rttSource": "gateway-rpc",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 7,
+        "requestStartedAt": "2026-09-03T12:11:23.623Z",
+        "responseObservedAt": "2026-09-03T12:11:29.522Z",
+        "method": "health,config.get",
+        "source": "gateway-rpc"
+      },
+      "maxRssKb": 90012,
+      "elapsedSeconds": 5.96,
+      "details": "{\"connectMs\":41,\"iterations\":10,\"methods\":[\"health\",\"config.get\"],\"warmups\":1,\"overall\":{\"avgMs\":25,\"p50Ms\":7,\"p95Ms\":53,\"maxMs\":61},\"byMethod\":{\"health\":{\"failures\":0,\"warmupSamples\":[266],\"avgMs\":47,\"p50Ms\":47,\"p95Ms\":61,\"maxMs\":61},\"config.get\":{\"failures\":0,\"warmupSamples\":[276],\"avgMs\":3,\"p50Ms\":2,\"p95Ms\":7,\"maxMs\":7}}}"
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/surfaces/rpc/2026-09-03T121023409Z-openclaw_2026.6.11-beta.2-rpc-rpc-gateway-smoke-rtt/result.json"
+  }
+}
