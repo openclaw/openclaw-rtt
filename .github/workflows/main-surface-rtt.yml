@@ -53,6 +53,15 @@ jobs:
           path: openclaw-rtt
           fetch-depth: 0
 
+      - name: Archive workflow scripts
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
       - name: Checkout OpenClaw main
         uses: actions/checkout@v7
         with:
@@ -156,7 +165,7 @@ jobs:
             /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
-              node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs \
+              node --import tsx "$RTT_SCRIPTS_DIR/measure-rpc-rtt.mjs" \
               --output-dir "$output_dir"
             echo "attempts=1" >>"$metrics_path"
             printf '%s\t%s\n' \
@@ -180,7 +189,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/import-surface-rtt.mjs \
+          node "$RTT_SCRIPTS_DIR/import-surface-rtt.mjs" \
             "${{ steps.rpc_surface_rtt.outputs.sample_paths }}" \
             --surface rpc \
             --spec openclaw@main \
@@ -226,7 +235,7 @@ jobs:
             /usr/bin/time \
               -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
               -o "$metrics_path" \
-              node --import tsx ../openclaw-rtt/scripts/measure-control-ui-rtt.mjs \
+              node --import tsx "$RTT_SCRIPTS_DIR/measure-control-ui-rtt.mjs" \
               --output-dir "$output_dir"
             echo "attempts=1" >>"$metrics_path"
             printf '%s\t%s\t%s\n' \
@@ -251,7 +260,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/import-surface-rtt.mjs \
+          node "$RTT_SCRIPTS_DIR/import-surface-rtt.mjs" \
             "${{ steps.surface_rtt.outputs.sample_paths }}" \
             --surface control-ui \
             --spec openclaw@main \
@@ -265,9 +274,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/update-readme.mjs --latest-main-only
-          node scripts/validate.mjs
-          node scripts/surface-rtt-summary.mjs
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/surface-rtt-summary.mjs"
 
       - name: Commit imported Surface RTT
         if: always() && github.event_name != 'pull_request' && (steps.import_rpc_surface_rtt.outcome == 'success' || steps.import_control_ui_surface_rtt.outcome == 'success')
@@ -292,8 +301,8 @@ jobs:
               echo "Surface RTT import is already present after rebase."
               exit 0
             fi
-            node scripts/update-readme.mjs --latest-main-only
-            node scripts/validate.mjs
+            node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+            node "$RTT_SCRIPTS_DIR/validate.mjs"
             git add README.md
             git commit --amend --no-edit
             git push

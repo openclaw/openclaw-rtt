@@ -433,6 +433,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Archive workflow scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
@@ -458,7 +466,7 @@ jobs:
             import_dirs=("$import_root")
           fi
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
-            node scripts/handle-missing-release-imports.mjs channel "$MEASURE_RESULT"
+            node "$RTT_SCRIPTS_DIR/handle-missing-release-imports.mjs" channel "$MEASURE_RESULT"
             exit 0
           fi
           get_metadata() {
@@ -490,16 +498,16 @@ jobs:
                 printf '%s\t\t%s\n' "$summary_path" "$metrics_path" >>"$sample_paths"
               fi
             done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
-            node scripts/import-live-transport-rtt.mjs "$sample_paths" \
+            node "$RTT_SCRIPTS_DIR/import-live-transport-rtt.mjs" "$sample_paths" \
               --channel "$channel" \
               --spec "$spec" \
               --version "$version" \
               --provider-mode mock-openai \
               --scenario "$scenario"
           done
-          node scripts/update-readme.mjs
-          node scripts/validate.mjs
-          node scripts/channel-rtt-summary.mjs
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/channel-rtt-summary.mjs"
 
       - name: Commit result
         shell: bash
@@ -522,8 +530,8 @@ jobs:
               echo "Channel release RTT import is already present after rebase."
               exit 0
             fi
-            node scripts/update-readme.mjs
-            node scripts/validate.mjs
+            node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+            node "$RTT_SCRIPTS_DIR/validate.mjs"
             git add README.md
             git commit --amend --no-edit
             git push

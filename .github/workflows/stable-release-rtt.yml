@@ -54,6 +54,15 @@ jobs:
           path: openclaw-rtt
           fetch-depth: 0
 
+      - name: Archive workflow scripts
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
@@ -179,13 +188,13 @@ jobs:
             (
               cd ../openclaw-rtt
               git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-              node scripts/backfill-release-rss.mjs \
+              node "$RTT_SCRIPTS_DIR/backfill-release-rss.mjs" \
                 --family telegram \
                 --spec "$spec" \
                 --version "$version" \
                 --resource-metrics "$metrics_path"
-              node scripts/update-readme.mjs
-              node scripts/validate.mjs
+              node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+              node "$RTT_SCRIPTS_DIR/validate.mjs"
               git add data/channels/telegram/ runs/telegram/ README.md
               if git diff --cached --quiet --exit-code; then
                 echo "No RSS changes to commit for $spec."
@@ -203,8 +212,8 @@ jobs:
                   echo "Telegram RSS import is already present after rebase."
                   exit 0
                 fi
-                node scripts/update-readme.mjs
-                node scripts/validate.mjs
+                node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+                node "$RTT_SCRIPTS_DIR/validate.mjs"
                 git add README.md
                 git commit --amend --no-edit
                 git push
@@ -288,16 +297,16 @@ jobs:
           set -euo pipefail
           git pull --rebase origin "${GITHUB_REF_NAME:-main}"
           while IFS=$'\t' read -r evidence_path metrics_path version started_at finished_at; do
-            node scripts/import-result.mjs "$evidence_path" \
+            node "$RTT_SCRIPTS_DIR/import-result.mjs" "$evidence_path" \
               --version "$version" \
               --scenario telegram-reply-chain-exact-marker \
               --started-at "$started_at" \
               --finished-at "$finished_at" \
               --resource-metrics "$metrics_path"
           done <"${{ steps.rtt.outputs.result_paths }}"
-          node scripts/update-readme.mjs
-          node scripts/validate.mjs
-          node scripts/summary.mjs
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/summary.mjs"
 
       - name: Commit result
         if: steps.release.outputs.should_run == 'true' && steps.release.outputs.rss_backfill != 'true'
@@ -322,8 +331,8 @@ jobs:
               echo "Telegram release RTT import is already present after rebase."
               exit 0
             fi
-            node scripts/update-readme.mjs
-            node scripts/validate.mjs
+            node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+            node "$RTT_SCRIPTS_DIR/validate.mjs"
             git add README.md
             git commit --amend --no-edit
             git push

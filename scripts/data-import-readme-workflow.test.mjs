@@ -136,8 +136,8 @@ function assertOrdered(contents, commands, context) {
 
 function readmeCommand(mode) {
   return mode === "main"
-    ? "node scripts/update-readme.mjs --latest-main-only"
-    : "node scripts/update-readme.mjs";
+    ? 'node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only'
+    : 'node "$RTT_SCRIPTS_DIR/update-readme.mjs"';
 }
 
 test("all nine data import paths update README atomically", async (t) => {
@@ -158,7 +158,7 @@ test("all nine data import paths update README atomically", async (t) => {
 
       assertOrdered(
         importStep,
-        [generation, "node scripts/validate.mjs"],
+        [generation, 'node "$RTT_SCRIPTS_DIR/validate.mjs"'],
         `${pathConfig.name} initial import`,
       );
       assert.match(
@@ -169,7 +169,9 @@ test("all nine data import paths update README atomically", async (t) => {
 
       const generationLine = importStep
         .split("\n")
-        .find((line) => line.trim().startsWith("node scripts/update-readme.mjs"));
+        .find((line) =>
+          line.trim().startsWith('node "$RTT_SCRIPTS_DIR/update-readme.mjs"'),
+        );
       assert.equal(generationLine?.trim(), generation, `${pathConfig.name} uses the wrong README mode`);
 
       if (!pathConfig.retry) {
@@ -187,7 +189,7 @@ test("all nine data import paths update README atomically", async (t) => {
           pathConfig.upstreamGuard,
           "exit 0",
           generation,
-          "node scripts/validate.mjs",
+          'node "$RTT_SCRIPTS_DIR/validate.mjs"',
           "git add README.md",
           "git commit --amend --no-edit",
           "git push",

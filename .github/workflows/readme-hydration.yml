@@ -54,6 +54,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Archive workflow scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
@@ -64,12 +72,12 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          node scripts/update-readme.mjs
-          node scripts/validate.mjs
-          node scripts/summary.mjs
-          node scripts/discord-rtt-summary.mjs
-          node scripts/channel-rtt-summary.mjs
-          node scripts/surface-rtt-summary.mjs
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs"
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/summary.mjs"
+          node "$RTT_SCRIPTS_DIR/discord-rtt-summary.mjs"
+          node "$RTT_SCRIPTS_DIR/channel-rtt-summary.mjs"
+          node "$RTT_SCRIPTS_DIR/surface-rtt-summary.mjs"
 
       - name: Commit README
         shell: bash
@@ -85,7 +93,7 @@ jobs:
           git commit -m "docs: hydrate rtt readme"
           git push || {
             git pull --rebase origin main
-            node scripts/update-readme.mjs
+            node "$RTT_SCRIPTS_DIR/update-readme.mjs"
             if git diff --quiet --exit-code README.md; then
               git push
               exit 0
