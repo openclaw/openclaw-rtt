@@ -131,6 +131,9 @@ function normalizeEvidenceSummary(value, scenarioId) {
           ...(typeof rttMs === "number" && Number.isFinite(rttMs)
             ? { rttMs: Math.max(0, Math.round(rttMs)) }
             : {}),
+          ...(result.rttMeasurement === undefined
+            ? {}
+            : { rttMeasurement: result.rttMeasurement }),
           ...(typeof result.details === "string" ? { details: result.details } : {}),
         },
       ],

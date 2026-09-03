@@ -33,6 +33,7 @@ function modernEvidence({
     { kind: "summary", path: "qa-suite-summary.json", source: "qa-suite" },
     { kind: "report", path: "qa-suite-report.md", source: "qa-suite" },
   ],
+  rttMeasurement,
   status = "pass",
   timing,
   title = "Slack canary echo",
@@ -51,6 +52,7 @@ function modernEvidence({
         result: {
           status,
           ...(timing ? { timing } : {}),
+          ...(rttMeasurement ? { rttMeasurement } : {}),
         },
       },
     ],
@@ -259,6 +261,22 @@ test("imports RTT from the exact modern Slack qa-suite companion shape", async (
 });
 
 test("keeps structured and observed RTT ahead of qa-suite details", async () => {
+  const rttMeasurement = {
+    finalMatchedReplyRttMs: 789,
+    requestStartedAt: "2026-09-03T08:44:50.000Z",
+    responseObservedAt: "2026-09-03T08:44:50.789Z",
+    source: "request-to-observed-message",
+  };
+  const structured = await importModernSlack({
+    evidence: modernEvidence({
+      timing: { rttMs: 456 },
+      rttMeasurement,
+    }),
+  });
+  assert.deepEqual(structured.row.rtt.warmSamples, [789]);
+  assert.deepEqual(structured.row.rtt.sources, ["request-to-observed-message"]);
+  assert.deepEqual(structured.row.samples[0].rttMeasurement, rttMeasurement);
+
   const observed = [
     {
       scenarioId: "slack-canary",
@@ -267,13 +285,6 @@ test("keeps structured and observed RTT ahead of qa-suite details", async () => 
       timestamp: "2026-09-03T08:44:50.777Z",
     },
   ];
-  const structured = await importModernSlack({
-    evidence: modernEvidence({ timing: { rttMs: 456 } }),
-    observed,
-  });
-  assert.deepEqual(structured.row.rtt.warmSamples, [456]);
-  assert.deepEqual(structured.row.rtt.sources, ["summary-rtt"]);
-
   const observedFallback = await importModernSlack({ observed });
   assert.deepEqual(observedFallback.row.rtt.warmSamples, [777]);
   assert.deepEqual(observedFallback.row.rtt.sources, ["observed-message"]);
