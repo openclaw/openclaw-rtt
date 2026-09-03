@@ -190,16 +190,19 @@ test("skips proven historical Discord release gaps", async () => {
     releaseRow("2026.5.12", "telegram"),
     releaseRow("2026.5.16-beta.5", "telegram"),
     releaseRow("2026.5.16-beta.6", "telegram"),
+    releaseRow("2026.8.1-beta.2", "telegram"),
   ]);
   await writeJsonl(path.join(workspace, "data/channels/discord.jsonl"), [
     releaseRow("2026.5.12", "discord"),
     releaseRow("2026.5.16-beta.5", "discord", "fail"),
     releaseRow("2026.5.16-beta.6", "discord", "fail"),
+    releaseRow("2026.8.1-beta.2", "discord", "fail"),
   ]);
   const binDir = await writeFakeNpm(workspace, [
     "2026.5.12",
     "2026.5.16-beta.5",
     "2026.5.16-beta.6",
+    "2026.8.1-beta.2",
   ]);
 
   const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
@@ -233,10 +236,10 @@ test("rejects explicit historical Discord release gaps", async () => {
       env: {
         ...process.env,
         GITHUB_OUTPUT: "",
-        INPUT_VERSIONS: "2026.5.16-beta.5",
+        INPUT_VERSIONS: "2026.8.1-beta.2",
       },
     }),
-    /known Discord release protocol gap: 2026\.5\.16-beta\.5/u,
+    /known Discord release protocol gap: 2026\.8\.1-beta\.2 \(release does not complete the current Discord canary\)/u,
   );
 });
 
