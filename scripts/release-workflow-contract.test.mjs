@@ -26,6 +26,30 @@ test("historical surface Chromium install uses the release dependency", async ()
   assert.doesNotMatch(step, /\b(?:scripts\/|ensure-playwright-chromium)\b/u);
 });
 
+test("historical channel workflow selects and imports a stable QA summary", async () => {
+  const workflow = await fs.readFile(new URL("release-channel-rtt.yml", workflowsDir), "utf8");
+  const measureStep = extractStep(workflow, "Run ${{ matrix.package.label }} RTT samples");
+  const prepareStep = extractStep(
+    workflow,
+    "Prepare ${{ matrix.package.label }} release import artifact",
+  );
+  const importStep = extractStep(workflow, "Import channel release RTT results");
+
+  assert.match(measureStep, /scripts\/select-channel-qa-summary\.mjs/u);
+  assert.match(measureStep, /"\$\{?selector_status\}?" -eq 0/u);
+  assert.match(measureStep, /"\$\{?scenario_status\}?" == "pass"/u);
+  assert.match(measureStep, /write-failed-channel-summary\.mjs" \\\n\s+"\$summary_path"/u);
+  assert.match(measureStep, /summary_path="\$\{output_dir\}\/rtt-summary\.json"/u);
+  assert.match(measureStep, /attempt_dir="\$\{output_dir\}\/attempt-\$\{attempt\}"/u);
+  assert.match(measureStep, /rtt-summary-source\.json/u);
+  assert.doesNotMatch(measureStep, /sample_paths/u);
+  assert.doesNotMatch(measureStep, /node -e/u);
+  assert.doesNotMatch(measureStep, /Array\.isArray\(summary\.scenarios\)/u);
+
+  assert.match(prepareStep, /echo "summary=rtt-summary\.json"/u);
+  assert.match(importStep, /summary_path="\$\{sample_dir\}\/\$\{summary\}"/u);
+});
+
 for (const filename of releaseWorkflows) {
   test(`${filename}: verifies the exact release tag commit`, async () => {
     const workflow = await fs.readFile(new URL(filename, workflowsDir), "utf8");
