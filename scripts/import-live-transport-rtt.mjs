@@ -98,7 +98,45 @@ function validateSummary(value) {
   return summary;
 }
 
-function normalizeEvidenceSummary(value, scenarioId) {
+function parseRunBounds(startedAt, finishedAt) {
+  const startedAtMs = Date.parse(startedAt);
+  const finishedAtMs = Date.parse(finishedAt);
+  if (
+    !Number.isFinite(startedAtMs) ||
+    !Number.isFinite(finishedAtMs) ||
+    finishedAtMs < startedAtMs
+  ) {
+    return undefined;
+  }
+  return { finishedAt, finishedAtMs, startedAt, startedAtMs };
+}
+
+async function evidenceRunBounds(value, entry, result, summaryPath) {
+  const generatedAt = requireString(value.generatedAt, "qa evidence generatedAt");
+  const measurement = result.rttMeasurement;
+  const measurementBounds =
+    measurement && typeof measurement === "object" && !Array.isArray(measurement)
+      ? parseRunBounds(measurement.requestStartedAt, measurement.responseObservedAt)
+      : undefined;
+  const fallback = measurementBounds ?? parseRunBounds(generatedAt, generatedAt);
+  const artifactFilename = selectQaSuiteArtifact(entry);
+  if (!artifactFilename) {
+    return fallback;
+  }
+  let suite;
+  try {
+    suite = await readJson(path.join(path.dirname(summaryPath), artifactFilename));
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return fallback;
+    }
+    throw error;
+  }
+  const run = suite?.run;
+  return parseRunBounds(run?.startedAt, run?.finishedAt) ?? fallback;
+}
+
+async function normalizeEvidenceSummary(value, scenarioId, summaryPath) {
   if (value?.kind !== "openclaw.qa.evidence-summary") {
     return { summary: value };
   }
@@ -107,8 +145,8 @@ function normalizeEvidenceSummary(value, scenarioId) {
   if (!entry) {
     throw new Error(`qa evidence missing ${scenarioId}.`);
   }
-  const generatedAt = requireString(value.generatedAt, "qa evidence generatedAt");
   const result = requireObject(entry.result, `qa evidence ${scenarioId} result`);
+  const runBounds = await evidenceRunBounds(value, entry, result, summaryPath);
   const timing = result.timing;
   const rttMs =
     timing && typeof timing === "object" && !Array.isArray(timing) ? timing.rttMs : undefined;
@@ -116,8 +154,8 @@ function normalizeEvidenceSummary(value, scenarioId) {
   return {
     evidenceEntry: entry,
     summary: {
-      startedAt: generatedAt,
-      finishedAt: generatedAt,
+      startedAt: runBounds.startedAt,
+      finishedAt: runBounds.finishedAt,
       counts: {
         total: entries.length,
         passed,
@@ -384,7 +422,11 @@ function selectScenario(summary, scenarioId) {
 
 async function readSample(entry, index, scenarioId) {
   const summaryPath = path.resolve(entry.summaryPath);
-  const normalized = normalizeEvidenceSummary(await readJson(summaryPath), scenarioId);
+  const normalized = await normalizeEvidenceSummary(
+    await readJson(summaryPath),
+    scenarioId,
+    summaryPath,
+  );
   const summary = validateSummary(normalized.summary);
   const scenario = selectScenario(summary, scenarioId);
   const rttMeasurement = extractScenarioMeasurement(scenario);
@@ -454,12 +496,19 @@ async function main() {
     samples.push(await readSample(entries[index], index + 1, scenarioId));
   }
 
-  const startedAt = samples[0].summary.startedAt;
-  const finishedAt = samples.at(-1).summary.finishedAt;
-  const startedAtMs = Date.parse(startedAt);
-  const finishedAtMs = Date.parse(finishedAt);
-  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs)) {
-    throw new Error("Channel RTT sample timestamps must be parseable.");
+  const sampleRunBounds = samples.map((sample, index) => {
+    const bounds = parseRunBounds(sample.summary.startedAt, sample.summary.finishedAt);
+    if (!bounds) {
+      throw new Error(`Channel RTT sample ${index + 1} timestamps must form a valid interval.`);
+    }
+    return bounds;
+  });
+  const startedAtMs = Math.min(...sampleRunBounds.map((bounds) => bounds.startedAtMs));
+  const finishedAtMs = Math.max(...sampleRunBounds.map((bounds) => bounds.finishedAtMs));
+  const startedAt = new Date(startedAtMs).toISOString();
+  const finishedAt = new Date(finishedAtMs).toISOString();
+  if (finishedAtMs < startedAtMs) {
+    throw new Error("Channel RTT sample timestamps must form a valid run interval.");
   }
 
   const runId = buildRunId(startedAt, channel.id, scenarioId, args.spec);

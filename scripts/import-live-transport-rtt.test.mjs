@@ -60,8 +60,10 @@ function modernEvidence({
 }
 
 function qaSuiteSummary({
+  finishedAt = "2026-09-03T08:44:53.550Z",
   scenarioName = "Slack canary echo",
   scenarioStatus = "pass",
+  startedAt = "2026-09-03T08:44:40.000Z",
   steps = [
     {
       name: "Slack canary echo",
@@ -77,6 +79,7 @@ function qaSuiteSummary({
       passed: scenarioStatus === "pass" ? 1 : 0,
       failed: scenarioStatus === "pass" ? 0 : 1,
     },
+    run: { startedAt, finishedAt },
   };
 }
 
@@ -255,6 +258,9 @@ test("imports RTT from the exact modern Slack qa-suite companion shape", async (
   const { row } = await importModernSlack();
 
   assert.equal(row.run.status, "pass");
+  assert.equal(row.run.startedAt, "2026-09-03T08:44:40.000Z");
+  assert.equal(row.run.finishedAt, "2026-09-03T08:44:53.550Z");
+  assert.equal(row.run.durationMs, 13_550);
   assert.deepEqual(row.rtt.warmSamples, [2857]);
   assert.deepEqual(row.rtt.sources, ["qa-suite-details"]);
   assert.equal(row.samples[0].rttSource, "qa-suite-details");
@@ -288,6 +294,27 @@ test("keeps structured and observed RTT ahead of qa-suite details", async () => 
   const observedFallback = await importModernSlack({ observed });
   assert.deepEqual(observedFallback.row.rtt.warmSamples, [777]);
   assert.deepEqual(observedFallback.row.rtt.sources, ["observed-message"]);
+});
+
+test("uses structured RTT bounds when a modern evidence companion is unavailable", async () => {
+  const rttMeasurement = {
+    finalMatchedReplyRttMs: 789,
+    requestStartedAt: "2026-09-03T08:44:50.000Z",
+    responseObservedAt: "2026-09-03T08:44:50.789Z",
+    source: "request-to-observed-message",
+  };
+  const { row } = await importModernSlack({
+    evidence: modernEvidence({
+      artifacts: [],
+      rttMeasurement,
+      timing: { rttMs: 789 },
+    }),
+    includeCompanion: false,
+  });
+
+  assert.equal(row.run.startedAt, rttMeasurement.requestStartedAt);
+  assert.equal(row.run.finishedAt, rttMeasurement.responseObservedAt);
+  assert.equal(row.run.durationMs, 789);
 });
 
 for (const {
