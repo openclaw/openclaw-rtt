@@ -48,7 +48,7 @@ Operator notes: [Data imports and layout](docs/data-imports.md) · [Channel expa
 
 ## Surface Dashboard
 
-RPC and Control UI rows use the same normalized RTT shape as channel rows, but they are not transport channels. Native RPC rows come from direct loopback Gateway WebSocket calls in `rpc-gateway-smoke`; historical RPC backfills stay marked as channel-derived continuity rows. Control UI rows come from mocked browser/Gateway flows with explicit `control-ui.*` performance events or scenario RTT measurements.
+RPC and Control UI rows use the same normalized RTT shape as channel rows, but they are not transport channels. RPC rows come only from direct loopback Gateway WebSocket calls in `rpc-gateway-smoke`; supported releases without an imported native result remain honest gaps. Control UI rows come from mocked browser/Gateway flows with explicit `control-ui.*` performance events or scenario RTT measurements.
 
 <!-- surface-latest:start -->
 
@@ -65,7 +65,7 @@ Latest imported surface run: `2026-09-03T01:09:49.469Z` · latest `2026.8.1` / `
 
 Version-by-version RTT coverage for release canaries and non-channel surfaces. The matrix, per-channel release tables, and surface coverage table follow the same imported release-version axis from `2026.4.24` onward. A `-` cell means no row has been imported for that target/version yet; `n/a` means the release predates that target's harness or has a known protocol/collection gap; `blocked`, `timeout`, `logged out`, and `auth 401` name imported failed runs without usable RTT.
 
-Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; surface cells show RTT `p50` for that surface's imported measurement or backfill. `p50 σ` is the standard deviation across populated target p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
+Use this as release coverage and regression signal, not a channel speed ranking. Channel cells show RTT `p50` for that channel's release scenario; surface cells show RTT `p50` from that surface's own measurement harness. Channel timing is never reused as RPC data. `p50 σ` is the standard deviation across populated target p50 values for that release. Older Telegram/Discord-only history remains in the per-channel release tables below.
 
 <!-- release-coverage:start -->
 
@@ -174,7 +174,7 @@ Latest imported release coverage run: `2026-09-03T09:50:03.294Z`
 
 ## Surface Release Coverage
 
-The surface matrix tracks non-channel coverage separately so channel regressions do not get mixed with Gateway RPC or Control UI browser timing. Native RPC rows are preferred over backfilled channel-observed rows for the same version; Control UI release cells require explicit surface measurements and start at `2026.6.1-beta.3`.
+The surface matrix tracks non-channel coverage separately so channel regressions do not get mixed with Gateway RPC or Control UI browser timing. RPC cells contain only native Gateway measurements starting at `2026.5.28-beta.1`; `-` marks a supported release with no imported native result, while earlier releases remain `n/a`. Control UI release cells require explicit surface measurements and start at `2026.6.1-beta.3`.
 
 <!-- surface-release-coverage:start -->
 
