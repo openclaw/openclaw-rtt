@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T11:48:17.963Z`
+Latest imported release coverage run: `2026-09-03T12:07:20.400Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -98,14 +98,14 @@ Latest imported release coverage run: `2026-09-03T11:48:17.963Z`
 | `2026.6.33` | `935ms` | `1,029ms` | `1,425ms` | `2,909ms` | fail | - | `360ms` |
 | `2026.6.11` | `1,047ms` | `999ms` | `1,728ms` | `3,213ms` | fail | - | `413ms` |
 | `2026.6.11-beta.2` | `1,035ms` | `988ms` | `1,759ms` | `3,174ms` | fail | - | `413ms` |
-| `2026.6.11-beta.1` | `961ms` | `1,850ms` | `1,876ms` | `3,120ms` | fail | - | `407ms` |
-| `2026.6.10` | `1,556ms` | `1,961ms` | `1,790ms` | `4,698ms` | fail | - | `407ms` |
-| `2026.6.10-beta.2` | `1,017ms` | `1,945ms` | `1,795ms` | `3,275ms` | fail | - | `402ms` |
-| `2026.6.10-beta.1` | `1,099ms` | `1,955ms` | `1,971ms` | `3,518ms` | fail | - | `411ms` |
-| `2026.6.9` | `1,033ms` | `1,974ms` | `2,166ms` | `3,301ms` | fail | - | `403ms` |
-| `2026.6.9-beta.1` | `1,029ms` | `1,970ms` | `2,167ms` | `3,293ms` | fail | - | `405ms` |
-| `2026.6.8` | `1,058ms` | `1,984ms` | `2,340ms` | `3,363ms` | fail | - | `417ms` |
-| `2026.6.8-beta.2` | `1,672ms` | `1,927ms` | `2,016ms` | `4,978ms` | fail | - | `354ms` |
+| `2026.6.11-beta.1` | `1,123ms` | `1,850ms` | `1,876ms` | `3,120ms` | fail | `5ms` | `407ms` |
+| `2026.6.10` | `1,645ms` | `1,961ms` | `1,790ms` | `4,698ms` | fail | `18ms` | `407ms` |
+| `2026.6.10-beta.2` | `1,170ms` | `1,945ms` | `1,795ms` | `3,275ms` | fail | `17ms` | `402ms` |
+| `2026.6.10-beta.1` | `1,252ms` | `1,955ms` | `1,971ms` | `3,518ms` | fail | `24ms` | `411ms` |
+| `2026.6.9` | `1,208ms` | `1,974ms` | `2,166ms` | `3,301ms` | fail | `14ms` | `403ms` |
+| `2026.6.9-beta.1` | `1,205ms` | `1,970ms` | `2,167ms` | `3,293ms` | fail | `17ms` | `405ms` |
+| `2026.6.8` | `1,241ms` | `1,984ms` | `2,340ms` | `3,363ms` | fail | `20ms` | `417ms` |
+| `2026.6.8-beta.2` | `1,756ms` | `1,927ms` | `2,016ms` | `4,978ms` | fail | `17ms` | `354ms` |
 | `2026.6.8-beta.1` | `1,254ms` | `1,971ms` | `2,075ms` | `3,096ms` | `3,344ms` | `20ms` | `349ms` |
 | `2026.6.7-beta.1` | `1,261ms` | `1,003ms` | `2,107ms` | `2,947ms` | `3,326ms` | `22ms` | `316ms` |
 | `2026.6.6` | `1,191ms` | `1,038ms` | `2,249ms` | `3,172ms` | fail | `16ms` | `307ms` |
@@ -178,7 +178,7 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-09-03T11:48:17.963Z`
+Latest imported surface run: `2026-09-03T12:07:20.400Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
@@ -207,14 +207,14 @@ Latest imported surface run: `2026-09-03T11:48:17.963Z`
 | `2026.6.33` | - | `360ms` |
 | `2026.6.11` | - | `413ms` |
 | `2026.6.11-beta.2` | - | `413ms` |
-| `2026.6.11-beta.1` | - | `407ms` |
-| `2026.6.10` | - | `407ms` |
-| `2026.6.10-beta.2` | - | `402ms` |
-| `2026.6.10-beta.1` | - | `411ms` |
-| `2026.6.9` | - | `403ms` |
-| `2026.6.9-beta.1` | - | `405ms` |
-| `2026.6.8` | - | `417ms` |
-| `2026.6.8-beta.2` | - | `354ms` |
+| `2026.6.11-beta.1` | `5ms` | `407ms` |
+| `2026.6.10` | `18ms` | `407ms` |
+| `2026.6.10-beta.2` | `17ms` | `402ms` |
+| `2026.6.10-beta.1` | `24ms` | `411ms` |
+| `2026.6.9` | `14ms` | `403ms` |
+| `2026.6.9-beta.1` | `17ms` | `405ms` |
+| `2026.6.8` | `20ms` | `417ms` |
+| `2026.6.8-beta.2` | `17ms` | `354ms` |
 | `2026.6.8-beta.1` | `20ms` | `349ms` |
 | `2026.6.7-beta.1` | `22ms` | `316ms` |
 | `2026.6.6` | `16ms` | `307ms` |
