@@ -33,6 +33,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
   PNPM_VERSION: "12.1.0"
+  PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"
   SURFACE_RTT_PR_SAMPLES: "3"
 
 jobs:
@@ -92,7 +93,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          time pnpm install --frozen-lockfile --prefer-offline --config.manage-package-manager-versions=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
       - name: Install Playwright Chromium
         working-directory: openclaw

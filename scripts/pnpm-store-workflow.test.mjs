@@ -8,7 +8,8 @@ import test from "node:test";
 
 const execFileAsync = promisify(execFile);
 const workflowsDir = new URL("../.github/workflows/", import.meta.url);
-const MANAGE_VERSION_SETTING = "--config.manage-package-manager-versions=false";
+const MANAGE_VERSION_ENV = 'PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"';
+const LATE_MANAGE_VERSION_SETTING = "--config.manage-package-manager-versions=false";
 
 test("workflow-owned pnpm remains authoritative during every OpenClaw install", async () => {
   let installCount = 0;
@@ -18,12 +19,17 @@ test("workflow-owned pnpm remains authoritative during every OpenClaw install", 
       .split("\n")
       .filter((line) => /^\s*time pnpm install\b/u.test(line));
     installCount += installLines.length;
-    for (const line of installLines) {
-      assert.ok(
-        line.includes(MANAGE_VERSION_SETTING),
-        `${filename} must disable packageManager-driven pnpm switching`,
-      );
-    }
+    if (installLines.length === 0) continue;
+
+    const workflowHeader = workflow.split("\njobs:\n", 1)[0];
+    assert.ok(
+      workflowHeader.includes(MANAGE_VERSION_ENV),
+      `${filename} must disable packageManager-driven pnpm switching before pnpm starts`,
+    );
+    assert.ok(
+      installLines.every((line) => !line.includes(LATE_MANAGE_VERSION_SETTING)),
+      `${filename} must not rely on the install command to disable pnpm version switching`,
+    );
   }
   assert.ok(installCount > 0, "expected at least one workflow pnpm install");
 });
