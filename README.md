@@ -69,13 +69,13 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-02T06:57:33.069Z`
+Latest imported release coverage run: `2026-09-03T04:16:26.562Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.9.1-beta.1` | `333ms` | `999ms` | - | fail | fail | - | `334ms` |
 | `2026.8.2` | `398ms` | `1,002ms` | - | fail | fail | - | `207ms` |
-| `2026.8.1` | `371ms` | `1,001ms` | - | fail | fail | - | `260ms` |
+| `2026.8.1` | `371ms` | `1,001ms` | fail | fail | fail | - | `260ms` |
 | `2026.8.1-beta.3` | `397ms` | `1,016ms` | - | fail | fail | - | `222ms` |
 | `2026.8.1-beta.2` | `414ms` | `1,022ms` | - | fail | fail | - | `194ms` |
 | `2026.8.1-beta.1` | `411ms` | `1,023ms` | - | fail | fail | - | `201ms` |
@@ -402,7 +402,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 |---|---:|---:|---:|---:|---|
 | `2026.9.1-beta.1` | - | - | - | - | missing: no imported run |
 | `2026.8.2` | - | - | - | - | missing: no imported run |
-| `2026.8.1` | - | - | - | - | missing: no imported run |
+| `2026.8.1` | - | - | `5,099MB` | `5,099MB` | failed |
 | `2026.8.1-beta.3` | - | - | - | - | missing: no imported run |
 | `2026.8.1-beta.2` | - | - | - | - | missing: no imported run |
 | `2026.8.1-beta.1` | - | - | - | - | missing: no imported run |

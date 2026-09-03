@@ -191,9 +191,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="$(node -p "require('./package.json').version")"
-          if [[ "$version" != "${{ matrix.package.version }}" ]]; then
-            echo "OpenClaw package version mismatch: expected ${{ matrix.package.version }}, got ${version}" >&2
+          tag_ref="refs/tags/${{ matrix.package.tag }}"
+          head_commit="$(git rev-parse HEAD)"
+          tag_commit="$(git rev-parse --verify "${tag_ref}^{commit}")"
+          if [[ "$head_commit" != "$tag_commit" ]]; then
+            echo "OpenClaw release ref mismatch: HEAD ${head_commit} does not match ${tag_ref} (${tag_commit})" >&2
             exit 1
           fi
 
