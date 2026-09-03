@@ -1,0 +1,73 @@
+{
+  "channel": {
+    "id": "telegram",
+    "label": "Telegram",
+    "scenario": "telegram-reply-chain-exact-marker"
+  },
+  "package": {
+    "spec": "openclaw@2026.9.1",
+    "version": "2026.9.1"
+  },
+  "run": {
+    "id": "2026-09-03T183546331Z-openclaw_2026.9.1-telegram-telegram-reply-chain-exact-marker-rtt",
+    "startedAt": "2026-09-03T18:35:46.331Z",
+    "finishedAt": "2026-09-03T18:37:07.707Z",
+    "durationMs": 81376,
+    "status": "pass"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "telegram-reply-chain-exact-marker"
+    ],
+    "source": "qa-evidence"
+  },
+  "rtt": {
+    "canaryMs": 1002,
+    "mentionReplyMs": 1002,
+    "avgMs": 1268,
+    "p50Ms": 1002,
+    "p95Ms": 2004,
+    "maxMs": 2028,
+    "failedSamples": 0,
+    "sampleCount": 20,
+    "sources": [
+      "qa-evidence"
+    ]
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "pass",
+      "details": "aggregate timing from qa-evidence.json (20/20 samples passed)"
+    }
+  ],
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "release-harness-command",
+      "command": "pnpm test:docker:npm-telegram-live"
+    },
+    "maxRssKbSamples": [
+      88200
+    ],
+    "elapsedSecondsSamples": [
+      81.35
+    ],
+    "maxRssKb": {
+      "avg": 88200,
+      "p50": 88200,
+      "p95": 88200,
+      "max": 88200
+    },
+    "elapsedSeconds": {
+      "avg": 81.35,
+      "p50": 81.35,
+      "p95": 81.35,
+      "max": 81.35
+    }
+  },
+  "artifacts": {
+    "resultPath": "runs/telegram/2026-09-03T183546331Z-openclaw_2026.9.1-telegram-telegram-reply-chain-exact-marker-rtt/result.json"
+  }
+}
