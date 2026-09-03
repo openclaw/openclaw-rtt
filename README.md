@@ -33,12 +33,12 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-09-03T18:28:48.141Z` · latest `2026.8.1` / `61bba4f664`
+Latest imported channel run: `2026-09-03T18:46:19.813Z` · latest `2026.8.1` / `a7cbcfbb29`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,003ms` | `2,006ms` | `87MB` | `87MB` | ok |
-| Discord | `1,331ms` | `1,495ms` | `760MB` | `766MB` | ok |
+| Discord | `1,360ms` | `1,550ms` | `762MB` | `768MB` | ok |
 | Slack | `2,928ms` | `2,928ms` | `754MB` | `754MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed: QA command exited with status 1 after producing a missing summary.) |
 
@@ -73,7 +73,7 @@ Latest imported release coverage run: `2026-09-03T18:50:28.909Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.9.1` | n/a | `1,002ms` | - | - | - | - | - |
+| `2026.9.1` | `440ms` | `1,002ms` | - | - | - | `1ms` | `156ms` |
 | `2026.9.1-beta.1` | `579ms` | `999ms` | `1,492ms` | fail | fail | `1ms` | `334ms` |
 | `2026.8.2` | `569ms` | `1,002ms` | `1,392ms` | fail | fail | `0ms` | `207ms` |
 | `2026.8.1` | `904ms` | `1,001ms` | `2,329ms` | fail | fail | `1ms` | `260ms` |
@@ -179,11 +179,11 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-09-03T13:45:57.430Z`
+Latest imported surface run: `2026-09-03T18:48:26.454Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
-| `2026.9.1` | - | - |
+| `2026.9.1` | `1ms` | `156ms` |
 | `2026.9.1-beta.1` | `1ms` | `334ms` |
 | `2026.8.2` | `0ms` | `207ms` |
 | `2026.8.1` | `1ms` | `260ms` |
