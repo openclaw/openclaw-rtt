@@ -103,9 +103,15 @@ test("imports Discord qa-evidence summaries", async () => {
   assert.equal(row.mode.providerMode, "mock-openai");
 });
 
-test("imports Discord qa-evidence without the retired observed-message sidecar", async () => {
+test("preserves Discord qa-evidence RTT measurement without the retired sidecar", async () => {
   const workspace = await makeWorkspace();
   const sampleDir = path.join(workspace, "sample-1");
+  const rttMeasurement = {
+    finalMatchedReplyRttMs: 1875,
+    requestStartedAt: "2026-07-18T03:59:07.000Z",
+    responseObservedAt: "2026-07-18T03:59:08.875Z",
+    source: "request-to-observed-message",
+  };
   await fs.mkdir(sampleDir, { recursive: true });
   await fs.writeFile(
     path.join(sampleDir, "qa-evidence.json"),
@@ -117,7 +123,11 @@ test("imports Discord qa-evidence without the retired observed-message sidecar",
         {
           test: { id: "discord-canary", title: "Discord canary echo" },
           execution: { provider: { fixture: "mock-openai" } },
-          result: { status: "pass", timing: { rttMs: 2140 } },
+          result: {
+            status: "pass",
+            timing: { rttMs: 2140 },
+            rttMeasurement,
+          },
         },
       ],
     })}\n`,
@@ -145,8 +155,9 @@ test("imports Discord qa-evidence without the retired observed-message sidecar",
     .split("\n")
     .map((line) => JSON.parse(line));
   assert.equal(row.run.status, "pass");
-  assert.equal(row.rtt.p50Ms, 2140);
-  assert.deepEqual(row.rtt.sources, ["summary-rtt"]);
+  assert.equal(row.rtt.p50Ms, 1875);
+  assert.deepEqual(row.rtt.sources, ["request-to-observed-message"]);
+  assert.deepEqual(row.discord.samples[0].rttMeasurement, rttMeasurement);
 });
 
 test("imports failed Discord qa-evidence summaries without timing", async () => {

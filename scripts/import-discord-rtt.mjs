@@ -101,8 +101,9 @@ function normalizeEvidenceSummary(value) {
     throw new Error("qa evidence missing discord-canary.");
   }
   const generatedAt = requireString(value.generatedAt, "qa evidence generatedAt");
-  const status = entry.result?.status === "pass" ? "pass" : "fail";
-  const timing = entry.result?.timing;
+  const result = entry.result;
+  const status = result?.status === "pass" ? "pass" : "fail";
+  const timing = result?.timing;
   const rttMs =
     timing && typeof timing === "object" && !Array.isArray(timing) ? timing.rttMs : undefined;
   if (rttMs !== undefined && (typeof rttMs !== "number" || !Number.isFinite(rttMs))) {
@@ -122,7 +123,10 @@ function normalizeEvidenceSummary(value) {
         id: "discord-canary",
         status,
         ...(rttMs === undefined ? {} : { rttMs }),
-        details: entry.result?.details ?? entry.result?.failure?.reason,
+        ...(result?.rttMeasurement === undefined
+          ? {}
+          : { rttMeasurement: result.rttMeasurement }),
+        details: result?.details ?? result?.failure?.reason,
       },
     ],
     credentials: {
