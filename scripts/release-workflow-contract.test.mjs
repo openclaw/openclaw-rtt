@@ -28,12 +28,26 @@ test("historical surface Chromium install uses the release dependency", async ()
 
 test("historical channel workflow selects and imports a stable QA summary", async () => {
   const workflow = await fs.readFile(new URL("release-channel-rtt.yml", workflowsDir), "utf8");
+  const releaseBuildStep = "      - name: Build OpenClaw release\n";
+  const harnessBuildStep = "      - name: Build OpenClaw QA harness\n";
+  const hostLinkStepName = "Link OpenClaw release channel host";
+  const hostLinkStep = extractStep(workflow, hostLinkStepName);
+  const hostLinkMarker = `      - name: ${hostLinkStepName}\n`;
+  const measureMarker = "      - name: Run ${{ matrix.package.label }} RTT samples\n";
   const measureStep = extractStep(workflow, "Run ${{ matrix.package.label }} RTT samples");
   const prepareStep = extractStep(
     workflow,
     "Prepare ${{ matrix.package.label }} release import artifact",
   );
   const importStep = extractStep(workflow, "Import channel release RTT results");
+
+  assert.ok(workflow.indexOf(releaseBuildStep) < workflow.indexOf(hostLinkMarker));
+  assert.ok(workflow.indexOf(harnessBuildStep) < workflow.indexOf(hostLinkMarker));
+  assert.ok(workflow.indexOf(hostLinkMarker) < workflow.indexOf(measureMarker));
+  assert.match(hostLinkStep, /\bworking-directory:\s*openclaw-rtt\b/u);
+  assert.match(hostLinkStep, /scripts\/link-openclaw-release-channel-host\.mjs/u);
+  assert.match(hostLinkStep, /\.\.\/openclaw/u);
+  assert.match(hostLinkStep, /"\$\{\{ matrix\.package\.channel \}\}"/u);
 
   assert.match(measureStep, /scripts\/select-channel-qa-summary\.mjs/u);
   assert.match(measureStep, /"\$\{?selector_status\}?" -eq 0/u);

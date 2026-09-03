@@ -240,6 +240,15 @@ jobs:
           set -euo pipefail
           time pnpm build
 
+      - name: Link OpenClaw release channel host
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/link-openclaw-release-channel-host.mjs \
+            ../openclaw \
+            "${{ matrix.package.channel }}"
+
       - name: Run ${{ matrix.package.label }} RTT samples
         id: channel_rtt
         working-directory: openclaw
