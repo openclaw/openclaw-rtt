@@ -69,16 +69,16 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T06:21:39.803Z`
+Latest imported release coverage run: `2026-09-03T06:48:07.548Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.9.1-beta.1` | `333ms` | `999ms` | - | fail | fail | - | `334ms` |
-| `2026.8.2` | `398ms` | `1,002ms` | - | fail | fail | - | `207ms` |
-| `2026.8.1` | `371ms` | `1,001ms` | fail | fail | fail | - | `260ms` |
-| `2026.8.1-beta.3` | `397ms` | `1,016ms` | - | fail | fail | - | `222ms` |
-| `2026.8.1-beta.2` | `414ms` | `1,022ms` | - | fail | fail | - | `194ms` |
-| `2026.8.1-beta.1` | `411ms` | `1,023ms` | - | fail | fail | - | `201ms` |
+| `2026.9.1-beta.1` | `474ms` | `999ms` | `1,492ms` | fail | fail | - | `334ms` |
+| `2026.8.2` | `493ms` | `1,002ms` | `1,392ms` | fail | fail | - | `207ms` |
+| `2026.8.1` | `601ms` | `1,001ms` | `1,733ms` | fail | fail | - | `260ms` |
+| `2026.8.1-beta.3` | `670ms` | `1,016ms` | `1,862ms` | fail | fail | - | `222ms` |
+| `2026.8.1-beta.2` | `414ms` | `1,022ms` | timeout | fail | fail | - | `194ms` |
+| `2026.8.1-beta.1` | `1,494ms` | `1,023ms` | `3,700ms` | fail | fail | - | `201ms` |
 | `2026.7.2-beta.7` | `1,239ms` | `1,020ms` | `3,072ms` | fail | fail | - | `109ms` |
 | `2026.7.2-beta.6` | `1,254ms` | `1,051ms` | `2,996ms` | fail | fail | `2,996ms` | `106ms` |
 | `2026.7.2-beta.5` | `1,593ms` | `1,031ms` | `3,938ms` | fail | fail | `0ms` | `102ms` |
@@ -86,7 +86,7 @@ Latest imported release coverage run: `2026-09-03T06:21:39.803Z`
 | `2026.7.2-beta.3` | `2,424ms` | `1,024ms` | `5,977ms` | fail | fail | `0ms` | `313ms` |
 | `2026.7.2-beta.2` | `784ms` | `1,018ms` | `2,042ms` | fail | fail | `0ms` | `314ms` |
 | `2026.7.2-beta.1` | `1,516ms` | `1,024ms` | `1,872ms` | `4,764ms` | fail | `1,898ms` | `306ms` |
-| `2026.7.1-2` | `1,241ms` | `1,001ms` | - | `3,071ms` | fail | `3,071ms` | `281ms` |
+| `2026.7.1-2` | `1,114ms` | `1,001ms` | `2,090ms` | `3,071ms` | fail | `3,071ms` | `281ms` |
 | `2026.7.1-1` | `1,164ms` | `1,028ms` | `2,088ms` | `3,655ms` | fail | `2,088ms` | `195ms` |
 | `2026.7.1` | `1,015ms` | `1,022ms` | `1,797ms` | `3,333ms` | fail | `1,797ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,003ms` | `1,024ms` | `1,808ms` | `3,335ms` | fail | `1,814ms` | `328ms` |
@@ -402,12 +402,12 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.9.1-beta.1` | - | - | - | - | missing: no imported run |
-| `2026.8.2` | - | - | - | - | missing: no imported run |
-| `2026.8.1` | - | - | `5,099MB` | `5,099MB` | failed |
-| `2026.8.1-beta.3` | - | - | - | - | missing: no imported run |
-| `2026.8.1-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.8.1-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.9.1-beta.1` | `1,492ms` | `1,492ms` | `5,147MB` | `5,147MB` | ok |
+| `2026.8.2` | `1,392ms` | `1,392ms` | `5,080MB` | `5,080MB` | ok |
+| `2026.8.1` | `1,733ms` | `1,733ms` | `5,057MB` | `5,057MB` | ok |
+| `2026.8.1-beta.3` | `1,862ms` | `1,862ms` | `5,111MB` | `5,111MB` | ok |
+| `2026.8.1-beta.2` | - | - | `5,136MB` | `5,136MB` | timeout |
+| `2026.8.1-beta.1` | `3,700ms` | `3,700ms` | `5,137MB` | `5,137MB` | ok |
 | `2026.7.2-beta.7` | `3,072ms` | `3,206ms` | `3,147MB` | `3,192MB` | ok |
 | `2026.7.2-beta.6` | `2,996ms` | `3,327ms` | `3,147MB` | `3,176MB` | ok |
 | `2026.7.2-beta.5` | `3,938ms` | `4,181ms` | `3,141MB` | `3,170MB` | ok |
@@ -415,7 +415,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.7.2-beta.3` | `5,977ms` | `5,977ms` | `3,168MB` | `3,168MB` | ok |
 | `2026.7.2-beta.2` | `2,042ms` | `2,042ms` | `3,089MB` | `3,089MB` | ok |
 | `2026.7.2-beta.1` | `1,872ms` | `2,429ms` | `1,033MB` | `1,050MB` | ok |
-| `2026.7.1-2` | - | - | - | - | missing: no imported run |
+| `2026.7.1-2` | `2,090ms` | `2,090ms` | `5,125MB` | `5,125MB` | ok |
 | `2026.7.1-1` | `2,088ms` | `2,088ms` | `5,230MB` | `5,230MB` | ok |
 | `2026.7.1` | `1,797ms` | `2,138ms` | `1,367MB` | `1,367MB` | failed |
 | `2026.7.1-beta.6` | `1,808ms` | `1,988ms` | `1,074MB` | `1,076MB` | ok |
