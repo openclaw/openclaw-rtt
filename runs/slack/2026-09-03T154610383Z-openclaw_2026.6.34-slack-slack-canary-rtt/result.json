@@ -1,0 +1,71 @@
+{
+  "channel": {
+    "id": "slack",
+    "label": "Slack",
+    "scenario": "slack-canary"
+  },
+  "package": {
+    "spec": "openclaw@2026.6.34",
+    "version": "2026.6.34"
+  },
+  "run": {
+    "id": "2026-09-03T154610383Z-openclaw_2026.6.34-slack-slack-canary-rtt",
+    "startedAt": "2026-09-03T15:46:10.383Z",
+    "finishedAt": "2026-09-03T15:49:43.646Z",
+    "durationMs": 213263,
+    "status": "fail"
+  },
+  "polling": {
+    "attemptSamples": [
+      3
+    ],
+    "retryCount": 2,
+    "maxAttempts": 3
+  },
+  "mode": {
+    "providerMode": "mock-openai"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 1,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa slack"
+    },
+    "maxRssKbSamples": [
+      5274068
+    ],
+    "elapsedSecondsSamples": [
+      66.97
+    ],
+    "maxRssKb": {
+      "avg": 5274068,
+      "p50": 5274068,
+      "p95": 5274068,
+      "max": 5274068
+    },
+    "elapsedSeconds": {
+      "avg": 66.97,
+      "p50": 66.97,
+      "p95": 66.97,
+      "max": 66.97
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "fail",
+      "attempts": 3,
+      "maxRssKb": 5274068,
+      "elapsedSeconds": 66.97,
+      "details": "QA command exited with status 1 after producing a missing summary."
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/slack/2026-09-03T154610383Z-openclaw_2026.6.34-slack-slack-canary-rtt/result.json"
+  }
+}
