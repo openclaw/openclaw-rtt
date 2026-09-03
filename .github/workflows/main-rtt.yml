@@ -36,6 +36,15 @@ jobs:
           path: openclaw-rtt
           fetch-depth: 0
 
+      - name: Archive workflow scripts
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
       - name: Checkout OpenClaw main
         uses: actions/checkout@v7
         with:
@@ -207,16 +216,16 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          node scripts/import-result.mjs "${{ steps.rtt.outputs.evidence_path }}" \
+          node "$RTT_SCRIPTS_DIR/import-result.mjs" "${{ steps.rtt.outputs.evidence_path }}" \
             --spec openclaw@main \
             --version "${{ steps.pack.outputs.package_version }}" \
             --scenario telegram-reply-chain-exact-marker \
             --started-at "${{ steps.rtt.outputs.started_at }}" \
             --finished-at "${{ steps.rtt.outputs.finished_at }}" \
             --resource-metrics "${{ steps.rtt.outputs.resource_metrics_path }}"
-          node scripts/update-readme.mjs --latest-main-only
-          node scripts/validate.mjs
-          node scripts/summary.mjs
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/summary.mjs"
 
       - name: Commit result
         if: steps.rtt.outputs.status == '0'
@@ -241,8 +250,8 @@ jobs:
               echo "Telegram RTT import is already present after rebase."
               exit 0
             fi
-            node scripts/update-readme.mjs --latest-main-only
-            node scripts/validate.mjs
+            node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+            node "$RTT_SCRIPTS_DIR/validate.mjs"
             git add README.md
             git commit --amend --no-edit
             git push

@@ -37,6 +37,15 @@ jobs:
           path: openclaw-rtt
           fetch-depth: 0
 
+      - name: Archive workflow scripts
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
       - name: Checkout OpenClaw main
         uses: actions/checkout@v7
         with:
@@ -185,13 +194,13 @@ jobs:
         run: |
           set -euo pipefail
           git pull --rebase origin main
-          node scripts/import-discord-rtt.mjs "${{ steps.discord_rtt.outputs.sample_paths }}" \
+          node "$RTT_SCRIPTS_DIR/import-discord-rtt.mjs" "${{ steps.discord_rtt.outputs.sample_paths }}" \
             --spec openclaw@main \
             --version "${{ steps.openclaw_ref.outputs.version }}" \
             --provider-mode mock-openai
-          node scripts/update-readme.mjs --latest-main-only
-          node scripts/validate.mjs
-          node scripts/discord-rtt-summary.mjs
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/discord-rtt-summary.mjs"
 
       - name: Upload Discord RTT artifacts
         if: always()
@@ -224,8 +233,8 @@ jobs:
               echo "Discord RTT import is already present after rebase."
               exit 0
             fi
-            node scripts/update-readme.mjs --latest-main-only
-            node scripts/validate.mjs
+            node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+            node "$RTT_SCRIPTS_DIR/validate.mjs"
             git add README.md
             git commit --amend --no-edit
             git push

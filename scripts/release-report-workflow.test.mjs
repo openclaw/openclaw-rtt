@@ -53,7 +53,7 @@ test("release report workflows preserve partial imports without cascade failures
     assert.match(
       contents,
       new RegExp(
-        `node scripts/handle-missing-release-imports\\.mjs ${workflow.family} "\\$MEASURE_RESULT"`,
+        `node "\\$RTT_SCRIPTS_DIR/handle-missing-release-imports\\.mjs" ${workflow.family} "\\$MEASURE_RESULT"`,
         "u",
       ),
     );
