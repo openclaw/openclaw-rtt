@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T08:21:26.211Z`
+Latest imported release coverage run: `2026-09-03T09:50:03.294Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -78,8 +78,8 @@ Latest imported release coverage run: `2026-09-03T08:21:26.211Z`
 | `2026.8.1` | `601ms` | `1,001ms` | `1,733ms` | fail | fail | - | `260ms` |
 | `2026.8.1-beta.3` | `670ms` | `1,016ms` | `1,862ms` | fail | fail | - | `222ms` |
 | `2026.8.1-beta.2` | `414ms` | `1,022ms` | timeout | fail | fail | - | `194ms` |
-| `2026.8.1-beta.1` | `1,494ms` | `1,023ms` | `3,700ms` | fail | fail | - | `201ms` |
-| `2026.7.2-beta.7` | `1,239ms` | `1,020ms` | `3,072ms` | fail | fail | - | `109ms` |
+| `2026.8.1-beta.1` | `1,571ms` | `1,023ms` | `3,700ms` | fail | fail | `3,700ms` | `201ms` |
+| `2026.7.2-beta.7` | `1,294ms` | `1,020ms` | `3,072ms` | fail | fail | `3,072ms` | `109ms` |
 | `2026.7.2-beta.6` | `1,254ms` | `1,051ms` | `2,996ms` | fail | fail | `2,996ms` | `106ms` |
 | `2026.7.2-beta.5` | `1,593ms` | `1,031ms` | `3,938ms` | fail | fail | `0ms` | `102ms` |
 | `2026.7.2-beta.4` | `863ms` | `1,024ms` | `2,149ms` | fail | fail | `0ms` | `113ms` |
@@ -147,7 +147,7 @@ Latest imported release coverage run: `2026-09-03T08:21:26.211Z`
 | `2026.5.19-beta.2` | `2,487ms` | `1,036ms` | `7,279ms` | `4,713ms` | `7,769ms` | `6,938ms` | n/a |
 | `2026.5.19-beta.1` | `2,113ms` | `1,224ms` | `5,092ms` | `4,551ms` | `7,852ms` | `5,071ms` | n/a |
 | `2026.5.18` | `2,473ms` | `1,061ms` | `7,318ms` | `4,253ms` | `7,618ms` | `6,758ms` | n/a |
-| `2026.5.18-beta.1` | `2,541ms` | `1,017ms` | `5,957ms` | fail | `7,875ms` | `5,977ms` | n/a |
+| `2026.5.18-beta.1` | `2,276ms` | `1,017ms` | `5,957ms` | `5,497ms` | `7,875ms` | `5,977ms` | n/a |
 | `2026.5.16-beta.7` | `2,190ms` | `1,583ms` | `7,307ms` | `4,704ms` | `7,607ms` | `6,055ms` | n/a |
 | `2026.5.16-beta.6` | `2,216ms` | `1,417ms` | `7,844ms` | `4,719ms` | `6,886ms` | `4,732ms` | n/a |
 | `2026.5.16-beta.5` | `2,289ms` | `1,386ms` | timeout | `4,877ms` | `7,853ms` | `4,791ms` | n/a |
@@ -187,8 +187,8 @@ Latest imported surface run: `2026-09-03T06:06:54.676Z`
 | `2026.8.1` | - | `260ms` |
 | `2026.8.1-beta.3` | - | `222ms` |
 | `2026.8.1-beta.2` | - | `194ms` |
-| `2026.8.1-beta.1` | - | `201ms` |
-| `2026.7.2-beta.7` | - | `109ms` |
+| `2026.8.1-beta.1` | `3,700ms` | `201ms` |
+| `2026.7.2-beta.7` | `3,072ms` | `109ms` |
 | `2026.7.2-beta.6` | `2,996ms` | `106ms` |
 | `2026.7.2-beta.5` | `0ms` | `102ms` |
 | `2026.7.2-beta.4` | `0ms` | `113ms` |
@@ -514,13 +514,13 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.8.1` | - | - | `1,264MB` | `1,264MB` | failed |
 | `2026.8.1-beta.3` | - | - | `1,293MB` | `1,293MB` | failed |
 | `2026.8.1-beta.2` | - | - | `1,447MB` | `1,447MB` | failed |
-| `2026.8.1-beta.1` | - | - | `1,356MB` | `1,356MB` | failed |
-| `2026.7.2-beta.7` | - | - | `1,196MB` | `1,196MB` | failed |
-| `2026.7.2-beta.6` | - | - | `1,237MB` | `1,237MB` | failed |
-| `2026.7.2-beta.5` | - | - | `1,247MB` | `1,247MB` | failed |
-| `2026.7.2-beta.4` | - | - | `1,147MB` | `1,147MB` | failed |
-| `2026.7.2-beta.3` | - | - | `1,181MB` | `1,181MB` | failed |
-| `2026.7.2-beta.2` | - | - | `1,063MB` | `1,063MB` | failed |
+| `2026.8.1-beta.1` | - | - | `1,267MB` | `1,267MB` | failed |
+| `2026.7.2-beta.7` | - | - | `1,462MB` | `1,462MB` | failed |
+| `2026.7.2-beta.6` | - | - | `1,368MB` | `1,368MB` | failed |
+| `2026.7.2-beta.5` | - | - | `1,476MB` | `1,476MB` | failed |
+| `2026.7.2-beta.4` | - | - | `1,313MB` | `1,313MB` | failed |
+| `2026.7.2-beta.3` | - | - | `1,297MB` | `1,297MB` | failed |
+| `2026.7.2-beta.2` | - | - | `1,185MB` | `1,185MB` | failed |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1-2` | `3,071ms` | `3,071ms` | `883MB` | `883MB` | ok |
 | `2026.7.1-1` | `3,655ms` | `3,655ms` | `857MB` | `857MB` | ok |
@@ -583,7 +583,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.19-beta.2` | `4,713ms` | `5,988ms` | `713MB` | `751MB` | ok |
 | `2026.5.19-beta.1` | `4,551ms` | `5,896ms` | `718MB` | `754MB` | ok |
 | `2026.5.18` | `4,253ms` | `5,549ms` | `710MB` | `767MB` | ok |
-| `2026.5.18-beta.1` | - | - | `733MB` | `733MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.5.18-beta.1` | `5,497ms` | `5,497ms` | `904MB` | `904MB` | ok |
 | `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `735MB` | `735MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.6` | `4,719ms` | `5,051ms` | `724MB` | `760MB` | ok |
 | `2026.5.16-beta.5` | `4,877ms` | `4,877ms` | `904MB` | `904MB` | ok |

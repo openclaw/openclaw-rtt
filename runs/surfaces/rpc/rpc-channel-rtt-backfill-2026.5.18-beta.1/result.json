@@ -11,8 +11,8 @@
   "run": {
     "id": "rpc-channel-rtt-backfill-2026.5.18-beta.1",
     "startedAt": "2026-05-18T18:54:34.921Z",
-    "finishedAt": "2026-05-26T21:00:54.310Z",
-    "durationMs": 698779389,
+    "finishedAt": "2026-09-03T08:33:20.465Z",
+    "durationMs": 9293925544,
     "status": "pass"
   },
   "mode": {
@@ -20,6 +20,7 @@
     "source": "channel-rtt-backfill",
     "sourceChannels": [
       "discord",
+      "slack",
       "telegram",
       "whatsapp"
     ]
@@ -85,14 +86,15 @@
       7606,
       8738,
       7643,
-      8457
+      8457,
+      5497
     ],
     "failedSamples": 4,
     "sources": [
       "backfill:channel-warm-sample",
       "backfill:summary-rtt"
     ],
-    "avgMs": 5190.983333333334,
+    "avgMs": 5196,
     "p50Ms": 5977,
     "p95Ms": 8788,
     "maxMs": 11090
@@ -106,22 +108,24 @@
     "maxRssKbSamples": [
       148328,
       788352,
-      897480
+      897480,
+      925356
     ],
     "elapsedSecondsSamples": [
       107.65,
       37.89,
-      49.41
+      49.41,
+      36.63
     ],
     "maxRssKb": {
-      "avg": 611386.6666666666,
+      "avg": 689879,
       "p50": 788352,
-      "p95": 897480,
-      "max": 897480
+      "p95": 925356,
+      "max": 925356
     },
     "elapsedSeconds": {
-      "avg": 64.98333333333333,
-      "p50": 49.41,
+      "avg": 57.895,
+      "p50": 37.89,
       "p95": 107.65,
       "max": 107.65
     }
@@ -1126,6 +1130,23 @@
         "source": "backfill:summary-rtt"
       },
       "details": "reply matched in 8457ms"
+    },
+    {
+      "index": 61,
+      "status": "pass",
+      "channel": {
+        "id": "slack",
+        "label": "Slack",
+        "scenario": "slack-canary"
+      },
+      "sourceRunId": "2026-09-03T083247528Z-openclaw_2026.5.18-beta.1-slack-slack-canary-rtt",
+      "rttMs": 5497,
+      "rttSource": "backfill:summary-rtt",
+      "rttMeasurement": {
+        "finalMatchedReplyRttMs": 5497,
+        "source": "backfill:summary-rtt"
+      },
+      "details": "reply matched in 5497ms"
     }
   ],
   "artifacts": {
