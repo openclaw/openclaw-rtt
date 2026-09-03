@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T10:30:22.146Z`
+Latest imported release coverage run: `2026-09-03T10:35:17.898Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -94,7 +94,7 @@ Latest imported release coverage run: `2026-09-03T10:30:22.146Z`
 | `2026.7.1-beta.4` | `1,263ms` | n/a | `1,787ms` | `3,378ms` | fail | - | `284ms` |
 | `2026.7.1-beta.2` | `1,071ms` | `1,992ms` | `1,666ms` | `3,352ms` | fail | - | `341ms` |
 | `2026.7.1-beta.1` | `1,112ms` | `1,903ms` | `1,889ms` | `3,549ms` | fail | - | `407ms` |
-| `2026.6.34` | n/a | - | - | - | fail | - | `400ms` |
+| `2026.6.34` | `300ms` | `1,000ms` | - | - | fail | - | `400ms` |
 | `2026.6.33` | `935ms` | `1,029ms` | `1,425ms` | `2,909ms` | fail | - | `360ms` |
 | `2026.6.11` | `1,047ms` | `999ms` | `1,728ms` | `3,213ms` | fail | - | `413ms` |
 | `2026.6.11-beta.2` | `1,035ms` | `988ms` | `1,759ms` | `3,174ms` | fail | - | `413ms` |
@@ -312,7 +312,7 @@ The system under test is the published package running its own Telegram bot. The
 | `2026.7.1-beta.4` | - | - | - | - | not supported: published package omits @openclaw/ai required by the onboarding recovery path |
 | `2026.7.1-beta.2` | `1,992ms` | `15,751ms` | `149MB` | `149MB` | ok |
 | `2026.7.1-beta.1` | `1,903ms` | `13,706ms` | `151MB` | `151MB` | ok |
-| `2026.6.34` | - | - | - | - | missing: no imported run |
+| `2026.6.34` | `1,000ms` | `2,013ms` | `86MB` | `86MB` | ok |
 | `2026.6.33` | `1,029ms` | `2,147ms` | `149MB` | `149MB` | ok |
 | `2026.6.11` | `999ms` | `13,688ms` | `150MB` | `150MB` | ok |
 | `2026.6.11-beta.2` | `988ms` | `13,814ms` | `149MB` | `149MB` | ok |
