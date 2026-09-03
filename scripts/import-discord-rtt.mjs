@@ -204,38 +204,38 @@ function extractCanaryRtt(observedMessages) {
   return Number.isFinite(rttMs) ? rttMs : undefined;
 }
 
-function extractSummaryDurationRtt(summary) {
-  const startedAtMs = Date.parse(summary.startedAt);
-  const finishedAtMs = Date.parse(summary.finishedAt);
-  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs)) {
-    return undefined;
+function parseRunBounds(startedAt, finishedAt, positive = false) {
+  const startedAtMs = Date.parse(startedAt);
+  const finishedAtMs = Date.parse(finishedAt);
+  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs) || (positive && finishedAtMs <= startedAtMs)) {
+    throw new Error(positive
+      ? "discord-canary rttMeasurement must define a positive parseable interval."
+      : "Discord RTT sample timestamps must be parseable.");
   }
-  const rttMs = Math.max(0, Math.round(finishedAtMs - startedAtMs));
-  return Number.isFinite(rttMs) ? rttMs : undefined;
+  return { startedAtMs, finishedAtMs, durationMs: Math.max(0, finishedAtMs - startedAtMs) };
 }
 
 function extractScenarioMeasurement(scenario) {
   const measurement = scenario?.rttMeasurement;
-  if (typeof measurement !== "object" || measurement === null || Array.isArray(measurement)) {
+  if (measurement === undefined) {
     return undefined;
   }
-  const finalMatchedReplyRttMs = measurement.finalMatchedReplyRttMs;
-  if (typeof finalMatchedReplyRttMs !== "number" || !Number.isFinite(finalMatchedReplyRttMs)) {
-    return undefined;
-  }
+  requireObject(measurement, "discord-canary rttMeasurement");
+  const finalMatchedReplyRttMs = requireNumber(measurement.finalMatchedReplyRttMs, "discord-canary rttMeasurement.finalMatchedReplyRttMs");
+  const requestStartedAt = requireString(measurement.requestStartedAt, "discord-canary rttMeasurement.requestStartedAt");
+  const responseObservedAt = requireString(measurement.responseObservedAt, "discord-canary rttMeasurement.responseObservedAt");
   const source =
     typeof measurement.source === "string" && measurement.source.trim()
       ? measurement.source
       : "request-to-observed-message";
   return {
-    finalMatchedReplyRttMs: Math.max(0, Math.round(finalMatchedReplyRttMs)),
-    ...(typeof measurement.requestStartedAt === "string"
-      ? { requestStartedAt: measurement.requestStartedAt }
-      : {}),
-    ...(typeof measurement.responseObservedAt === "string"
-      ? { responseObservedAt: measurement.responseObservedAt }
-      : {}),
-    source,
+    measurement: {
+      finalMatchedReplyRttMs: Math.max(0, Math.round(finalMatchedReplyRttMs)),
+      requestStartedAt,
+      responseObservedAt,
+      source,
+    },
+    runBounds: parseRunBounds(requestStartedAt, responseObservedAt, true),
   };
 }
 
@@ -276,7 +276,10 @@ async function readSample(entry, index) {
     ? await readResourceMetrics(path.resolve(entry.resourceMetricsPath))
     : undefined;
   const scenario = summary.scenarios.find((item) => item?.id === "discord-canary");
-  const rttMeasurement = extractScenarioMeasurement(scenario);
+  const extractedMeasurement = extractScenarioMeasurement(scenario);
+  const rttMeasurement = extractedMeasurement?.measurement;
+  const runBounds =
+    extractedMeasurement?.runBounds ?? parseRunBounds(summary.startedAt, summary.finishedAt);
   const summaryRttMs = extractSummaryScenarioRtt(scenario);
   const observedRttMs = extractCanaryRtt(observedMessages);
   const rttMs = rttMeasurement?.finalMatchedReplyRttMs ?? summaryRttMs ?? observedRttMs;
@@ -290,12 +293,14 @@ async function readSample(entry, index) {
   return {
     index,
     summary,
+    runBounds,
     status: scenario?.status === "pass" && rttMs !== undefined ? "pass" : "fail",
     rttMs,
     rttSource,
     rttMeasurement,
     details: scenario?.details,
-    durationRttMs: scenario?.status === "pass" ? extractSummaryDurationRtt(summary) : undefined,
+    durationRttMs:
+      rttMeasurement || scenario?.status === "pass" ? runBounds.durationMs : undefined,
     resources: {
       ...(resources ?? {}),
       ...extractGatewayResourceMetrics(summary),
@@ -318,13 +323,10 @@ async function main() {
   for (let index = 0; index < entries.length; index += 1) {
     samples.push(await readSample(entries[index], index + 1));
   }
-  const startedAt = samples[0].summary.startedAt;
-  const finishedAt = samples.at(-1).summary.finishedAt;
-  const startedAtMs = Date.parse(startedAt);
-  const finishedAtMs = Date.parse(finishedAt);
-  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs)) {
-    throw new Error("Discord RTT sample timestamps must be parseable.");
-  }
+  const startedAtMs = Math.min(...samples.map((sample) => sample.runBounds.startedAtMs));
+  const finishedAtMs = Math.max(...samples.map((sample) => sample.runBounds.finishedAtMs));
+  const startedAt = new Date(startedAtMs).toISOString();
+  const finishedAt = new Date(finishedAtMs).toISOString();
 
   const runId = buildRunId(startedAt, args.spec);
   const seen = await existingRunIds();
