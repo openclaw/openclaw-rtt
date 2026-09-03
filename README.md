@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T05:46:49.414Z`
+Latest imported release coverage run: `2026-09-03T06:21:39.803Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -86,8 +86,8 @@ Latest imported release coverage run: `2026-09-03T05:46:49.414Z`
 | `2026.7.2-beta.3` | `2,424ms` | `1,024ms` | `5,977ms` | fail | fail | `0ms` | `313ms` |
 | `2026.7.2-beta.2` | `784ms` | `1,018ms` | `2,042ms` | fail | fail | `0ms` | `314ms` |
 | `2026.7.2-beta.1` | `1,516ms` | `1,024ms` | `1,872ms` | `4,764ms` | fail | `1,898ms` | `306ms` |
-| `2026.7.1-2` | `360ms` | `1,001ms` | - | - | - | - | `281ms` |
-| `2026.7.1-1` | `1,386ms` | `1,028ms` | `2,088ms` | `3,655ms` | - | `3,655ms` | `195ms` |
+| `2026.7.1-2` | `1,241ms` | `1,001ms` | - | `3,071ms` | fail | `3,071ms` | `281ms` |
+| `2026.7.1-1` | `1,164ms` | `1,028ms` | `2,088ms` | `3,655ms` | fail | `2,088ms` | `195ms` |
 | `2026.7.1` | `1,015ms` | `1,022ms` | `1,797ms` | `3,333ms` | fail | `1,797ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,003ms` | `1,024ms` | `1,808ms` | `3,335ms` | fail | `1,814ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,533ms` | `984ms` | `1,776ms` | `4,778ms` | fail | `1,789ms` | `288ms` |
@@ -178,7 +178,7 @@ The surface matrix tracks non-channel coverage separately so channel regressions
 
 <!-- surface-release-coverage:start -->
 
-Latest imported surface run: `2026-09-03T05:46:49.414Z`
+Latest imported surface run: `2026-09-03T06:06:54.676Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
@@ -195,8 +195,8 @@ Latest imported surface run: `2026-09-03T05:46:49.414Z`
 | `2026.7.2-beta.3` | `0ms` | `313ms` |
 | `2026.7.2-beta.2` | `0ms` | `314ms` |
 | `2026.7.2-beta.1` | `1,898ms` | `306ms` |
-| `2026.7.1-2` | - | `281ms` |
-| `2026.7.1-1` | `3,655ms` | `195ms` |
+| `2026.7.1-2` | `3,071ms` | `281ms` |
+| `2026.7.1-1` | `2,088ms` | `195ms` |
 | `2026.7.1` | `1,797ms` | `280ms` |
 | `2026.7.1-beta.6` | `1,814ms` | `328ms` |
 | `2026.7.1-beta.5` | `1,789ms` | `288ms` |
@@ -522,7 +522,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.7.2-beta.3` | - | - | `1,181MB` | `1,181MB` | failed |
 | `2026.7.2-beta.2` | - | - | `1,063MB` | `1,063MB` | failed |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
-| `2026.7.1-2` | - | - | - | - | missing: no imported run |
+| `2026.7.1-2` | `3,071ms` | `3,071ms` | `883MB` | `883MB` | ok |
 | `2026.7.1-1` | `3,655ms` | `3,655ms` | `857MB` | `857MB` | ok |
 | `2026.7.1` | `3,333ms` | `3,333ms` | `899MB` | `899MB` | ok |
 | `2026.7.1-beta.6` | `3,335ms` | `3,335ms` | `916MB` | `916MB` | ok |
@@ -629,8 +629,8 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.7.2-beta.3` | - | - | `763MB` | `763MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.7.2-beta.2` | - | - | `750MB` | `750MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.7.2-beta.1` | - | - | `1,085MB` | `1,085MB` | failed |
-| `2026.7.1-2` | - | - | - | - | missing: no imported run |
-| `2026.7.1-1` | - | - | - | - | missing: no imported run |
+| `2026.7.1-2` | - | - | `739MB` | `739MB` | failed |
+| `2026.7.1-1` | - | - | `750MB` | `750MB` | failed |
 | `2026.7.1` | - | - | `721MB` | `721MB` | failed |
 | `2026.7.1-beta.6` | - | - | `729MB` | `729MB` | failed |
 | `2026.7.1-beta.5` | - | - | `736MB` | `736MB` | failed |
