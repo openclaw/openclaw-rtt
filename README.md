@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T13:45:57.430Z`
+Latest imported release coverage run: `2026-09-03T14:06:09.390Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -515,13 +515,13 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.8.1` | - | - | `1,264MB` | `1,264MB` | failed |
 | `2026.8.1-beta.3` | - | - | `1,293MB` | `1,293MB` | failed |
 | `2026.8.1-beta.2` | - | - | `1,447MB` | `1,447MB` | failed |
-| `2026.8.1-beta.1` | - | - | `1,267MB` | `1,267MB` | failed |
-| `2026.7.2-beta.7` | - | - | `1,462MB` | `1,462MB` | failed |
-| `2026.7.2-beta.6` | - | - | `1,368MB` | `1,368MB` | failed |
-| `2026.7.2-beta.5` | - | - | `1,476MB` | `1,476MB` | failed |
-| `2026.7.2-beta.4` | - | - | `1,313MB` | `1,313MB` | failed |
-| `2026.7.2-beta.3` | - | - | `1,297MB` | `1,297MB` | failed |
-| `2026.7.2-beta.2` | - | - | `1,185MB` | `1,185MB` | failed |
+| `2026.8.1-beta.1` | - | - | `5,426MB` | `5,426MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.7` | - | - | `4,936MB` | `4,936MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.6` | - | - | `5,295MB` | `5,295MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.5` | - | - | `5,270MB` | `5,270MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.4` | - | - | `5,262MB` | `5,262MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.3` | - | - | `5,427MB` | `5,427MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.2` | - | - | `5,129MB` | `5,129MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1-2` | `3,071ms` | `3,071ms` | `883MB` | `883MB` | ok |
 | `2026.7.1-1` | `3,655ms` | `3,655ms` | `857MB` | `857MB` | ok |
