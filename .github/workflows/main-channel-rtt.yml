@@ -216,23 +216,30 @@ jobs:
 
           for sample in $(seq 1 "$samples"); do
             output_dir="${output_root}/sample-${sample}"
-            summary_path="${output_dir}/${{ matrix.summary }}"
+            summary_path="${output_dir}/rtt-summary.json"
             observed_path="${output_dir}/${{ matrix.observed }}"
             metrics_path="${output_dir}/resource-metrics.env"
             sample_started_at="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
             status=1
+            scenario_status="missing"
+            selector_status=2
+            selected_attempt_dir=""
+            rm -rf "$output_dir"
+            mkdir -p "$output_dir"
             for attempt in $(seq 1 "$max_attempts"); do
-              rm -rf "$output_dir"
-              mkdir -p "$output_dir"
+              attempt_dir="${output_dir}/attempt-${attempt}"
+              attempt_metrics_path="${attempt_dir}/resource-metrics.env"
+              rm -rf "$attempt_dir"
+              mkdir -p "$attempt_dir"
               echo "CHANNEL_RTT_PHASE:${{ matrix.channel }} sample=${sample}/${samples} attempt=${attempt}/${max_attempts}"
               set +e
               /usr/bin/time \
                 -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
-                -o "$metrics_path" \
+                -o "$attempt_metrics_path" \
                 timeout "${sample_timeout_seconds}s" \
                 pnpm openclaw qa "${{ matrix.channel }}" \
                 --repo-root . \
-                --output-dir "${output_dir}" \
+                --output-dir "${attempt_dir}" \
                 --provider-mode mock-openai \
                 --model mock-openai/gpt-5.5 \
                 --alt-model mock-openai/gpt-5.5-alt \
@@ -247,12 +254,23 @@ jobs:
                 echo "sample=${sample}"
                 echo "attempts=${attempt}"
                 echo "exit_status=${status}"
-              } >>"$metrics_path"
-              scenario_status=""
-              if [[ -f "$summary_path" ]]; then
-                scenario_status="$(node -e 'const fs = require("node:fs"); const [summaryPath, scenarioId] = process.argv.slice(1); const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8")); const scenario = Array.isArray(summary.scenarios) ? summary.scenarios.find((item) => item && item.id === scenarioId) : undefined; process.stdout.write(typeof scenario?.status === "string" ? scenario.status : "missing");' "$summary_path" "${{ matrix.scenario }}")"
+              } >>"$attempt_metrics_path"
+              set +e
+              scenario_status="$(
+                node "${GITHUB_WORKSPACE}/openclaw-rtt/scripts/select-channel-qa-summary.mjs" \
+                  "$attempt_dir" \
+                  "${{ matrix.summary }}" \
+                  "${{ matrix.channel }}" \
+                  "${{ matrix.scenario }}"
+              )"
+              selector_status="$?"
+              set -e
+              selected_attempt_dir="$attempt_dir"
+              if [[ "$selector_status" -eq 1 || "$selector_status" -gt 3 ]]; then
+                echo "${{ matrix.label }} QA summary selector failed with status ${selector_status}." >&2
+                exit 1
               fi
-              if [[ "$scenario_status" == "pass" ]]; then
+              if [[ "$selector_status" -eq 0 && "$scenario_status" == "pass" ]]; then
                 break
               fi
               if [[ "$attempt" -lt "$max_attempts" ]]; then
@@ -264,14 +282,26 @@ jobs:
                 sleep "$delay"
               fi
             done
-            if [[ ! -f "$summary_path" ]]; then
-              echo "No ${{ matrix.label }} QA summary produced for sample ${sample}; recording failed sample." >&2
+            cp "${selected_attempt_dir}/resource-metrics.env" "$metrics_path"
+            if [[ -f "${selected_attempt_dir}/${{ matrix.observed }}" ]]; then
+              cp "${selected_attempt_dir}/${{ matrix.observed }}" "$observed_path"
+            fi
+            if [[ -f "${selected_attempt_dir}/rtt-summary-source.json" ]]; then
+              cp "${selected_attempt_dir}/rtt-summary-source.json" "${output_dir}/rtt-summary-source.json"
+            fi
+            if [[ -f "${selected_attempt_dir}/qa-suite-summary.json" ]]; then
+              cp "${selected_attempt_dir}/qa-suite-summary.json" "${output_dir}/qa-suite-summary.json"
+            fi
+            if [[ "$selector_status" -eq 0 ]]; then
+              cp "${selected_attempt_dir}/rtt-summary.json" "$summary_path"
+            else
+              echo "${{ matrix.label }} QA summary was ${scenario_status} for sample ${sample}; recording failed sample." >&2
               sample_finished_at="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
               node "${GITHUB_WORKSPACE}/openclaw-rtt/scripts/write-failed-channel-summary.mjs" \
                 "$summary_path" \
                 "${{ matrix.scenario }}" \
                 "${{ matrix.label }} canary" \
-                "QA command exited with status ${status} before writing a summary." \
+                "QA command exited with status ${status} after producing a ${scenario_status} summary." \
                 "$sample_started_at" \
                 "$sample_finished_at"
               scenario_status="fail"
@@ -298,7 +328,7 @@ jobs:
           {
             echo "channel=${{ matrix.channel }}"
             echo "scenario=${{ matrix.scenario }}"
-            echo "summary=${{ matrix.summary }}"
+            echo "summary=rtt-summary.json"
             echo "observed=${{ matrix.observed }}"
             echo "version=${{ steps.openclaw_ref.outputs.version }}"
           } >"$import_dir/metadata.env"

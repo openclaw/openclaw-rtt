@@ -338,6 +338,9 @@ jobs:
             if [[ -f "${selected_attempt_dir}/rtt-summary-source.json" ]]; then
               cp "${selected_attempt_dir}/rtt-summary-source.json" "${output_dir}/rtt-summary-source.json"
             fi
+            if [[ -f "${selected_attempt_dir}/qa-suite-summary.json" ]]; then
+              cp "${selected_attempt_dir}/qa-suite-summary.json" "${output_dir}/qa-suite-summary.json"
+            fi
             if [[ "$selector_status" -eq 0 ]]; then
               cp "${selected_attempt_dir}/rtt-summary.json" "$summary_path"
             else

@@ -42,7 +42,34 @@ test("historical channel workflow selects and imports a stable QA summary", asyn
   assert.match(measureStep, /summary_path="\$\{output_dir\}\/rtt-summary\.json"/u);
   assert.match(measureStep, /attempt_dir="\$\{output_dir\}\/attempt-\$\{attempt\}"/u);
   assert.match(measureStep, /rtt-summary-source\.json/u);
+  assert.match(
+    measureStep,
+    /if \[\[ -f "\$\{selected_attempt_dir\}\/qa-suite-summary\.json" \]\]; then\n\s+cp "\$\{selected_attempt_dir\}\/qa-suite-summary\.json" "\$\{output_dir\}\/qa-suite-summary\.json"/u,
+  );
   assert.doesNotMatch(measureStep, /sample_paths/u);
+  assert.doesNotMatch(measureStep, /node -e/u);
+  assert.doesNotMatch(measureStep, /Array\.isArray\(summary\.scenarios\)/u);
+
+  assert.match(prepareStep, /echo "summary=rtt-summary\.json"/u);
+  assert.match(importStep, /summary_path="\$\{sample_dir\}\/\$\{summary\}"/u);
+});
+
+test("main channel workflow selects stable evidence and preserves its suite companion", async () => {
+  const workflow = await fs.readFile(new URL("main-channel-rtt.yml", workflowsDir), "utf8");
+  const measureStep = extractStep(workflow, "Run ${{ matrix.label }} RTT samples");
+  const prepareStep = extractStep(workflow, "Prepare ${{ matrix.label }} import artifact");
+  const importStep = extractStep(workflow, "Import channel RTT results");
+
+  assert.match(measureStep, /scripts\/select-channel-qa-summary\.mjs/u);
+  assert.match(measureStep, /"\$\{?selector_status\}?" -eq 0/u);
+  assert.match(measureStep, /"\$\{?scenario_status\}?" == "pass"/u);
+  assert.match(measureStep, /summary_path="\$\{output_dir\}\/rtt-summary\.json"/u);
+  assert.match(measureStep, /attempt_dir="\$\{output_dir\}\/attempt-\$\{attempt\}"/u);
+  assert.match(measureStep, /rtt-summary-source\.json/u);
+  assert.match(
+    measureStep,
+    /if \[\[ -f "\$\{selected_attempt_dir\}\/qa-suite-summary\.json" \]\]; then\n\s+cp "\$\{selected_attempt_dir\}\/qa-suite-summary\.json" "\$\{output_dir\}\/qa-suite-summary\.json"/u,
+  );
   assert.doesNotMatch(measureStep, /node -e/u);
   assert.doesNotMatch(measureStep, /Array\.isArray\(summary\.scenarios\)/u);
 
