@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import test from "node:test";
+import { OPENCLAW_QA_HARNESS_SHA } from "./openclaw-qa-harness.mjs";
 
 const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -54,7 +55,7 @@ test("queues explicit Slack and WhatsApp release versions", async () => {
   );
   const matrix = JSON.parse(outputs.matrix);
   assert.equal(outputs.should_run, "true");
-  assert.equal(matrix[0].qa_ref, "v2026.5.16-beta.3");
+  assert.equal(matrix[0].qa_ref, OPENCLAW_QA_HARNESS_SHA);
   assert.deepEqual(matrix.map((entry) => `${entry.channel}:${entry.version}`), [
     "slack:2026.5.16-beta.3",
     "whatsapp:2026.5.16-beta.3",

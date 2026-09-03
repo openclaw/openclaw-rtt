@@ -60,11 +60,40 @@ test("queues explicit Control UI release versions", async () => {
   assert.deepEqual(matrix, [
     {
       label: "Control UI",
+      provider_mode: "mock-openai",
       scenario: "control-ui-qa-channel-image-roundtrip",
       spec: "openclaw@2026.6.1-beta.3",
       surface: "control-ui",
       tag: "v2026.6.1-beta.3",
       version: "2026.6.1-beta.3",
+    },
+  ]);
+});
+
+test("queues native RPC releases at the supported floor", async () => {
+  const workspace = await makeWorkspace();
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.27 2026.5.28-beta.1",
+      INPUT_SURFACES: "rpc",
+      INPUT_VERSIONS: "2026.5.28-beta.1",
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.deepEqual(JSON.parse(outputs.matrix), [
+    {
+      label: "RPC",
+      provider_mode: "gateway-rpc",
+      scenario: "rpc-gateway-smoke",
+      spec: "openclaw@2026.5.28-beta.1",
+      surface: "rpc",
+      tag: "v2026.5.28-beta.1",
+      version: "2026.5.28-beta.1",
     },
   ]);
 });
@@ -154,6 +183,42 @@ test("prioritizes unattempted surface gaps before failed retries", async () => {
   );
 });
 
+test("advances native RPC batches after a durable failed attempt", async () => {
+  const workspace = await makeWorkspace();
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.28-beta.1.jsonl"), [
+    {
+      package: { spec: "openclaw@2026.5.28-beta.1", version: "2026.5.28-beta.1" },
+      run: { id: "telegram-2026.5.28-beta.1", status: "pass" },
+    },
+  ]);
+  await writeJsonl(path.join(workspace, "data/channels/telegram/2026.5.28-beta.3.jsonl"), [
+    {
+      package: { spec: "openclaw@2026.5.28-beta.3", version: "2026.5.28-beta.3" },
+      run: { id: "telegram-2026.5.28-beta.3", status: "pass" },
+    },
+  ]);
+  await writeJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.28-beta.1.jsonl"), [
+    row("2026.5.28-beta.1", "rpc", "fail"),
+  ]);
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.28-beta.1 2026.5.28-beta.3",
+      INPUT_SURFACES: "rpc",
+      INPUT_VERSION_LIMIT: "1",
+    },
+  });
+
+  const outputs = parseOutputs(stdout);
+  assert.deepEqual(
+    JSON.parse(outputs.matrix).map((entry) => `${entry.surface}:${entry.version}`),
+    ["rpc:2026.5.28-beta.3"],
+  );
+});
+
 test("queues historical surface gaps from the Telegram release baseline", async () => {
   const workspace = await makeWorkspace();
   await writeJsonl(path.join(workspace, "data/channels/telegram/2026.6.1-beta.3.jsonl"), [
@@ -190,7 +255,7 @@ test("queues historical surface gaps from the Telegram release baseline", async 
   ]);
 });
 
-test("rejects release surfaces without a native release measurer", async () => {
+test("rejects explicit RPC releases before the native client floor", async () => {
   const workspace = await makeWorkspace();
 
   await assert.rejects(execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
@@ -198,10 +263,11 @@ test("rejects release surfaces without a native release measurer", async () => {
     env: {
       ...process.env,
       GITHUB_OUTPUT: "",
-      INPUT_AVAILABLE_VERSIONS: "2026.6.1-beta.3",
+      INPUT_AVAILABLE_VERSIONS: "2026.5.27",
       INPUT_SURFACES: "rpc",
+      INPUT_VERSIONS: "2026.5.27",
     },
-  }), /Surface rpc is not supported by release surface RTT/u);
+  }), /RPC release coverage starts at 2026\.5\.28-beta\.1/u);
 });
 
 test("queues explicit numeric post releases for release surfaces", async () => {

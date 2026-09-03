@@ -7,6 +7,7 @@ import {
   isOpenClawReleaseSpec,
   parseOpenClawVersion,
 } from "./openclaw-version.mjs";
+import { OPENCLAW_QA_HARNESS_SHA } from "./openclaw-qa-harness.mjs";
 import { readChannelRttRows } from "./read-channel-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
 import { channelReleaseSkipReason } from "./release-gap-reasons.mjs";
@@ -167,7 +168,7 @@ for (const channelId of channelIds) {
       scenario: channel.defaultScenario,
       summary: "qa-evidence.json",
       observed: `${channel.command}-qa-observed-messages.json`,
-      qa_ref: `v${version}`,
+      qa_ref: OPENCLAW_QA_HARNESS_SHA,
       spec,
       version,
       tag: `v${version}`,

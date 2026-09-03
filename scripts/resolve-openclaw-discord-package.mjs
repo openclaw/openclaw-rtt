@@ -7,6 +7,7 @@ import {
   isStableOpenClawVersion,
   parseOpenClawVersion,
 } from "./openclaw-version.mjs";
+import { OPENCLAW_QA_HARNESS_SHA } from "./openclaw-qa-harness.mjs";
 import { readDiscordRttRows } from "./read-discord-rtt-rows.mjs";
 import { readRows } from "./read-rows.mjs";
 import { discordReleaseGapReason } from "./release-gap-reasons.mjs";
@@ -137,7 +138,12 @@ if (requestedVersions.length > 0) {
       if (!publishedVersions.has(version)) {
         throw new Error(`Requested OpenClaw version is not published on npm: ${version}`);
       }
-      return { version, spec: `openclaw@${version}`, tag: `v${version}` };
+      return {
+        version,
+        spec: `openclaw@${version}`,
+        tag: `v${version}`,
+        qa_ref: OPENCLAW_QA_HARNESS_SHA,
+      };
     })
     .sort((left, right) => compareOpenClawVersions(left.version, right.version));
 } else if (rssBackfill) {
@@ -147,6 +153,7 @@ if (requestedVersions.length > 0) {
       version: row.package.version,
       spec: row.package.spec,
       tag: `v${row.package.version}`,
+      qa_ref: OPENCLAW_QA_HARNESS_SHA,
     }))
     .sort((left, right) => compareOpenClawVersions(right.version, left.version))
     .slice(0, rssBackfillLimit);
@@ -156,7 +163,12 @@ if (requestedVersions.length > 0) {
   );
   queue = (await npmVersions())
     .filter((version) => typeof version === "string" && parseOpenClawVersion(version))
-    .map((version) => ({ version, spec: `openclaw@${version}`, tag: `v${version}` }))
+    .map((version) => ({
+      version,
+      spec: `openclaw@${version}`,
+      tag: `v${version}`,
+      qa_ref: OPENCLAW_QA_HARNESS_SHA,
+    }))
     .filter((pkg) => compareOpenClawVersions(pkg.version, DISCORD_RELEASE_MIN_VERSION) >= 0)
     .filter((pkg) => !discordReleaseGapReason(pkg.version))
     .filter((pkg) => !measured.has(`${pkg.spec}\0${pkg.version}`))

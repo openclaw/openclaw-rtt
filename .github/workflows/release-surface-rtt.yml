@@ -8,7 +8,7 @@ on:
       surfaces:
         description: Space or comma separated surface ids
         required: false
-        default: "control-ui"
+        default: "rpc control-ui"
         type: string
       versions:
         description: Space or comma separated OpenClaw versions to measure
@@ -139,6 +139,7 @@ jobs:
           time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
       - name: Install Playwright Chromium
+        if: matrix.package.surface == 'control-ui'
         working-directory: openclaw
         shell: bash
         run: |
@@ -173,8 +174,9 @@ jobs:
             exit 1
           fi
 
-          output_root=".artifacts/control-ui-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          sample_paths="$RUNNER_TEMP/openclaw-control-ui-${{ matrix.package.version }}-rtt-samples.tsv"
+          surface="${{ matrix.package.surface }}"
+          output_root=".artifacts/${surface}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          sample_paths="$RUNNER_TEMP/openclaw-${surface}-${{ matrix.package.version }}-rtt-samples.tsv"
           : >"$sample_paths"
           echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
           echo "sample_paths=${sample_paths}" >>"$GITHUB_OUTPUT"
@@ -185,16 +187,37 @@ jobs:
             rm -rf "$output_dir"
             mkdir -p "$output_dir"
             echo "SURFACE_RELEASE_RTT_PHASE:${{ matrix.package.surface }} version=${{ matrix.package.version }} sample=${sample}/${samples}"
-            /usr/bin/time \
-              -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
-              -o "$metrics_path" \
-              node --import tsx ../openclaw-rtt/scripts/measure-control-ui-rtt.mjs \
-              --output-dir "$output_dir"
+            if [[ "$surface" == "rpc" ]]; then
+              if ! /usr/bin/time \
+                -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+                -o "$metrics_path" \
+                node --import tsx ../openclaw-rtt/scripts/measure-rpc-rtt.mjs \
+                --repo-root . \
+                --output-dir "$output_dir"; then
+                if [[ ! -f "$output_dir/qa-suite-summary.json" ]]; then
+                  echo "RPC measurement failed without durable summary evidence." >&2
+                  exit 1
+                fi
+                echo "::warning title=RPC release measurement failed::Importing explicit failure evidence for ${{ matrix.package.version }} sample ${sample}."
+              fi
+            else
+              /usr/bin/time \
+                -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+                -o "$metrics_path" \
+                node --import tsx ../openclaw-rtt/scripts/measure-control-ui-rtt.mjs \
+                --output-dir "$output_dir"
+            fi
             echo "attempts=1" >>"$metrics_path"
-            printf '%s\t%s\t%s\n' \
-              "${PWD}/${output_dir}/qa-suite-summary.json" \
-              "${PWD}/${metrics_path}" \
-              "${PWD}/${output_dir}/control-ui-events.json" >>"$sample_paths"
+            if [[ "$surface" == "rpc" ]]; then
+              printf '%s\t%s\n' \
+                "${PWD}/${output_dir}/qa-suite-summary.json" \
+                "${PWD}/${metrics_path}" >>"$sample_paths"
+            else
+              printf '%s\t%s\t%s\n' \
+                "${PWD}/${output_dir}/qa-suite-summary.json" \
+                "${PWD}/${metrics_path}" \
+                "${PWD}/${output_dir}/control-ui-events.json" >>"$sample_paths"
+            fi
           done
 
       - name: Prepare ${{ matrix.package.label }} release import artifact
@@ -209,6 +232,7 @@ jobs:
           {
             echo "surface=${{ matrix.package.surface }}"
             echo "scenario=${{ matrix.package.scenario }}"
+            echo "provider_mode=${{ matrix.package.provider_mode }}"
             echo "spec=${{ matrix.package.spec }}"
             echo "version=${{ matrix.package.version }}"
           } >"$import_dir/metadata.env"
@@ -226,7 +250,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: release-surface-rtt-${{ matrix.package.surface }}-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: openclaw/.artifacts/control-ui-release-rtt-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: openclaw/${{ steps.surface_rtt.outputs.output_root }}
           retention-days: 14
           if-no-files-found: warn
 
@@ -285,6 +309,7 @@ jobs:
             metadata_path="${import_dir}/metadata.env"
             surface="$(get_metadata "$metadata_path" surface)"
             scenario="$(get_metadata "$metadata_path" scenario)"
+            provider_mode="$(get_metadata "$metadata_path" provider_mode)"
             spec="$(get_metadata "$metadata_path" spec)"
             version="$(get_metadata "$metadata_path" version)"
             sample_paths="$RUNNER_TEMP/openclaw-${surface}-${version}-rtt-samples.tsv"
@@ -292,20 +317,33 @@ jobs:
             while IFS= read -r sample_dir; do
               summary_path="${sample_dir}/qa-suite-summary.json"
               metrics_path="${sample_dir}/resource-metrics.env"
-              events_path="${sample_dir}/control-ui-events.json"
-              if [[ ! -f "$summary_path" || ! -f "$metrics_path" || ! -f "$events_path" ]]; then
+              if [[ ! -f "$summary_path" || ! -f "$metrics_path" ]]; then
                 echo "Missing ${surface} release artifacts under ${sample_dir}." >&2
                 exit 1
               fi
-              printf '%s\t%s\t%s\n' "$summary_path" "$metrics_path" "$events_path" >>"$sample_paths"
+              if [[ "$surface" == "rpc" ]]; then
+                printf '%s\t%s\n' "$summary_path" "$metrics_path" >>"$sample_paths"
+              else
+                events_path="${sample_dir}/control-ui-events.json"
+                if [[ ! -f "$events_path" ]]; then
+                  echo "Missing ${surface} release events under ${sample_dir}." >&2
+                  exit 1
+                fi
+                printf '%s\t%s\t%s\n' "$summary_path" "$metrics_path" "$events_path" >>"$sample_paths"
+              fi
             done < <(find "${import_dir}/artifacts" -mindepth 1 -maxdepth 1 -type d -name 'sample-*' | sort -V)
-            node scripts/import-surface-rtt.mjs "$sample_paths" \
-              --surface "$surface" \
-              --spec "$spec" \
-              --version "$version" \
-              --provider-mode mock-openai \
-              --scenario "$scenario" \
-              --require-pass
+            import_args=(
+              node scripts/import-surface-rtt.mjs "$sample_paths"
+              --surface "$surface"
+              --spec "$spec"
+              --version "$version"
+              --provider-mode "$provider_mode"
+              --scenario "$scenario"
+            )
+            if [[ "$surface" == "control-ui" ]]; then
+              import_args+=(--require-pass)
+            fi
+            "${import_args[@]}"
           done
           node scripts/update-readme.mjs
           node scripts/validate.mjs

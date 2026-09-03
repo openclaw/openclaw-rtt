@@ -11,10 +11,13 @@ import { listSurfaceRttSurfaces } from "./surface-rtt-config.mjs";
 import { readSurfaceRows } from "./surface-storage.mjs";
 
 const execFileAsync = promisify(execFile);
-const DEFAULT_SURFACES = ["control-ui"];
+const DEFAULT_SURFACES = ["rpc", "control-ui"];
 const DEFAULT_VERSION_LIMIT = 4;
-const RELEASE_SURFACES = new Set(["control-ui"]);
-const RELEASE_SURFACE_MIN_VERSIONS = new Map([["control-ui", "2026.6.1-beta.3"]]);
+const RELEASE_SURFACES = new Set(["control-ui", "rpc"]);
+const RELEASE_SURFACE_MIN_VERSIONS = new Map([
+  ["rpc", "2026.5.28-beta.1"],
+  ["control-ui", "2026.6.1-beta.3"],
+]);
 
 function readList(value) {
   if (!value) {
@@ -158,6 +161,9 @@ for (const surfaceId of surfaceIds) {
     if (!availableVersions.has(version)) {
       throw new Error(`openclaw@${version} was not found on npm.`);
     }
+    if (minimumVersion && compareOpenClawVersions(version, minimumVersion) < 0) {
+      throw new Error(`${surface.label} release coverage starts at ${minimumVersion}.`);
+    }
     const spec = `openclaw@${version}`;
     const alreadyMeasured = measured.has(`${surfaceId}\0${spec}\0${version}`);
     if (alreadyMeasured && explicitVersions.length === 0) {
@@ -166,6 +172,7 @@ for (const surfaceId of surfaceIds) {
     queue.push({
       surface: surfaceId,
       label: surface.label,
+      provider_mode: surfaceId === "rpc" ? "gateway-rpc" : "mock-openai",
       scenario: surface.defaultScenario,
       spec,
       version,

@@ -10,7 +10,6 @@ import test from "node:test";
 const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const IMPORT_SCRIPT = path.join(REPO_ROOT, "scripts/import-surface-rtt.mjs");
-const BACKFILL_SCRIPT = path.join(REPO_ROOT, "scripts/backfill-rpc-surface-rtt.mjs");
 
 async function makeWorkspace() {
   return await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-rtt-surface-test-"));
@@ -27,34 +26,6 @@ async function readJsonl(pathname) {
     .split("\n")
     .filter(Boolean)
     .map((line) => JSON.parse(line));
-}
-
-function channelRow(channel, rttMs) {
-  const label = channel === "whatsapp" ? "WhatsApp" : "Slack";
-  return {
-    channel: { id: channel, label, scenario: `${channel}-canary` },
-    package: { spec: "openclaw@2026.5.16", version: "2026.5.16" },
-    run: {
-      id: `${channel}-run`,
-      startedAt: "2026-05-16T00:00:00.000Z",
-      finishedAt: "2026-05-16T00:01:00.000Z",
-      status: "pass",
-    },
-    rtt: { warmSamples: [rttMs], failedSamples: 0 },
-    resources: { maxRssKb: { p50: 204800 }, elapsedSeconds: { p50: 10 } },
-    samples: [
-      {
-        rttMs,
-        rttSource: "request-to-observed-message",
-        rttMeasurement: {
-          finalMatchedReplyRttMs: rttMs,
-          requestStartedAt: "2026-05-16T00:00:00.000Z",
-          responseObservedAt: "2026-05-16T00:00:00.123Z",
-          source: "request-to-observed-message",
-        },
-      },
-    ],
-  };
 }
 
 test("imports Control UI surface RTT from performance events", async () => {
@@ -171,80 +142,58 @@ test("imports native Gateway RPC surface RTT from scenario measurements", async 
   assert.equal(row.samples[0].rttMeasurement.method, "health,config.get");
 });
 
-test("backfills RPC surface RTT from existing channel rows", async () => {
+test("imports explicit native Gateway RPC failure evidence", async () => {
   const workspace = await makeWorkspace();
-  await fs.mkdir(path.join(workspace, "data/channels/slack"), { recursive: true });
-  await fs.writeFile(
-    path.join(workspace, "data/channels/slack/2026.5.16.jsonl"),
-    `${JSON.stringify(channelRow("slack", 123))}\n`,
-  );
+  const summaryPath = path.join(workspace, "sample-1", "qa-suite-summary.json");
+  const metricsPath = path.join(workspace, "sample-1", "resource-metrics.env");
+  await writeJson(summaryPath, {
+    counts: { total: 1, passed: 0, failed: 1 },
+    run: {
+      startedAt: "2026-05-28T00:00:00.000Z",
+      finishedAt: "2026-05-28T00:00:02.000Z",
+      providerMode: "gateway-rpc",
+    },
+    scenarios: [
+      {
+        id: "rpc-gateway-smoke",
+        title: "Gateway RPC loopback smoke",
+        status: "fail",
+        details: "Gateway failed to become ready",
+      },
+    ],
+  });
+  await fs.writeFile(metricsPath, "max_rss_kb=204800\nelapsed_seconds=2.5\nattempts=1\n");
+  const samplesPath = path.join(workspace, "samples.tsv");
+  await fs.writeFile(samplesPath, `${summaryPath}\t${metricsPath}\n`);
 
   await execFileAsync(
     process.execPath,
     [
-      BACKFILL_SCRIPT,
+      IMPORT_SCRIPT,
+      samplesPath,
+      "--surface",
+      "rpc",
       "--spec",
-      "openclaw@2026.5.16",
+      "openclaw@2026.5.28-beta.1",
       "--version",
-      "2026.5.16",
+      "2026.5.28-beta.1",
+      "--provider-mode",
+      "gateway-rpc",
+      "--scenario",
+      "rpc-gateway-smoke",
     ],
     { cwd: workspace },
   );
 
-  const [row] = await readJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16.jsonl"));
-  assert.equal(row.surface.id, "rpc");
-  assert.equal(row.surface.scenario, "channel-rtt-backfill");
-  assert.deepEqual(row.mode.sourceChannels, ["slack"]);
-  assert.deepEqual(row.rtt.warmSamples, [123]);
-  assert.deepEqual(row.rtt.sources, ["backfill:request-to-observed-message"]);
-  assert.equal(row.samples[0].sourceRunId, "slack-run");
-  assert.equal(row.resources.maxRssKb.p50, 204800);
-});
-
-test("updates existing RPC backfill rows when more release channels arrive", async () => {
-  const workspace = await makeWorkspace();
-  await fs.mkdir(path.join(workspace, "data/channels/slack"), { recursive: true });
-  await fs.writeFile(
-    path.join(workspace, "data/channels/slack/2026.5.16.jsonl"),
-    `${JSON.stringify(channelRow("slack", 123))}\n`,
+  const [row] = await readJsonl(
+    path.join(workspace, "data/surfaces/rpc/2026.5.28-beta.1.jsonl"),
   );
-
-  await execFileAsync(
-    process.execPath,
-    [
-      BACKFILL_SCRIPT,
-      "--spec",
-      "openclaw@2026.5.16",
-      "--version",
-      "2026.5.16",
-    ],
-    { cwd: workspace },
+  assert.equal(row.run.status, "fail");
+  assert.deepEqual(row.rtt.warmSamples, []);
+  assert.equal(row.rtt.failedSamples, 1);
+  assert.equal(row.samples[0].details, "Gateway failed to become ready");
+  const result = JSON.parse(
+    await fs.readFile(path.join(workspace, row.artifacts.resultPath), "utf8"),
   );
-
-  await fs.mkdir(path.join(workspace, "data/channels/whatsapp"), { recursive: true });
-  await fs.writeFile(
-    path.join(workspace, "data/channels/whatsapp/2026.5.16.jsonl"),
-    `${JSON.stringify(channelRow("whatsapp", 456))}\n`,
-  );
-
-  await execFileAsync(
-    process.execPath,
-    [
-      BACKFILL_SCRIPT,
-      "--spec",
-      "openclaw@2026.5.16",
-      "--version",
-      "2026.5.16",
-    ],
-    { cwd: workspace },
-  );
-
-  const rows = await readJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16.jsonl"));
-  assert.equal(rows.length, 1);
-  assert.deepEqual(rows[0].mode.sourceChannels, ["slack", "whatsapp"]);
-  assert.deepEqual(rows[0].rtt.warmSamples, [123, 456]);
-  assert.deepEqual(
-    rows[0].samples.map((sample) => sample.sourceRunId),
-    ["slack-run", "whatsapp-run"],
-  );
+  assert.deepEqual(result, row);
 });

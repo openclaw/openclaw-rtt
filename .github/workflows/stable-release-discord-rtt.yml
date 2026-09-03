@@ -111,7 +111,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
-          ref: f50c6020e8f535beb6b442bbceadeae89568e6d0 # OpenClaw main, 2026-09-03
+          ref: ${{ matrix.package.qa_ref }}
           path: openclaw-qa
           fetch-depth: 1
           persist-credentials: false
@@ -175,6 +175,17 @@ jobs:
           tag_commit="$(git rev-parse --verify "${tag_ref}^{commit}")"
           if [[ "$head_commit" != "$tag_commit" ]]; then
             echo "OpenClaw release ref mismatch: HEAD ${head_commit} does not match ${tag_ref} (${tag_commit})" >&2
+            exit 1
+          fi
+
+      - name: Verify OpenClaw QA harness ref
+        working-directory: openclaw-qa
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_commit="$(git rev-parse HEAD)"
+          if [[ "$head_commit" != "${{ matrix.package.qa_ref }}" ]]; then
+            echo "OpenClaw QA harness ref mismatch: HEAD ${head_commit} does not match ${{ matrix.package.qa_ref }}" >&2
             exit 1
           fi
 
