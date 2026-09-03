@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          time pnpm install --frozen-lockfile --prefer-offline --config.manage-package-manager-versions=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
       - name: Install Playwright Chromium
         working-directory: openclaw
@@ -256,6 +256,8 @@ jobs:
           path: ${{ runner.temp }}/release-surface-rtt-imports
 
       - name: Import surface release RTT results
+        env:
+          MEASURE_RESULT: ${{ needs.measure.result }}
         shell: bash
         run: |
           set -euo pipefail
@@ -267,8 +269,8 @@ jobs:
             import_dirs=("$import_root")
           fi
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
-            echo "No surface release RTT import artifacts downloaded." >&2
-            exit 1
+            node scripts/handle-missing-release-imports.mjs surface "$MEASURE_RESULT"
+            exit 0
           fi
           get_metadata() {
             local metadata_path="$1"

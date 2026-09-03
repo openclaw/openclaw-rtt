@@ -75,6 +75,29 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
       /working-directory: openclaw[\s\S]*git status --porcelain[\s\S]*git status --short[\s\S]*exit 1/u,
     );
   }
+
+  const mainWorkflow = workflows[0].contents;
+  const runStep = mainWorkflow
+    .split("      - name: Run RTT\n")[1]
+    ?.split("      - name: Verify OpenClaw checkout is clean\n")[0];
+  assert.ok(runStep, "main RTT workflow must contain the producer step");
+  assert.match(runStep, /echo "status=\$status"/u);
+  assert.doesNotMatch(runStep, /exit "\$status"/u);
+  assert.match(mainWorkflow, /- name: Upload Telegram RTT diagnostics[\s\S]*if: always\(\)/u);
+  assert.match(mainWorkflow, /\$\{\{ runner\.temp \}\}\/openclaw-rtt-runs\/main/u);
+  assert.match(mainWorkflow, /\$\{\{ runner\.temp \}\}\/openclaw-rtt-resource-metrics\.env/u);
+  assert.match(
+    mainWorkflow,
+    /- name: Fail when Telegram RTT producer fails[\s\S]*if: steps\.rtt\.outputs\.status != '0'[\s\S]*producer failed with status \$\{\{ steps\.rtt\.outputs\.status \}\}[\s\S]*exit 1/u,
+  );
+  assert.match(
+    mainWorkflow,
+    /- name: Import result\n\s+if: steps\.rtt\.outputs\.status == '0'/u,
+  );
+  assert.match(
+    mainWorkflow,
+    /- name: Commit result\n\s+if: steps\.rtt\.outputs\.status == '0'/u,
+  );
 });
 
 test("retired Telegram harness helpers are absent and unreferenced", async () => {

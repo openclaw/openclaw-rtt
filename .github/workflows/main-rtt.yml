@@ -84,7 +84,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "::group::pnpm install"
-          time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          time pnpm install --frozen-lockfile --prefer-offline --config.manage-package-manager-versions=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
           echo "::endgroup::"
           echo "::group::pnpm build"
           time pnpm build
@@ -126,11 +126,10 @@ jobs:
         shell: bash
         run: |
           samples="${INPUT_SAMPLES:-20}"
-          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
-            echo "samples must be a positive integer, got: $samples" >&2
-            exit 1
-          fi
           output="$RUNNER_TEMP/openclaw-rtt-runs/main"
+          evidence_path="$output/raw/qa-evidence.json"
+          metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
+          status=0
           rtt_env=(
             OPENCLAW_NPM_TELEGRAM_PACKAGE_SPEC="openclaw@main"
             OPENCLAW_NPM_TELEGRAM_PACKAGE_TGZ="${{ steps.pack.outputs.package_tgz }}"
@@ -140,27 +139,30 @@ jobs:
             OPENCLAW_NPM_TELEGRAM_RTT_SAMPLES="$samples"
             OPENCLAW_QA_TELEGRAM_SCENARIO_TIMEOUT_MS=240000
           )
-          metrics_path="$RUNNER_TEMP/openclaw-rtt-resource-metrics.env"
           started_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
-          set +e
-          env \
-            "${rtt_env[@]}" \
-            /usr/bin/time \
-            -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
-            -o "$metrics_path" \
-            pnpm test:docker:npm-telegram-live
-          status="$?"
-          set -e
+          if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
+            echo "samples must be a positive integer, got: $samples" >&2
+            status=2
+          else
+            set +e
+            env \
+              "${rtt_env[@]}" \
+              /usr/bin/time \
+              -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
+              -o "$metrics_path" \
+              pnpm test:docker:npm-telegram-live
+            status="$?"
+            set -e
+          fi
           finished_at="$(node -e 'process.stdout.write(new Date().toISOString())')"
-          evidence_path="$output/raw/qa-evidence.json"
           if [[ ! -f "$evidence_path" ]]; then
             echo "No qa-evidence.json produced." >&2
             if [[ "$status" -eq 0 ]]; then
               status=1
             fi
-            exit "$status"
           fi
           {
+            echo "status=$status"
             echo "evidence_path=$evidence_path"
             echo "resource_metrics_path=$metrics_path"
             echo "started_at=$started_at"
@@ -179,7 +181,26 @@ jobs:
             exit 1
           fi
 
+      - name: Upload Telegram RTT diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: main-telegram-rtt-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/openclaw-rtt-runs/main
+            ${{ runner.temp }}/openclaw-rtt-resource-metrics.env
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Fail when Telegram RTT producer fails
+        if: steps.rtt.outputs.status != '0'
+        shell: bash
+        run: |
+          echo "Telegram RTT producer failed with status ${{ steps.rtt.outputs.status }}." >&2
+          exit 1
+
       - name: Import result
+        if: steps.rtt.outputs.status == '0'
         working-directory: openclaw-rtt
         shell: bash
         run: |
@@ -196,6 +217,7 @@ jobs:
           node scripts/summary.mjs
 
       - name: Commit result
+        if: steps.rtt.outputs.status == '0'
         working-directory: openclaw-rtt
         shell: bash
         run: |

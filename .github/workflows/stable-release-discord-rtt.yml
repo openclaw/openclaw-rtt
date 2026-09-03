@@ -110,7 +110,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
-          ref: main
+          ref: 3100ba535f1d003d67a6a7536deacf8666367b38 # OpenClaw main, 2026-09-03
           path: openclaw-qa
           fetch-depth: 1
           persist-credentials: false
@@ -148,14 +148,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          time pnpm install --frozen-lockfile --prefer-offline --config.manage-package-manager-versions=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
       - name: Install OpenClaw QA harness dependencies
         working-directory: openclaw-qa
         shell: bash
         run: |
           set -euo pipefail
-          time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
+          time pnpm install --frozen-lockfile --prefer-offline --config.manage-package-manager-versions=false --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
       - name: Patch release QA compatibility
         working-directory: openclaw-rtt
@@ -319,7 +319,7 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && needs.resolve.outputs.should_run == 'true' && needs.measure.result != 'cancelled'
+    if: always() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     concurrency:
@@ -343,6 +343,8 @@ jobs:
           path: ${{ runner.temp }}/release-discord-rtt-imports
 
       - name: Import Discord release RTT results
+        env:
+          MEASURE_RESULT: ${{ needs.measure.result }}
         shell: bash
         run: |
           set -euo pipefail
@@ -354,8 +356,8 @@ jobs:
             import_dirs=("$import_root")
           fi
           if [[ "${#import_dirs[@]}" -eq 0 ]]; then
-            echo "No Discord release RTT import artifacts downloaded." >&2
-            exit 1
+            node scripts/handle-missing-release-imports.mjs Discord "$MEASURE_RESULT"
+            exit 0
           fi
           get_metadata() {
             local metadata_path="$1"
