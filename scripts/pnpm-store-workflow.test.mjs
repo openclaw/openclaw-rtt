@@ -8,6 +8,25 @@ import test from "node:test";
 
 const execFileAsync = promisify(execFile);
 const workflowsDir = new URL("../.github/workflows/", import.meta.url);
+const MANAGE_VERSION_SETTING = "--config.manage-package-manager-versions=false";
+
+test("workflow-owned pnpm remains authoritative during every OpenClaw install", async () => {
+  let installCount = 0;
+  for (const filename of (await fs.readdir(workflowsDir)).filter((name) => name.endsWith(".yml"))) {
+    const workflow = await fs.readFile(new URL(filename, workflowsDir), "utf8");
+    const installLines = workflow
+      .split("\n")
+      .filter((line) => /^\s*time pnpm install\b/u.test(line));
+    installCount += installLines.length;
+    for (const line of installLines) {
+      assert.ok(
+        line.includes(MANAGE_VERSION_SETTING),
+        `${filename} must disable packageManager-driven pnpm switching`,
+      );
+    }
+  }
+  assert.ok(installCount > 0, "expected at least one workflow pnpm install");
+});
 
 for (const filename of (await fs.readdir(workflowsDir)).filter((name) => name.endsWith(".yml"))) {
   const workflow = await fs.readFile(new URL(filename, workflowsDir), "utf8");

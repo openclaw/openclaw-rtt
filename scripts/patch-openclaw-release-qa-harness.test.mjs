@@ -11,32 +11,46 @@ const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PATCH_SCRIPT = path.join(REPO_ROOT, "scripts/patch-openclaw-release-qa-harness.mjs");
 
-const gatewayChild = `async function startGateway(configPath, cfg) {
-      await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
-        encoding: "utf8",
-        mode: 0o600,
-      });
+const gatewaySetup = `async function prepareAttempt(configPath, cfg) {
+        await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
+          encoding: "utf8",
+          mode: 0o600,
+        });
 }
 `;
 const authStore = `export async function writeQaAuthProfiles(params: {
-  agentDir: string;
+  agentId: string;
   profiles: Record<string, QaAuthProfileCredential>;
   replace?: boolean;
+  stateDir: string;
 }): Promise<void> {
-  const existing = loadAuthProfileStoreWithoutExternalProfiles(params.agentDir, {
-    inheritedAuthDir: params.agentDir,
+  const agentDir = resolveQaAgentAuthDir(params);
+  // Surface pending legacy-source errors before the locked updater, whose
+  // public failure contract is intentionally nullable.
+  loadAuthProfileStoreWithoutExternalProfiles(agentDir, { inheritedAuthDir: agentDir });
+  const updated = await updateAuthProfileStoreWithLock({
+    agentDir,
+    stateDir: params.stateDir,
+    saveOptions: {
+      filterExternalAuthProfiles: false,
+      syncExternalCli: false,
+    },
+    updater: (store) => {
+      store.version = 1;
+      store.profiles = params.replace
+        ? { ...params.profiles }
+        : { ...store.profiles, ...params.profiles };
+      if (params.replace) {
+        delete store.order;
+        delete store.lastGood;
+        delete store.usageStats;
+      }
+      return true;
+    },
   });
-  const nextStore: AuthProfileStore = params.replace
-    ? { version: 1, profiles: params.profiles as AuthProfileStore["profiles"] }
-    : {
-        ...existing,
-        version: 1,
-        profiles: { ...existing.profiles, ...params.profiles } as AuthProfileStore["profiles"],
-      };
-  saveAuthProfileStore(nextStore, params.agentDir, {
-    filterExternalAuthProfiles: false,
-    syncExternalCli: false,
-  });
+  if (!updated) {
+    throw new Error("Failed to stage the isolated QA auth profile store.");
+  }
 }
 `;
 const liveGatewayConfig = `import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
@@ -75,12 +89,12 @@ export async function patchLiveQaGatewayConfig(params) {
 `;
 
 async function makeFixture({
-  gateway = gatewayChild,
+  gateway = gatewaySetup,
   auth = authStore,
   liveGateway = liveGatewayConfig,
 } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-release-qa-patch-test-"));
-  const gatewayPath = path.join(root, "extensions/qa-lab/src/gateway-child.ts");
+  const gatewayPath = path.join(root, "extensions/qa-lab/src/gateway-child-setup.ts");
   const authPath = path.join(root, "extensions/qa-lab/src/providers/shared/auth-store.ts");
   const liveGatewayPath = path.join(
     root,
@@ -111,12 +125,13 @@ test("patches release config and auth serialization contracts idempotently", asy
 
   const patchedAuth = await fs.readFile(authPath, "utf8");
   assert.match(patchedAuth, /OPENCLAW_QA_RELEASE_AUTH_RUNTIME_PATH/u);
-  assert.match(patchedAuth, /releaseAuthRuntime\?\.saveAuthProfileStore \?\? saveAuthProfileStore/u);
-  assert.match(patchedAuth, /process\.env\.OPENCLAW_STATE_DIR = path\.resolve/u);
+  assert.match(patchedAuth, /releaseAuthRuntime\?\.saveAuthProfileStore/u);
+  assert.match(patchedAuth, /process\.env\.OPENCLAW_STATE_DIR = params\.stateDir/u);
   assert.ok(
-    patchedAuth.indexOf("process.env.OPENCLAW_STATE_DIR = path.resolve") <
+    patchedAuth.indexOf("process.env.OPENCLAW_STATE_DIR = params.stateDir") <
       patchedAuth.indexOf("await releaseCompat.resolveReleaseAuthRuntime"),
   );
+  assert.match(patchedAuth, /updateAuthProfileStoreWithLock/u);
 
   const patchedLiveGateway = await fs.readFile(liveGatewayPath, "utf8");
   assert.match(patchedLiveGateway, /function isUnsupportedReplacePathsError/u);

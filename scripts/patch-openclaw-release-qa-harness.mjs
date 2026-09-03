@@ -4,42 +4,58 @@ import { fileURLToPath } from "node:url";
 
 const PATCH_ASSET_ROOT = path.dirname(fileURLToPath(import.meta.url));
 
-const gatewayConfigWriteAnchor = `      await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
-        encoding: "utf8",
-        mode: 0o600,
-      });`;
-const adaptedGatewayConfigWrite = `      const releaseCompatibleConfig = (
-        await import("./rtt-release-qa-config-compat.mjs")
-      ).adaptReleaseGatewayConfig(cfg, process.env.OPENCLAW_QA_RELEASE_PACKAGE_SPEC);
-      await fs.writeFile(configPath, \`\${JSON.stringify(releaseCompatibleConfig, null, 2)}\\n\`, {
-        encoding: "utf8",
-        mode: 0o600,
-      });`;
+const gatewayConfigWriteAnchor = `        await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
+          encoding: "utf8",
+          mode: 0o600,
+        });`;
+const adaptedGatewayConfigWrite = `        const releaseCompatibleConfig = (
+          await import("./rtt-release-qa-config-compat.mjs")
+        ).adaptReleaseGatewayConfig(cfg, process.env.OPENCLAW_QA_RELEASE_PACKAGE_SPEC);
+        await fs.writeFile(configPath, \`\${JSON.stringify(releaseCompatibleConfig, null, 2)}\\n\`, {
+          encoding: "utf8",
+          mode: 0o600,
+        });`;
 const authStoreWriteAnchor = `export async function writeQaAuthProfiles(params: {
-  agentDir: string;
+  agentId: string;
   profiles: Record<string, QaAuthProfileCredential>;
   replace?: boolean;
+  stateDir: string;
 }): Promise<void> {
-  const existing = loadAuthProfileStoreWithoutExternalProfiles(params.agentDir, {
-    inheritedAuthDir: params.agentDir,
+  const agentDir = resolveQaAgentAuthDir(params);
+  // Surface pending legacy-source errors before the locked updater, whose
+  // public failure contract is intentionally nullable.
+  loadAuthProfileStoreWithoutExternalProfiles(agentDir, { inheritedAuthDir: agentDir });
+  const updated = await updateAuthProfileStoreWithLock({
+    agentDir,
+    stateDir: params.stateDir,
+    saveOptions: {
+      filterExternalAuthProfiles: false,
+      syncExternalCli: false,
+    },
+    updater: (store) => {
+      store.version = 1;
+      store.profiles = params.replace
+        ? { ...params.profiles }
+        : { ...store.profiles, ...params.profiles };
+      if (params.replace) {
+        delete store.order;
+        delete store.lastGood;
+        delete store.usageStats;
+      }
+      return true;
+    },
   });
-  const nextStore: AuthProfileStore = params.replace
-    ? { version: 1, profiles: params.profiles as AuthProfileStore["profiles"] }
-    : {
-        ...existing,
-        version: 1,
-        profiles: { ...existing.profiles, ...params.profiles } as AuthProfileStore["profiles"],
-      };
-  saveAuthProfileStore(nextStore, params.agentDir, {
-    filterExternalAuthProfiles: false,
-    syncExternalCli: false,
-  });
+  if (!updated) {
+    throw new Error("Failed to stage the isolated QA auth profile store.");
+  }
 }`;
 const candidateOwnedAuthStoreWrite = `export async function writeQaAuthProfiles(params: {
-  agentDir: string;
+  agentId: string;
   profiles: Record<string, QaAuthProfileCredential>;
   replace?: boolean;
+  stateDir: string;
 }): Promise<void> {
+  const agentDir = resolveQaAgentAuthDir(params);
   const releaseCompat = await import("../../rtt-release-qa-config-compat.mjs");
   const packageSpec = process.env.OPENCLAW_QA_RELEASE_PACKAGE_SPEC;
   const runtimePath = process.env.OPENCLAW_QA_RELEASE_AUTH_RUNTIME_PATH;
@@ -47,41 +63,70 @@ const candidateOwnedAuthStoreWrite = `export async function writeQaAuthProfiles(
     packageSpec,
     runtimePath,
   );
-  const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-  if (releaseAuthRuntimePath) {
-    process.env.OPENCLAW_STATE_DIR = path.resolve(params.agentDir, "../../..");
+  if (!releaseAuthRuntimePath) {
+    loadAuthProfileStoreWithoutExternalProfiles(agentDir, { inheritedAuthDir: agentDir });
+    const updated = await updateAuthProfileStoreWithLock({
+      agentDir,
+      stateDir: params.stateDir,
+      saveOptions: {
+        filterExternalAuthProfiles: false,
+        syncExternalCli: false,
+      },
+      updater: (store) => {
+        store.version = 1;
+        store.profiles = params.replace
+          ? { ...params.profiles }
+          : { ...store.profiles, ...params.profiles };
+        if (params.replace) {
+          delete store.order;
+          delete store.lastGood;
+          delete store.usageStats;
+        }
+        return true;
+      },
+    });
+    if (!updated) {
+      throw new Error("Failed to stage the isolated QA auth profile store.");
+    }
+    return;
   }
+  const previousStateDir = process.env.OPENCLAW_STATE_DIR;
+  process.env.OPENCLAW_STATE_DIR = params.stateDir;
   try {
     // Candidate modules cache state paths during evaluation, so the isolated QA
     // state root must be active before importing the candidate serializer.
-    const releaseAuthRuntime = releaseAuthRuntimePath
-      ? await releaseCompat.resolveReleaseAuthRuntime(packageSpec, runtimePath)
-      : undefined;
+    const releaseAuthRuntime = await releaseCompat.resolveReleaseAuthRuntime(packageSpec, runtimePath);
     const loadStore =
       releaseAuthRuntime?.loadAuthProfileStoreWithoutExternalProfiles ??
       loadAuthProfileStoreWithoutExternalProfiles;
-    const saveStore = releaseAuthRuntime?.saveAuthProfileStore ?? saveAuthProfileStore;
-    const existing = loadStore(params.agentDir, {
-      inheritedAuthDir: params.agentDir,
+    const saveStore = releaseAuthRuntime?.saveAuthProfileStore;
+    if (!saveStore) {
+      throw new Error("Candidate release auth runtime does not export saveAuthProfileStore.");
+    }
+    const existing = loadStore(agentDir, {
+      inheritedAuthDir: agentDir,
     });
-    const nextStore: AuthProfileStore = params.replace
-      ? { version: 1, profiles: params.profiles as AuthProfileStore["profiles"] }
-      : {
-          ...existing,
-          version: 1,
-          profiles: { ...existing.profiles, ...params.profiles } as AuthProfileStore["profiles"],
-        };
-    saveStore(nextStore, params.agentDir, {
+    const nextStore = {
+      ...existing,
+      version: 1,
+      profiles: params.replace
+        ? { ...params.profiles }
+        : { ...existing.profiles, ...params.profiles },
+    };
+    if (params.replace) {
+      delete nextStore.order;
+      delete nextStore.lastGood;
+      delete nextStore.usageStats;
+    }
+    saveStore(nextStore, agentDir, {
       filterExternalAuthProfiles: false,
       syncExternalCli: false,
     });
   } finally {
-    if (releaseAuthRuntimePath) {
-      if (previousStateDir === undefined) {
-        delete process.env.OPENCLAW_STATE_DIR;
-      } else {
-        process.env.OPENCLAW_STATE_DIR = previousStateDir;
-      }
+    if (previousStateDir === undefined) {
+      delete process.env.OPENCLAW_STATE_DIR;
+    } else {
+      process.env.OPENCLAW_STATE_DIR = previousStateDir;
     }
   }
 }`;
@@ -179,7 +224,10 @@ async function main() {
     throw new Error(usage());
   }
 
-  const gatewayChildPath = path.resolve(repoRoot, "extensions/qa-lab/src/gateway-child.ts");
+  const gatewaySetupPath = path.resolve(
+    repoRoot,
+    "extensions/qa-lab/src/gateway-child-setup.ts",
+  );
   const authStorePath = path.resolve(
     repoRoot,
     "extensions/qa-lab/src/providers/shared/auth-store.ts",
@@ -196,16 +244,16 @@ async function main() {
     repoRoot,
     "extensions/qa-lab/src/rtt-release-qa-config-compat.d.mts",
   );
-  const [originalGatewayChild, originalAuthStore, originalLiveGatewayConfig] = await Promise.all([
-    fs.readFile(gatewayChildPath, "utf8"),
+  const [originalGatewaySetup, originalAuthStore, originalLiveGatewayConfig] = await Promise.all([
+    fs.readFile(gatewaySetupPath, "utf8"),
     fs.readFile(authStorePath, "utf8"),
     fs.readFile(liveGatewayConfigPath, "utf8"),
   ]);
   const gatewayPatch = replaceExactlyOnce(
-    originalGatewayChild,
+    originalGatewaySetup,
     gatewayConfigWriteAnchor,
     adaptedGatewayConfigWrite,
-    gatewayChildPath,
+    gatewaySetupPath,
     "gateway config",
   );
   const authStorePatch = replaceExactlyOnce(
@@ -242,7 +290,7 @@ async function main() {
 
   const writes = [];
   if (gatewayPatch.patched) {
-    writes.push(fs.writeFile(gatewayChildPath, gatewayPatch.contents));
+    writes.push(fs.writeFile(gatewaySetupPath, gatewayPatch.contents));
   }
   if (authStorePatch.patched) {
     writes.push(fs.writeFile(authStorePath, authStorePatch.contents));
