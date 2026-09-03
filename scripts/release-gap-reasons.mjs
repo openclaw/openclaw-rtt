@@ -3,6 +3,7 @@ export const DISCORD_RELEASE_PROTOCOL_GAP_REASONS = {
   "2026.5.3": "release omits Discord observed-message timing data",
   "2026.5.16-beta.5": "release does not complete the current Discord canary",
   "2026.5.16-beta.6": "release does not complete the current Discord canary",
+  "2026.8.1-beta.2": "release does not complete the current Discord canary",
 };
 
 export function discordReleaseGapReason(version) {
