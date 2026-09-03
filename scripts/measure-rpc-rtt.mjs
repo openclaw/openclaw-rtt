@@ -5,6 +5,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
+import { waitForReady } from "./wait-for-ready.mjs";
 
 function usage() {
   return [
@@ -106,26 +107,6 @@ async function findFreePort() {
     throw new Error("Could not allocate a loopback port.");
   }
   return address.port;
-}
-
-async function waitForReady(port, deadlineMs) {
-  const url = `http://127.0.0.1:${port}/readyz`;
-  let lastError;
-  while (Date.now() < deadlineMs) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        return;
-      }
-      lastError = new Error(`${url} returned ${response.status}`);
-    } catch (error) {
-      lastError = error;
-    }
-    await wait(150);
-  }
-  throw new Error(
-    `Gateway did not become ready: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
-  );
 }
 
 async function spawnGateway({ repoRoot, outputDir, tempDir, port, token }) {
