@@ -255,20 +255,25 @@ jobs:
 
           workspace_root="${GITHUB_WORKSPACE:?}"
           output_root=".artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          sample_paths="$RUNNER_TEMP/openclaw-${{ matrix.package.channel }}-${{ matrix.package.version }}-rtt-samples.tsv"
-          : >"$sample_paths"
           echo "output_root=${output_root}" >>"$GITHUB_OUTPUT"
 
           for sample in $(seq 1 "$samples"); do
             output_dir="${output_root}/sample-${sample}"
-            summary_path="${output_dir}/${{ matrix.package.summary }}"
+            summary_path="${output_dir}/rtt-summary.json"
             observed_path="${output_dir}/${{ matrix.package.observed }}"
             metrics_path="${output_dir}/resource-metrics.env"
             sample_started_at="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
             status=1
+            scenario_status="missing"
+            selector_status=2
+            selected_attempt_dir=""
+            rm -rf "$output_dir"
+            mkdir -p "$output_dir"
             for attempt in $(seq 1 "$max_attempts"); do
-              rm -rf "$output_dir"
-              mkdir -p "$output_dir"
+              attempt_dir="${output_dir}/attempt-${attempt}"
+              attempt_metrics_path="${attempt_dir}/resource-metrics.env"
+              rm -rf "$attempt_dir"
+              mkdir -p "$attempt_dir"
               echo "CHANNEL_RELEASE_RTT_PHASE:${{ matrix.package.channel }} version=${{ matrix.package.version }} sample=${sample}/${samples} attempt=${attempt}/${max_attempts}"
               # The release checkout can reactivate its shipped pnpm. Switch
               # back before invoking the current OpenClaw QA harness.
@@ -278,11 +283,11 @@ jobs:
                 cd "${workspace_root}/openclaw-qa"
                 /usr/bin/time \
                   -f 'max_rss_kb=%M\nelapsed_seconds=%e' \
-                  -o "${workspace_root}/openclaw/${metrics_path}" \
+                  -o "${workspace_root}/openclaw/${attempt_metrics_path}" \
                   timeout "${sample_timeout_seconds}s" \
                   pnpm openclaw qa "${{ matrix.package.channel }}" \
                   --repo-root "${workspace_root}/openclaw" \
-                  --output-dir "${output_dir}" \
+                  --output-dir "${attempt_dir}" \
                   --provider-mode mock-openai \
                   --model mock-openai/gpt-5.5 \
                   --alt-model mock-openai/gpt-5.5-alt \
@@ -298,12 +303,23 @@ jobs:
                 echo "sample=${sample}"
                 echo "attempts=${attempt}"
                 echo "exit_status=${status}"
-              } >>"$metrics_path"
-              scenario_status=""
-              if [[ -f "$summary_path" ]]; then
-                scenario_status="$(node -e 'const fs = require("node:fs"); const [summaryPath, scenarioId] = process.argv.slice(1); const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8")); const scenario = Array.isArray(summary.scenarios) ? summary.scenarios.find((item) => item && item.id === scenarioId) : undefined; process.stdout.write(typeof scenario?.status === "string" ? scenario.status : "missing");' "$summary_path" "${{ matrix.package.scenario }}")"
+              } >>"$attempt_metrics_path"
+              set +e
+              scenario_status="$(
+                node "${workspace_root}/openclaw-rtt/scripts/select-channel-qa-summary.mjs" \
+                  "$attempt_dir" \
+                  "${{ matrix.package.summary }}" \
+                  "${{ matrix.package.channel }}" \
+                  "${{ matrix.package.scenario }}"
+              )"
+              selector_status="$?"
+              set -e
+              selected_attempt_dir="$attempt_dir"
+              if [[ "$selector_status" -eq 1 || "$selector_status" -gt 3 ]]; then
+                echo "${{ matrix.package.label }} QA summary selector failed with status ${selector_status}." >&2
+                exit 1
               fi
-              if [[ "$scenario_status" == "pass" ]]; then
+              if [[ "$selector_status" -eq 0 && "$scenario_status" == "pass" ]]; then
                 break
               fi
               if [[ "$attempt" -lt "$max_attempts" ]]; then
@@ -315,22 +331,26 @@ jobs:
                 sleep "$delay"
               fi
             done
-            if [[ ! -f "$summary_path" ]]; then
-              echo "No ${{ matrix.package.label }} QA summary produced for sample ${sample}; recording failed sample." >&2
+            cp "${selected_attempt_dir}/resource-metrics.env" "$metrics_path"
+            if [[ -f "${selected_attempt_dir}/${{ matrix.package.observed }}" ]]; then
+              cp "${selected_attempt_dir}/${{ matrix.package.observed }}" "$observed_path"
+            fi
+            if [[ -f "${selected_attempt_dir}/rtt-summary-source.json" ]]; then
+              cp "${selected_attempt_dir}/rtt-summary-source.json" "${output_dir}/rtt-summary-source.json"
+            fi
+            if [[ "$selector_status" -eq 0 ]]; then
+              cp "${selected_attempt_dir}/rtt-summary.json" "$summary_path"
+            else
+              echo "${{ matrix.package.label }} QA summary was ${scenario_status} for sample ${sample}; recording failed sample." >&2
               sample_finished_at="$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")"
               node "${workspace_root}/openclaw-rtt/scripts/write-failed-channel-summary.mjs" \
                 "$summary_path" \
                 "${{ matrix.package.scenario }}" \
                 "${{ matrix.package.label }} canary" \
-                "QA command exited with status ${status} before writing a summary." \
+                "QA command exited with status ${status} after producing a ${scenario_status} summary." \
                 "$sample_started_at" \
                 "$sample_finished_at"
               scenario_status="fail"
-            fi
-            if [[ -f "$observed_path" ]]; then
-              printf '%s\t%s\t%s\n' "${PWD}/${summary_path}" "${PWD}/${observed_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
-            else
-              printf '%s\t\t%s\n' "${PWD}/${summary_path}" "${PWD}/${metrics_path}" >>"$sample_paths"
             fi
             if [[ "$scenario_status" != "pass" ]]; then
               break
@@ -349,7 +369,7 @@ jobs:
           {
             echo "channel=${{ matrix.package.channel }}"
             echo "scenario=${{ matrix.package.scenario }}"
-            echo "summary=${{ matrix.package.summary }}"
+            echo "summary=rtt-summary.json"
             echo "observed=${{ matrix.package.observed }}"
             echo "spec=${{ matrix.package.spec }}"
             echo "version=${{ matrix.package.version }}"
