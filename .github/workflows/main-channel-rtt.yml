@@ -405,6 +405,7 @@ jobs:
               --provider-mode mock-openai \
               --scenario "$scenario"
           done
+          node scripts/update-readme.mjs --latest-main-only
           node scripts/validate.mjs
           node scripts/channel-rtt-summary.mjs
 
@@ -413,7 +414,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add data/channels/ runs/
+          git add data/channels/ runs/ README.md
           if git diff --cached --quiet --exit-code; then
             echo "No channel RTT changes to commit."
             exit 0
@@ -422,6 +423,17 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "data: record main channel rtt"
           git push || {
+            # Drop only generated dashboard state so real data conflicts still fail the rebase.
+            git restore --source=HEAD^ --staged --worktree README.md
+            git commit --amend --no-edit
             git pull --rebase origin main
+            if [[ "$(git rev-list --count "origin/main..HEAD")" == "0" ]]; then
+              echo "Channel RTT import is already present after rebase."
+              exit 0
+            fi
+            node scripts/update-readme.mjs --latest-main-only
+            node scripts/validate.mjs
+            git add README.md
+            git commit --amend --no-edit
             git push
           }

@@ -214,6 +214,7 @@ jobs:
             --started-at "${{ steps.rtt.outputs.started_at }}" \
             --finished-at "${{ steps.rtt.outputs.finished_at }}" \
             --resource-metrics "${{ steps.rtt.outputs.resource_metrics_path }}"
+          node scripts/update-readme.mjs --latest-main-only
           node scripts/validate.mjs
           node scripts/summary.mjs
 
@@ -223,7 +224,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add data/channels/telegram/ runs/telegram/
+          git add data/channels/telegram/ runs/telegram/ README.md
           if git diff --cached --quiet --exit-code; then
             echo "No RTT changes to commit."
             exit 0
@@ -232,6 +233,17 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "data: record main rtt"
           git push || {
+            # Drop only generated dashboard state so real data conflicts still fail the rebase.
+            git restore --source=HEAD^ --staged --worktree README.md
+            git commit --amend --no-edit
             git pull --rebase origin main
+            if [[ "$(git rev-list --count "origin/main..HEAD")" == "0" ]]; then
+              echo "Telegram RTT import is already present after rebase."
+              exit 0
+            fi
+            node scripts/update-readme.mjs --latest-main-only
+            node scripts/validate.mjs
+            git add README.md
+            git commit --amend --no-edit
             git push
           }
