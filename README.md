@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T07:07:12.422Z`
+Latest imported release coverage run: `2026-09-03T07:21:47.747Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -584,9 +584,9 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.19-beta.1` | `4,551ms` | `5,896ms` | `718MB` | `754MB` | ok |
 | `2026.5.18` | `4,253ms` | `5,549ms` | `710MB` | `767MB` | ok |
 | `2026.5.18-beta.1` | - | - | `727MB` | `727MB` | failed: QA command exited with status 0 before writing a summary. |
-| `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `699MB` | `762MB` | ok |
+| `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `735MB` | `735MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.6` | `4,719ms` | `5,051ms` | `724MB` | `760MB` | ok |
-| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `723MB` | `723MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `728MB` | `728MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.4` | `4,255ms` | `5,484ms` | `671MB` | `709MB` | ok |
 | `2026.5.16-beta.3` | `4,690ms` | `5,929ms` | `673MB` | `723MB` | ok |
 | `2026.5.16-beta.2` | `4,751ms` | `5,868ms` | `672MB` | `696MB` | ok |
