@@ -406,7 +406,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.8.2` | `1,392ms` | `1,392ms` | `5,080MB` | `5,080MB` | ok |
 | `2026.8.1` | `1,733ms` | `1,733ms` | `5,057MB` | `5,057MB` | ok |
 | `2026.8.1-beta.3` | `1,862ms` | `1,862ms` | `5,111MB` | `5,111MB` | ok |
-| `2026.8.1-beta.2` | - | - | `5,151MB` | `5,151MB` | timeout |
+| `2026.8.1-beta.2` | - | - | `5,223MB` | `5,266MB` | timeout |
 | `2026.8.1-beta.1` | `3,700ms` | `3,700ms` | `5,137MB` | `5,137MB` | ok |
 | `2026.7.2-beta.7` | `3,072ms` | `3,206ms` | `3,147MB` | `3,192MB` | ok |
 | `2026.7.2-beta.6` | `2,996ms` | `3,327ms` | `3,147MB` | `3,176MB` | ok |
