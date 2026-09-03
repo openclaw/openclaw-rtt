@@ -1,0 +1,88 @@
+{
+  "channel": {
+    "id": "discord",
+    "label": "Discord",
+    "scenario": "discord-canary"
+  },
+  "package": {
+    "spec": "openclaw@2026.9.1",
+    "version": "2026.9.1"
+  },
+  "run": {
+    "id": "2026-09-03T202253505Z-openclaw_2026.9.1-discord-rtt",
+    "startedAt": "2026-09-03T20:22:53.505Z",
+    "finishedAt": "2026-09-03T20:22:57.197Z",
+    "durationMs": 3692,
+    "status": "pass"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "discord-canary"
+    ],
+    "credentialSource": "mock-openai",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [
+      3692
+    ],
+    "failedSamples": 0,
+    "sources": [
+      "request-to-observed-message"
+    ],
+    "avgMs": 3692,
+    "p50Ms": 3692,
+    "p95Ms": 3692,
+    "maxMs": 3692
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa discord"
+    },
+    "maxRssKbSamples": [
+      5231656
+    ],
+    "elapsedSecondsSamples": [
+      87.02
+    ],
+    "maxRssKb": {
+      "avg": 5231656,
+      "p50": 5231656,
+      "p95": 5231656,
+      "max": 5231656
+    },
+    "elapsedSeconds": {
+      "avg": 87.02,
+      "p50": 87.02,
+      "p95": 87.02,
+      "max": 87.02
+    }
+  },
+  "discord": {
+    "samples": [
+      {
+        "index": 1,
+        "status": "pass",
+        "rttMs": 3692,
+        "rttSource": "request-to-observed-message",
+        "rttMeasurement": {
+          "finalMatchedReplyRttMs": 3692,
+          "requestStartedAt": "2026-09-03T20:22:53.505000+00:00",
+          "responseObservedAt": "2026-09-03T20:22:57.197000+00:00",
+          "source": "request-to-observed-message"
+        },
+        "durationRttMs": 3692,
+        "resources": {
+          "maxRssKb": 5231656,
+          "elapsedSeconds": 87.02
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "resultPath": "runs/discord/2026-09-03T202253505Z-openclaw_2026.9.1-discord-rtt/result.json"
+  }
+}
