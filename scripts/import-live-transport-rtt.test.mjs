@@ -33,6 +33,7 @@ function modernEvidence({
     { kind: "summary", path: "qa-suite-summary.json", source: "qa-suite" },
     { kind: "report", path: "qa-suite-report.md", source: "qa-suite" },
   ],
+  generatedAt = "2026-09-03T08:44:53.550Z",
   rttMeasurement,
   status = "pass",
   timing,
@@ -41,7 +42,7 @@ function modernEvidence({
   return {
     kind: "openclaw.qa.evidence-summary",
     schemaVersion: 2,
-    generatedAt: "2026-09-03T08:44:53.550Z",
+    generatedAt,
     entries: [
       {
         test: { id: "slack-canary", title },
@@ -83,15 +84,14 @@ function qaSuiteSummary({
   };
 }
 
-async function importModernSlack({
+async function writeModernSample(workspace, sampleName, {
   companion = qaSuiteSummary(),
   companionBytes,
   evidence = modernEvidence(),
   includeCompanion = true,
   observed,
 } = {}) {
-  const workspace = await makeWorkspace();
-  const sampleDir = path.join(workspace, "sample-1");
+  const sampleDir = path.join(workspace, sampleName);
   const summaryPath = path.join(sampleDir, "rtt-summary.json");
   const observedPath = path.join(sampleDir, "slack-qa-observed-messages.json");
   await writeJson(summaryPath, evidence);
@@ -103,8 +103,18 @@ async function importModernSlack({
   if (observed !== undefined) {
     await writeJson(observedPath, observed);
   }
+  return `${summaryPath}\t${observed ? observedPath : ""}`;
+}
+
+async function importModernSlack(options = {}) {
+  const workspace = options.workspace ?? (await makeWorkspace());
+  const samples = options.samples ?? [options];
+  const sampleLines = [];
+  for (let index = 0; index < samples.length; index += 1) {
+    sampleLines.push(await writeModernSample(workspace, `sample-${index + 1}`, samples[index]));
+  }
   const samplesPath = path.join(workspace, "samples.tsv");
-  await fs.writeFile(samplesPath, `${summaryPath}\t${observed ? observedPath : ""}\n`);
+  await fs.writeFile(samplesPath, `${sampleLines.join("\n")}\n`);
   await execFileAsync(
     process.execPath,
     [
@@ -211,47 +221,33 @@ test("imports live transport summary RTT samples", async () => {
   });
 });
 
-test("imports channel qa-evidence summaries", async () => {
+test("rejects timing-only modern evidence without authoritative run bounds", async () => {
   const workspace = await makeWorkspace();
-  const summaryPath = path.join(workspace, "sample-1", "qa-evidence.json");
-  await writeJson(summaryPath, {
-    kind: "openclaw.qa.evidence-summary",
-    schemaVersion: 2,
-    generatedAt: "2026-05-16T00:03:00.000Z",
-    entries: [
-      {
-        test: { id: "slack-canary", title: "Slack canary echo" },
-        execution: { provider: { fixture: "mock-openai" } },
-        result: { status: "pass", timing: { rttMs: 456 } },
-      },
-    ],
-  });
-  const samplesPath = path.join(workspace, "samples.tsv");
-  await fs.writeFile(samplesPath, `${summaryPath}\n`);
-
-  await execFileAsync(
-    process.execPath,
-    [
-      IMPORT_SCRIPT,
-      samplesPath,
-      "--channel",
-      "slack",
-      "--spec",
-      "openclaw@main",
-      "--version",
-      "2026.5.16+qa-evidence",
-      "--provider-mode",
-      "mock-openai",
-    ],
-    { cwd: workspace },
+  await assert.rejects(
+    importModernSlack({
+      workspace,
+      evidence: modernEvidence({
+        artifacts: [],
+        timing: { rttMs: 456 },
+      }),
+      includeCompanion: false,
+    }),
+    /qa evidence missing authoritative run bounds/u,
   );
-
-  const [row] = await readJsonl(
-    path.join(workspace, "data/channels/slack/2026.5.16+qa-evidence.jsonl"),
+  await assert.rejects(
+    fs.stat(path.join(workspace, "data/channels/slack/2026.7.2-beta.2.jsonl")),
+    { code: "ENOENT" },
   );
-  assert.equal(row.run.status, "pass");
-  assert.deepEqual(row.rtt.warmSamples, [456]);
-  assert.deepEqual(row.rtt.sources, ["summary-rtt"]);
+  await assert.rejects(fs.stat(path.join(workspace, "runs/slack")), { code: "ENOENT" });
+});
+
+test("rejects modern evidence with an empty generatedAt", async () => {
+  await assert.rejects(
+    importModernSlack({
+      evidence: modernEvidence({ generatedAt: "" }),
+    }),
+    /qa evidence generatedAt must be a non-empty string/u,
+  );
 });
 
 test("imports RTT from the exact modern Slack qa-suite companion shape", async () => {
@@ -296,25 +292,153 @@ test("keeps structured and observed RTT ahead of qa-suite details", async () => 
   assert.deepEqual(observedFallback.row.rtt.sources, ["observed-message"]);
 });
 
-test("uses structured RTT bounds when a modern evidence companion is unavailable", async () => {
+for (const { name, artifacts } of [
+  { name: "is not declared", artifacts: [] },
+  {
+    name: "is declared but missing",
+    artifacts: [{ kind: "summary", path: "qa-suite-summary.json", source: "qa-suite" }],
+  },
+]) {
+  test(`uses structured RTT bounds when a modern evidence companion ${name}`, async () => {
+    const rttMeasurement = {
+      finalMatchedReplyRttMs: 789,
+      requestStartedAt: "2026-09-03T08:44:50.000Z",
+      responseObservedAt: "2026-09-03T08:44:50.789Z",
+      source: "request-to-observed-message",
+    };
+    const { row } = await importModernSlack({
+      evidence: modernEvidence({
+        artifacts,
+        rttMeasurement,
+        timing: { rttMs: 789 },
+      }),
+      includeCompanion: false,
+    });
+
+    assert.equal(row.run.startedAt, rttMeasurement.requestStartedAt);
+    assert.equal(row.run.finishedAt, rttMeasurement.responseObservedAt);
+    assert.equal(row.run.durationMs, 789);
+  });
+}
+
+test("rejects equal structured RTT bounds without a companion", async () => {
+  const timestamp = "2026-09-03T08:44:50.000Z";
+  await assert.rejects(
+    importModernSlack({
+      evidence: modernEvidence({
+        artifacts: [],
+        rttMeasurement: {
+          finalMatchedReplyRttMs: 1,
+          requestStartedAt: timestamp,
+          responseObservedAt: timestamp,
+          source: "request-to-observed-message",
+        },
+      }),
+      includeCompanion: false,
+    }),
+    /qa evidence missing authoritative run bounds/u,
+  );
+});
+
+test("imports failed modern evidence with valid companion bounds", async () => {
+  const { row } = await importModernSlack({
+    evidence: modernEvidence({ status: "fail" }),
+  });
+
+  assert.equal(row.run.startedAt, "2026-09-03T08:44:40.000Z");
+  assert.equal(row.run.finishedAt, "2026-09-03T08:44:53.550Z");
+  assert.equal(row.run.durationMs, 13_550);
+  assert.equal(row.run.status, "fail");
+  assert.deepEqual(row.rtt.warmSamples, []);
+});
+
+test("rejects a non-suite companion with parseable run bounds", async () => {
+  const workspace = await makeWorkspace();
+  await assert.rejects(
+    importModernSlack({
+      workspace,
+      companion: {
+        run: {
+          startedAt: "2026-09-03T08:44:40.000Z",
+          finishedAt: "2026-09-03T08:44:53.550Z",
+        },
+      },
+    }),
+    /qa-suite summary scenarios must be an array/u,
+  );
+  await assert.rejects(
+    fs.stat(path.join(workspace, "data/channels/slack/2026.7.2-beta.2.jsonl")),
+    { code: "ENOENT" },
+  );
+});
+
+for (const { name, run } of [
+  { name: "missing", run: undefined },
+  {
+    name: "unparseable",
+    run: {
+      startedAt: "not-a-date",
+      finishedAt: "2026-09-03T08:44:53.550Z",
+    },
+  },
+  {
+    name: "reversed",
+    run: {
+      startedAt: "2026-09-03T08:44:53.550Z",
+      finishedAt: "2026-09-03T08:44:40.000Z",
+    },
+  },
+  {
+    name: "equal",
+    run: {
+      startedAt: "2026-09-03T08:44:53.550Z",
+      finishedAt: "2026-09-03T08:44:53.550Z",
+    },
+  },
+]) {
+  test(`rejects a modern evidence companion with ${name} run bounds`, async () => {
+    const companion = qaSuiteSummary();
+    if (run === undefined) {
+      delete companion.run;
+    } else {
+      companion.run = run;
+    }
+    await assert.rejects(
+      importModernSlack({ companion }),
+      /qa-suite summary run must form a valid interval/u,
+    );
+  });
+}
+
+test("aggregates modern evidence bounds independent of sample order", async () => {
   const rttMeasurement = {
-    finalMatchedReplyRttMs: 789,
-    requestStartedAt: "2026-09-03T08:44:50.000Z",
-    responseObservedAt: "2026-09-03T08:44:50.789Z",
+    finalMatchedReplyRttMs: 3000,
+    requestStartedAt: "2026-09-03T08:45:10.000Z",
+    responseObservedAt: "2026-09-03T08:45:13.000Z",
     source: "request-to-observed-message",
   };
   const { row } = await importModernSlack({
-    evidence: modernEvidence({
-      artifacts: [],
-      rttMeasurement,
-      timing: { rttMs: 789 },
-    }),
-    includeCompanion: false,
+    samples: [
+      {
+        companion: qaSuiteSummary({
+          startedAt: "2026-09-03T08:45:00.000Z",
+          finishedAt: "2026-09-03T08:45:14.000Z",
+        }),
+        evidence: modernEvidence({ rttMeasurement }),
+      },
+      {
+        companion: qaSuiteSummary({
+          startedAt: "2026-09-03T08:44:40.000Z",
+          finishedAt: "2026-09-03T08:44:53.550Z",
+        }),
+      },
+    ],
   });
 
-  assert.equal(row.run.startedAt, rttMeasurement.requestStartedAt);
-  assert.equal(row.run.finishedAt, rttMeasurement.responseObservedAt);
-  assert.equal(row.run.durationMs, 789);
+  assert.equal(row.run.startedAt, "2026-09-03T08:44:40.000Z");
+  assert.equal(row.run.finishedAt, "2026-09-03T08:45:14.000Z");
+  assert.equal(row.run.durationMs, 34_000);
+  assert.deepEqual(row.rtt.warmSamples, [3000, 2857]);
 });
 
 for (const {
@@ -326,10 +450,6 @@ for (const {
   {
     name: "wrong suite scenario title",
     companion: qaSuiteSummary({ scenarioName: "Another scenario" }),
-  },
-  {
-    name: "failed evidence",
-    evidence: modernEvidence({ status: "fail" }),
   },
   {
     name: "failed suite scenario",
@@ -375,10 +495,6 @@ for (const {
         },
       ],
     }),
-  },
-  {
-    name: "missing suite companion",
-    includeCompanion: false,
   },
 ]) {
   test(`imports a failed sample for ${name}`, async () => {

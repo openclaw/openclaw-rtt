@@ -104,55 +104,40 @@ function parseRunBounds(startedAt, finishedAt) {
   if (
     !Number.isFinite(startedAtMs) ||
     !Number.isFinite(finishedAtMs) ||
-    finishedAtMs < startedAtMs
+    finishedAtMs <= startedAtMs
   ) {
     return undefined;
   }
   return { finishedAt, finishedAtMs, startedAt, startedAtMs };
 }
 
-async function evidenceRunBounds(value, entry, result, summaryPath) {
-  const generatedAt = requireString(value.generatedAt, "qa evidence generatedAt");
-  const measurement = result.rttMeasurement;
-  const measurementBounds =
-    measurement && typeof measurement === "object" && !Array.isArray(measurement)
-      ? parseRunBounds(measurement.requestStartedAt, measurement.responseObservedAt)
-      : undefined;
-  const fallback = measurementBounds ?? parseRunBounds(generatedAt, generatedAt);
-  const artifactFilename = selectQaSuiteArtifact(entry);
-  if (!artifactFilename) {
-    return fallback;
-  }
-  let suite;
-  try {
-    suite = await readJson(path.join(path.dirname(summaryPath), artifactFilename));
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return fallback;
-    }
-    throw error;
-  }
-  const run = suite?.run;
-  return parseRunBounds(run?.startedAt, run?.finishedAt) ?? fallback;
-}
-
 async function normalizeEvidenceSummary(value, scenarioId, summaryPath) {
   if (value?.kind !== "openclaw.qa.evidence-summary") {
     return { summary: value };
   }
+  requireString(value.generatedAt, "qa evidence generatedAt");
   const entries = Array.isArray(value.entries) ? value.entries : [];
   const entry = entries.find((item) => item?.test?.id === scenarioId);
   if (!entry) {
     throw new Error(`qa evidence missing ${scenarioId}.`);
   }
   const result = requireObject(entry.result, `qa evidence ${scenarioId} result`);
-  const runBounds = await evidenceRunBounds(value, entry, result, summaryPath);
+  const companion = await loadQaSuiteCompanion(entry, summaryPath);
+  const runBounds =
+    companion?.runBounds ??
+    parseRunBounds(
+      result.rttMeasurement?.requestStartedAt,
+      result.rttMeasurement?.responseObservedAt,
+    );
+  if (!runBounds) {
+    throw new Error("qa evidence missing authoritative run bounds.");
+  }
   const timing = result.timing;
   const rttMs =
     timing && typeof timing === "object" && !Array.isArray(timing) ? timing.rttMs : undefined;
   const passed = entries.filter((item) => item?.result?.status === "pass").length;
   return {
-    evidenceEntry: entry,
+    companionRttMs: companion?.rttMs,
     summary: {
       startedAt: runBounds.startedAt,
       finishedAt: runBounds.finishedAt,
@@ -319,11 +304,8 @@ function selectQaSuiteArtifact(entry) {
   return artifactPath;
 }
 
-async function extractQaSuiteRtt(evidenceEntry, summaryPath) {
-  if (evidenceEntry?.result?.status !== "pass") {
-    return undefined;
-  }
-  const artifactFilename = selectQaSuiteArtifact(evidenceEntry);
+async function loadQaSuiteCompanion(entry, summaryPath) {
+  const artifactFilename = selectQaSuiteArtifact(entry);
   if (!artifactFilename) {
     return undefined;
   }
@@ -332,21 +314,31 @@ async function extractQaSuiteRtt(evidenceEntry, summaryPath) {
     suite = await readJson(path.join(path.dirname(summaryPath), artifactFilename));
   } catch (error) {
     if (error?.code === "ENOENT") {
-      // Some immutable runs declared the suite artifact but did not upload it.
-      // That leaves timing unprovable, so retain the sample as failed.
       return undefined;
     }
     throw error;
   }
-  const title = evidenceEntry.test?.title;
-  if (typeof title !== "string" || !Array.isArray(suite?.scenarios)) {
-    return undefined;
+  suite = requireObject(suite, "qa-suite summary");
+  if (!Array.isArray(suite.scenarios)) {
+    throw new Error("qa-suite summary scenarios must be an array.");
+  }
+  requireObject(suite.counts, "qa-suite summary counts");
+  const runBounds = parseRunBounds(suite?.run?.startedAt, suite?.run?.finishedAt);
+  if (!runBounds) {
+    throw new Error("qa-suite summary run must form a valid interval.");
+  }
+  if (entry.result?.status !== "pass") {
+    return { runBounds, rttMs: undefined };
+  }
+  const title = entry.test?.title;
+  if (typeof title !== "string") {
+    return { runBounds, rttMs: undefined };
   }
   // Historical suite scenarios expose no stable id. Their exact unique title
   // is the only cross-artifact key; ambiguity must not produce a measurement.
   const scenarios = suite.scenarios.filter((scenario) => scenario?.name === title);
   if (scenarios.length !== 1 || scenarios[0]?.status !== "pass") {
-    return undefined;
+    return { runBounds, rttMs: undefined };
   }
   const steps = Array.isArray(scenarios[0].steps) ? scenarios[0].steps : [];
   const matches = steps.flatMap((step) => {
@@ -360,7 +352,7 @@ async function extractQaSuiteRtt(evidenceEntry, summaryPath) {
     const rttMs = Number(match[1]);
     return Number.isSafeInteger(rttMs) ? [rttMs] : [];
   });
-  return matches.length === 1 ? matches[0] : undefined;
+  return { runBounds, rttMs: matches.length === 1 ? matches[0] : undefined };
 }
 
 async function readResourceMetrics(pathname) {
@@ -441,9 +433,9 @@ async function readSample(entry, index, scenarioId) {
     rttMs = extractObservedRtt(await readJson(path.resolve(entry.observedMessagesPath)), scenarioId);
     rttSource = rttMs === undefined ? undefined : "observed-message";
   }
-  if (rttMs === undefined && normalized.evidenceEntry) {
-    rttMs = await extractQaSuiteRtt(normalized.evidenceEntry, summaryPath);
-    rttSource = rttMs === undefined ? undefined : "qa-suite-details";
+  if (rttMs === undefined && normalized.companionRttMs !== undefined) {
+    rttMs = normalized.companionRttMs;
+    rttSource = "qa-suite-details";
   }
   const resourceMetrics = await readResourceMetrics(entry.resourceMetricsPath);
   const attempts = readAttemptCount(resourceMetrics.attempts);
@@ -507,9 +499,6 @@ async function main() {
   const finishedAtMs = Math.max(...sampleRunBounds.map((bounds) => bounds.finishedAtMs));
   const startedAt = new Date(startedAtMs).toISOString();
   const finishedAt = new Date(finishedAtMs).toISOString();
-  if (finishedAtMs < startedAtMs) {
-    throw new Error("Channel RTT sample timestamps must form a valid run interval.");
-  }
 
   const runId = buildRunId(startedAt, channel.id, scenarioId, args.spec);
   const seen = await existingChannelRunIds(channel.id);
