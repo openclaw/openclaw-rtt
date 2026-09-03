@@ -586,7 +586,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.5.18-beta.1` | - | - | `733MB` | `733MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.7` | `4,704ms` | `6,118ms` | `735MB` | `735MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.6` | `4,719ms` | `5,051ms` | `724MB` | `760MB` | ok |
-| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `618MB` | `618MB` | failed: QA command exited with status 0 before writing a summary. |
+| `2026.5.16-beta.5` | `4,703ms` | `4,791ms` | `759MB` | `759MB` | failed: QA command exited with status 0 before writing a summary. |
 | `2026.5.16-beta.4` | `4,255ms` | `5,484ms` | `671MB` | `709MB` | ok |
 | `2026.5.16-beta.3` | `4,690ms` | `5,929ms` | `673MB` | `723MB` | ok |
 | `2026.5.16-beta.2` | `4,751ms` | `5,868ms` | `672MB` | `696MB` | ok |
