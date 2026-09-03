@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T17:00:45.820Z`
+Latest imported release coverage run: `2026-09-03T17:13:17.451Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -518,10 +518,10 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.8.1-beta.1` | - | - | `5,426MB` | `5,426MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.7` | - | - | `4,936MB` | `4,936MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.6` | - | - | `5,295MB` | `5,295MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.7.2-beta.5` | - | - | `5,270MB` | `5,270MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.5` | - | - | `4,944MB` | `4,944MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.4` | - | - | `5,353MB` | `5,353MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.3` | - | - | `5,310MB` | `5,310MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.7.2-beta.2` | - | - | `5,363MB` | `5,363MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.7.2-beta.2` | - | - | `5,375MB` | `5,375MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1-2` | `3,071ms` | `3,071ms` | `883MB` | `883MB` | ok |
 | `2026.7.1-1` | `3,655ms` | `3,655ms` | `857MB` | `857MB` | ok |
