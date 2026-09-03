@@ -328,6 +328,7 @@ jobs:
     concurrency:
       group: rtt-report-writer-${{ github.ref }}
       cancel-in-progress: false
+      queue: max
     steps:
       - name: Checkout RTT tracker
         uses: actions/checkout@v7
