@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import test from "node:test";
+import { OPENCLAW_QA_HARNESS_SHA } from "./openclaw-qa-harness.mjs";
 
 const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -112,7 +113,9 @@ test("queues missing Discord releases from the Telegram baseline", async () => {
   assert.equal(outputs.missing_baseline_count, "1");
   assert.equal(outputs.reason, "missing-discord-release-versions");
   assert.equal(outputs.versions, "2026.5.12");
-  assert.deepEqual(JSON.parse(outputs.matrix).map((pkg) => pkg.version), ["2026.5.12"]);
+  const matrix = JSON.parse(outputs.matrix);
+  assert.deepEqual(matrix.map((pkg) => pkg.version), ["2026.5.12"]);
+  assert.equal(matrix[0].qa_ref, OPENCLAW_QA_HARNESS_SHA);
 });
 
 test("auto-requeues failed Discord releases by default", async () => {

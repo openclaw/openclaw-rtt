@@ -209,6 +209,13 @@ function assertSurfaceRttRun(row, index) {
   if (row.run.status !== "pass" && row.run.status !== "fail") {
     throw new Error(`Surface RTT row ${index} has invalid run.status`);
   }
+  if (
+    row.surface.id === "rpc" &&
+    (row.surface.scenario === "channel-rtt-backfill" ||
+      row.mode?.source === "channel-rtt-backfill")
+  ) {
+    throw new Error(`Surface RTT row ${index}: RPC rows must use native Gateway measurements`);
+  }
   if (!Array.isArray(row.rtt?.warmSamples)) {
     throw new Error(`Surface RTT row ${index} missing rtt.warmSamples`);
   }

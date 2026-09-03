@@ -238,45 +238,6 @@ test("keeps latest passing main rows visible when a newer run fails", async () =
   );
 });
 
-test("prefers native RPC surface rows over channel backfills", async () => {
-  const workspace = await makeWorkspace();
-  await writeReadme(workspace);
-  await writeJsonl(path.join(workspace, "data/surfaces/rpc/main.jsonl"), [
-    {
-      surface: { id: "rpc", label: "RPC", scenario: "rpc-gateway-smoke" },
-      ...rttRow({
-        package: { spec: "openclaw@main", version: "2026.5.16+native1234" },
-        run: { id: "rpc-native", startedAt: "2026-05-16T00:00:00.000Z", status: "pass" },
-        rtt: { warmSamples: [45, 60], p50Ms: 45, p95Ms: 60 },
-      }),
-      mode: { providerMode: "gateway-rpc", source: "surface-import" },
-      resources: { maxRssKb: { p50: 102400, p95: 153600, max: 153600 } },
-    },
-    {
-      surface: { id: "rpc", label: "RPC", scenario: "channel-rtt-backfill" },
-      ...rttRow({
-        package: { spec: "openclaw@main", version: "2026.5.16+backfill1234" },
-        run: { id: "rpc-backfill", startedAt: "2026-05-16T00:05:00.000Z", status: "pass" },
-        rtt: { warmSamples: [3000, 4000], p50Ms: 3000, p95Ms: 4000 },
-      }),
-      mode: { source: "channel-rtt-backfill" },
-      resources: { maxRssKb: { p50: 409600, p95: 512000, max: 512000 } },
-    },
-  ]);
-
-  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
-
-  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
-  const surfaceSection = readme.slice(
-    readme.indexOf("<!-- surface-latest:start -->"),
-    readme.indexOf("<!-- surface-latest:end -->"),
-  );
-  assert.match(surfaceSection, /Latest imported surface run: `2026-05-16T00:05:00\.000Z`/u);
-  assert.match(surfaceSection, /\| RPC \| `45ms` \| `60ms` \| `100MB` \| `150MB` \| ok: gateway RPC \|/u);
-  assert.doesNotMatch(surfaceSection, /\| RPC \| `3,000ms`/u);
-  assert.equal((surfaceSection.match(/\| RPC \|/gu) ?? []).length, 1);
-});
-
 test("renders release coverage across channels and surfaces", async () => {
   const workspace = await makeWorkspace();
   await writeReadme(workspace);
@@ -332,15 +293,6 @@ test("renders release coverage across channels and surfaces", async () => {
   ]);
   await writeJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16-beta.1.jsonl"), [
     {
-      surface: { id: "rpc", label: "RPC", scenario: "channel-rtt-backfill" },
-      ...rttRow({
-        package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
-        run: { id: "rpc-2026.5.16-beta.1", startedAt: "2026-05-16T00:04:30.000Z", status: "pass" },
-        rtt: { warmSamples: [2500, 3500], p50Ms: 2500, p95Ms: 3500 },
-      }),
-      mode: { source: "channel-rtt-backfill" },
-    },
-    {
       surface: { id: "rpc", label: "RPC", scenario: "rpc-gateway-smoke" },
       ...rttRow({
         package: { spec: "openclaw@2026.5.16-beta.1", version: "2026.5.16-beta.1" },
@@ -378,12 +330,12 @@ test("renders release coverage across channels and surfaces", async () => {
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.12` \| - \| `1,000ms` \| - \| - \| - \| - \| n\/a \|/u,
+    /\| `2026\.5\.12` \| n\/a \| `1,000ms` \| - \| - \| - \| n\/a \| n\/a \|/u,
   );
   assert.doesNotMatch(coverageSection, /2026\.4\.15/u);
   assert.match(
     coverageSection,
-    /\| `2026\.5\.3` \| - \| `950ms` \| n\/a \| - \| n\/a \| - \| n\/a \|/u,
+    /\| `2026\.5\.3` \| n\/a \| `950ms` \| n\/a \| - \| n\/a \| n\/a \| n\/a \|/u,
   );
 
   const telegramSection = readme.slice(
@@ -477,7 +429,7 @@ test("marks pre-collection Control UI release surface cells as not applicable", 
   );
   assert.match(
     coverageSection,
-    /\| `2026\.6\.1` \| - \| - \| - \| - \| - \| `14ms` \| - \|/u,
+    /\| `2026\.6\.1` \| n\/a \| - \| - \| - \| - \| `14ms` \| - \|/u,
   );
   assert.match(
     coverageSection,
@@ -485,7 +437,7 @@ test("marks pre-collection Control UI release surface cells as not applicable", 
   );
   assert.match(
     coverageSection,
-    /\| `2026\.6\.1-beta\.2` \| - \| - \| - \| - \| - \| `12ms` \| n\/a \|/u,
+    /\| `2026\.6\.1-beta\.2` \| n\/a \| - \| - \| - \| - \| `12ms` \| n\/a \|/u,
   );
 
   const surfaceCoverageSection = readme.slice(
@@ -495,6 +447,51 @@ test("marks pre-collection Control UI release surface cells as not applicable", 
   assert.match(surfaceCoverageSection, /\| `2026\.6\.1` \| `14ms` \| - \|/u);
   assert.match(surfaceCoverageSection, /\| `2026\.6\.1-beta\.3` \| `13ms` \| `456ms` \|/u);
   assert.match(surfaceCoverageSection, /\| `2026\.6\.1-beta\.2` \| `12ms` \| n\/a \|/u);
+});
+
+test("uses the shared release axis for all nine supported RPC releases", async () => {
+  const workspace = await makeWorkspace();
+  await writeReadme(workspace);
+  const supportedVersions = [
+    "2026.5.28-beta.1",
+    "2026.5.28-beta.3",
+    "2026.5.28-beta.4",
+    "2026.5.28",
+    "2026.5.30-beta.1",
+    "2026.5.31-beta.1",
+    "2026.5.31-beta.2",
+    "2026.5.31-beta.3",
+    "2026.5.31-beta.4",
+  ];
+  const releaseVersions = ["2026.5.27", ...supportedVersions];
+  await writeJsonl(
+    path.join(workspace, "data/channels/telegram.jsonl"),
+    releaseVersions.map((version, index) =>
+      rttRow({
+        package: { spec: `openclaw@${version}`, version },
+        run: {
+          id: `telegram-${version}`,
+          startedAt: `2026-05-${String(20 + index).padStart(2, "0")}T00:00:00.000Z`,
+          status: "pass",
+        },
+      }),
+    ),
+  );
+
+  await execFileAsync(process.execPath, [UPDATE_README_SCRIPT], { cwd: workspace });
+
+  const readme = await fs.readFile(path.join(workspace, "README.md"), "utf8");
+  const surfaceCoverageSection = readme.slice(
+    readme.indexOf("<!-- surface-release-coverage:start -->"),
+    readme.indexOf("<!-- surface-release-coverage:end -->"),
+  );
+  for (const version of supportedVersions) {
+    assert.ok(
+      surfaceCoverageSection.includes(`| \`${version}\` | - | n/a |`),
+      `missing supported RPC release ${version}`,
+    );
+  }
+  assert.match(surfaceCoverageSection, /\| `2026\.5\.27` \| n\/a \| n\/a \|/u);
 });
 
 test("renders release coverage failure cells without verbose labels", async () => {
@@ -567,11 +564,11 @@ test("renders release coverage failure cells without verbose labels", async () =
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| - \| fail \| `7,844ms` \| fail \| logged out \| - \| n\/a \|/u,
+    /\| `2026\.5\.16-beta\.6` \| n\/a \| fail \| `7,844ms` \| fail \| logged out \| n\/a \| n\/a \|/u,
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.5` \| - \| - \| timeout \| - \| - \| - \| n\/a \|/u,
+    /\| `2026\.5\.16-beta\.5` \| n\/a \| - \| timeout \| - \| - \| n\/a \| n\/a \|/u,
   );
   assert.doesNotMatch(coverageSection, /failed:/u);
 
@@ -638,7 +635,7 @@ test("keeps prior release RTT visible when a newer import has only RSS", async (
   );
   assert.match(
     coverageSection,
-    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \| - \| n\/a \|/u,
+    /\| `2026\.5\.16-beta\.6` \| `2,602ms` \| `1,400ms` \| `7,800ms` \| `4,700ms` \| `7,600ms` \| n\/a \| n\/a \|/u,
   );
 
   const discordSection = readme.slice(

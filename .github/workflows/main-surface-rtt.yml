@@ -72,6 +72,14 @@ jobs:
         with:
           version: ${{ env.PNPM_VERSION }}
 
+      - name: Refresh RTT tracker
+        if: github.event_name != 'pull_request'
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+
       - name: Locate pnpm store
         id: pnpm-store
         working-directory: openclaw
@@ -275,7 +283,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/surfaces runs/surfaces README.md
           git commit -m "data: import main surface rtt"
-          git push
+          git push || {
+            # Drop only generated dashboard state so real data conflicts still fail the rebase.
+            git restore --source=HEAD^ --staged --worktree README.md
+            git commit --amend --no-edit
+            git pull --rebase origin main
+            if [[ "$(git rev-list --count "origin/main..HEAD")" == "0" ]]; then
+              echo "Surface RTT import is already present after rebase."
+              exit 0
+            fi
+            node scripts/update-readme.mjs --latest-main-only
+            node scripts/validate.mjs
+            git add README.md
+            git commit --amend --no-edit
+            git push
+          }
 
       - name: Fail on Surface RTT errors
         if: always() && (steps.rpc_surface_rtt.outcome == 'failure' || steps.surface_rtt.outcome == 'failure' || steps.import_rpc_surface_rtt.outcome == 'failure' || steps.import_control_ui_surface_rtt.outcome == 'failure')

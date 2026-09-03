@@ -163,6 +163,13 @@ jobs:
           set -euo pipefail
           time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
+      - name: Patch release QA compatibility
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/patch-openclaw-release-qa-harness.mjs ../openclaw-qa
+
       - name: Link OpenClaw release channel package
         shell: bash
         run: |
@@ -200,6 +207,17 @@ jobs:
             exit 1
           fi
 
+      - name: Verify OpenClaw QA harness ref
+        working-directory: openclaw-qa
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_commit="$(git rev-parse HEAD)"
+          if [[ "$head_commit" != "${{ matrix.package.qa_ref }}" ]]; then
+            echo "OpenClaw QA harness ref mismatch: HEAD ${head_commit} does not match ${{ matrix.package.qa_ref }}" >&2
+            exit 1
+          fi
+
       - name: Build OpenClaw release
         working-directory: openclaw
         env:
@@ -232,6 +250,8 @@ jobs:
           OPENCLAW_QA_CREDENTIAL_ACQUIRE_TIMEOUT_MS: "180000"
           OPENCLAW_QA_CREDENTIAL_HTTP_TIMEOUT_MS: "60000"
           OPENCLAW_QA_REDACT_PUBLIC_METADATA: "1"
+          OPENCLAW_QA_RELEASE_AUTH_RUNTIME_PATH: ${{ github.workspace }}/openclaw/dist/plugin-sdk/agent-runtime.js
+          OPENCLAW_QA_RELEASE_PACKAGE_SPEC: ${{ matrix.package.spec }}
         shell: bash
         run: |
           set -euo pipefail
@@ -476,20 +496,16 @@ jobs:
               --version "$version" \
               --provider-mode mock-openai \
               --scenario "$scenario"
-            node scripts/backfill-rpc-surface-rtt.mjs \
-              --spec "$spec" \
-              --version "$version"
           done
           node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/channel-rtt-summary.mjs
-          node scripts/surface-rtt-summary.mjs
 
       - name: Commit result
         shell: bash
         run: |
           set -euo pipefail
-          git add data/channels/ data/surfaces/ runs/ README.md
+          git add data/channels/ runs/ README.md
           if git diff --cached --quiet --exit-code; then
             echo "No channel release RTT changes to commit."
             exit 0

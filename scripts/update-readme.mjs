@@ -49,6 +49,7 @@ const CHANNEL_CONFIG_BY_LABEL = new Map(
 );
 const RELEASE_COVERAGE_MIN_VERSION = "2026.4.24";
 const SURFACE_RELEASE_COVERAGE_MIN_VERSIONS = new Map([
+  ["RPC", "2026.5.28-beta.1"],
   ["Control UI", "2026.6.1-beta.3"],
 ]);
 const UPDATE_LATEST_MAIN_ONLY = process.argv.includes("--latest-main-only");
@@ -103,20 +104,6 @@ function latestPassingRow(rows) {
 
 function latestDashboardRow(rows) {
   return latestPassingRow(rows) ?? latestRow(rows);
-}
-
-function isSurfaceBackfillRow(row) {
-  return row?.mode?.source === "channel-rtt-backfill" || row?.surface?.scenario === "channel-rtt-backfill";
-}
-
-function latestPreferredSurfaceRow(rows) {
-  const nativeRows = rows.filter((row) => !isSurfaceBackfillRow(row));
-  return (
-    latestPassingRow(nativeRows) ??
-    latestPassingRow(rows) ??
-    latestRow(nativeRows) ??
-    latestRow(rows)
-  );
 }
 
 function hasRttMetric(row) {
@@ -209,9 +196,6 @@ function mainSurfaceEntryStatus(row, latest) {
   if (status !== "ok") {
     return status;
   }
-  if (isSurfaceBackfillRow(row)) {
-    return "backfill: channel RTT";
-  }
   if (row?.surface?.id === "rpc") {
     return "ok: gateway RPC";
   }
@@ -246,7 +230,7 @@ function mainSurfaceDashboardRows(rows) {
     .filter((group) => group[0]?.package?.spec === MAIN_SPEC)
     .map((group) => {
       const entry = mainDashboardEntry(group[0].surface.label, group[0].surface.scenario, group);
-      const preferred = latestPreferredSurfaceRow(group);
+      const preferred = latestDashboardRow(group);
       const latest = latestRow(group);
       return {
         ...entry,
@@ -525,25 +509,25 @@ function releaseRowByVersion(rows) {
   return byVersion;
 }
 
-function surfaceReleaseRowByVersion(rows) {
-  const backfilledRowsByVersion = releaseRowByVersion(rows);
-  const nativeRowsByVersion = releaseRowByVersion(rows.filter((row) => !isSurfaceBackfillRow(row)));
-  return new Map([...backfilledRowsByVersion, ...nativeRowsByVersion]);
-}
-
 function releaseP50StdDev(rows) {
   const p50s = rows
     .map((row) => row?.rtt.p50Ms)
     .filter((value) => typeof value === "number");
   if (p50s.length < 2) {
-    return "-";
+    return "n/a";
   }
   const mean = p50s.reduce((sum, value) => sum + value, 0) / p50s.length;
   const variance = p50s.reduce((sum, value) => sum + (value - mean) ** 2, 0) / p50s.length;
   return formatMs(Math.sqrt(variance));
 }
 
-function releaseCoverageTableFor(telegramRows, discordRows, channelRows, surfaceRows) {
+function releaseCoverageTableFor(
+  telegramRows,
+  discordRows,
+  channelRows,
+  surfaceRows,
+  versionAxis,
+) {
   const rowsByTarget = new Map([
     ["Telegram", releaseRowByVersion(telegramRows)],
     ["Discord", releaseRowByVersion(discordRows)],
@@ -553,16 +537,10 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows, surface
     ]),
     ...SURFACE_COVERAGE_SURFACES.map((label) => [
       label,
-      surfaceReleaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
+      releaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
     ]),
   ]);
-  const versions = [
-    ...new Set([...rowsByTarget.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
-  ]
-    .filter(
-      (version) => compareOpenClawVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0,
-    )
-    .sort((left, right) => compareOpenClawVersions(right, left));
+  const versions = versionAxis;
   if (versions.length === 0) {
     return [
       RELEASE_COVERAGE_START,
@@ -593,20 +571,14 @@ function releaseCoverageTableFor(telegramRows, discordRows, channelRows, surface
   ].join("\n");
 }
 
-function surfaceReleaseCoverageTableFor(surfaceRows) {
+function surfaceReleaseCoverageTableFor(surfaceRows, versionAxis) {
   const rowsBySurface = new Map(
     SURFACE_COVERAGE_SURFACES.map((label) => [
       label,
-      surfaceReleaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
+      releaseRowByVersion(surfaceRows.filter((row) => row.surface.label === label)),
     ]),
   );
-  const versions = [
-    ...new Set([...rowsBySurface.values()].flatMap((rowsByVersion) => [...rowsByVersion.keys()])),
-  ]
-    .filter(
-      (version) => compareOpenClawVersions(version, RELEASE_COVERAGE_MIN_VERSION) >= 0,
-    )
-    .sort((left, right) => compareOpenClawVersions(right, left));
+  const versions = versionAxis;
   if (versions.length === 0) {
     return [
       SURFACE_RELEASE_COVERAGE_START,
@@ -616,12 +588,17 @@ function surfaceReleaseCoverageTableFor(surfaceRows) {
       SURFACE_RELEASE_COVERAGE_END,
     ].join("\n");
   }
+  const latestSurfaceRun = latestStartedAt(
+    versions.flatMap((version) =>
+      SURFACE_COVERAGE_SURFACES.map((label) => rowsBySurface.get(label)?.get(version)),
+    ),
+  );
   return [
     SURFACE_RELEASE_COVERAGE_START,
     "",
-    `Latest imported surface run: \`${latestStartedAt(
-      versions.flatMap((version) => SURFACE_COVERAGE_SURFACES.map((label) => rowsBySurface.get(label)?.get(version))),
-    )}\``,
+    latestSurfaceRun
+      ? `Latest imported surface run: \`${latestSurfaceRun}\``
+      : "No release surface RTT runs have been imported yet.",
     "",
     "| Version | RPC | Control UI |",
     "|---|---:|---:|",
@@ -662,7 +639,7 @@ async function main() {
   const discordRows = await readDiscordRttRows();
   const channelRows = await readChannelRttRows();
   const surfaceRows = await readSurfaceRttRows();
-  const releaseAxis = releaseVersionAxis(rows, discordRows, channelRows);
+  const releaseAxis = releaseVersionAxis(rows, discordRows, channelRows, surfaceRows);
   const mainRows = rows.filter((row) => row.package.spec === MAIN_SPEC);
   const mainDiscordRows = discordRows.filter((row) => row.package.spec === MAIN_SPEC);
   const readme = await fs.readFile(README_PATH, "utf8");
@@ -687,7 +664,7 @@ async function main() {
               withSurfaceLatest,
               RELEASE_COVERAGE_START,
               RELEASE_COVERAGE_END,
-              releaseCoverageTableFor(rows, discordRows, channelRows, surfaceRows),
+              releaseCoverageTableFor(rows, discordRows, channelRows, surfaceRows, releaseAxis),
             ),
             RELEASE_START,
             RELEASE_END,
@@ -727,7 +704,7 @@ async function main() {
         nextWithWhatsAppRelease,
         SURFACE_RELEASE_COVERAGE_START,
         SURFACE_RELEASE_COVERAGE_END,
-        surfaceReleaseCoverageTableFor(surfaceRows),
+        surfaceReleaseCoverageTableFor(surfaceRows, releaseAxis),
       );
   await fs.writeFile(README_PATH, nextWithSurfaceReleases);
 }
