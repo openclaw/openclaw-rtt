@@ -73,7 +73,7 @@ Latest imported release coverage run: `2026-09-03T19:33:30.816Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.9.1` | `440ms` | `1,002ms` | - | - | - | `1ms` | `156ms` |
+| `2026.9.1` | `440ms` | `1,002ms` | - | fail | fail | `1ms` | `156ms` |
 | `2026.9.1-beta.1` | `579ms` | `999ms` | `1,492ms` | fail | fail | `1ms` | `334ms` |
 | `2026.8.2` | `569ms` | `1,002ms` | `1,392ms` | fail | fail | `0ms` | `207ms` |
 | `2026.8.1` | `904ms` | `1,001ms` | `2,329ms` | fail | fail | `1ms` | `260ms` |
@@ -514,7 +514,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.9.1` | - | - | - | - | missing: no imported run |
+| `2026.9.1` | - | - | `5,289MB` | `5,289MB` | failed |
 | `2026.9.1-beta.1` | - | - | `891MB` | `891MB` | failed |
 | `2026.8.2` | - | - | `1,244MB` | `1,244MB` | failed |
 | `2026.8.1` | - | - | `1,264MB` | `1,264MB` | failed |
@@ -622,7 +622,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.9.1` | - | - | - | - | missing: no imported run |
+| `2026.9.1` | - | - | `5,234MB` | `5,234MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.9.1-beta.1` | - | - | `475MB` | `475MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.8.2` | - | - | `477MB` | `477MB` | failed: QA command exited with status 1 before writing a summary. |
 | `2026.8.1` | - | - | `477MB` | `477MB` | failed: QA command exited with status 1 before writing a summary. |
