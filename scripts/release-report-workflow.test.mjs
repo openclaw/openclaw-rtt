@@ -9,7 +9,7 @@ import test from "node:test";
 const execFileAsync = promisify(execFile);
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HELPER_PATH = path.join(REPO_ROOT, "scripts/handle-missing-release-imports.mjs");
-const OPENCLAW_QA_SHA = "3100ba535f1d003d67a6a7536deacf8666367b38";
+const OPENCLAW_QA_SHA = "f50c6020e8f535beb6b442bbceadeae89568e6d0";
 const WORKFLOWS = [
   {
     family: "surface",
