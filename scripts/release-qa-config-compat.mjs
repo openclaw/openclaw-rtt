@@ -36,6 +36,10 @@ function compareVersions(left, right) {
   return 0;
 }
 
+function isRecord(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 export function resolveReleaseAuthRuntimePath(packageSpec, runtimePath) {
   return parseExactPackageVersion(packageSpec) && typeof runtimePath === "string" && runtimePath.trim()
     ? runtimePath
@@ -47,51 +51,149 @@ export async function resolveReleaseAuthRuntime(packageSpec, runtimePath) {
   return resolvedPath ? await import(pathToFileURL(resolvedPath).href) : undefined;
 }
 
-function legacyMemoryConfig(memory) {
-  if (!memory || typeof memory !== "object" || Array.isArray(memory)) {
+function legacyMemoryConfig(memory, moveSearchToAgentDefaults) {
+  if (!isRecord(memory) || !moveSearchToAgentDefaults) {
     return memory;
   }
-  return Object.fromEntries(
-    ["backend", "citations", "qmd"]
-      .filter((key) => memory[key] !== undefined)
-      .map((key) => [key, memory[key]]),
-  );
+  const { search: _search, ...legacyMemory } = memory;
+  return legacyMemory;
 }
 
-function legacyAgentsConfig(agents) {
-  if (!agents || typeof agents !== "object" || Array.isArray(agents)) {
+function legacyAgentDefaults(defaults, memorySearch) {
+  if (defaults === undefined) {
+    return memorySearch === undefined ? undefined : { memorySearch };
+  }
+  if (!isRecord(defaults)) {
+    return defaults;
+  }
+
+  const { mediaModels, modelPolicy, ...legacyDefaults } = defaults;
+  const adaptedDefaults = {
+    ...legacyDefaults,
+    ...(!isRecord(modelPolicy) && modelPolicy !== undefined ? { modelPolicy } : {}),
+    ...(memorySearch === undefined ? {} : { memorySearch }),
+  };
+  if (!isRecord(mediaModels)) {
+    return mediaModels === undefined
+      ? adaptedDefaults
+      : {
+          ...adaptedDefaults,
+          mediaModels,
+        };
+  }
+
+  const { image, video, music, ...unknownMediaModels } = mediaModels;
+  return {
+    ...adaptedDefaults,
+    ...(image === undefined ? {} : { imageGenerationModel: image }),
+    ...(video === undefined ? {} : { videoGenerationModel: video }),
+    ...(music === undefined ? {} : { musicGenerationModel: music }),
+    ...(Object.keys(unknownMediaModels).length === 0
+      ? {}
+      : { mediaModels: unknownMediaModels }),
+  };
+}
+
+function legacyAgentEntry(entry) {
+  const { memory, modelPolicy, ...legacyEntry } = entry;
+  const adaptedEntry = {
+    ...legacyEntry,
+    ...(!isRecord(modelPolicy) && modelPolicy !== undefined ? { modelPolicy } : {}),
+  };
+  if (!isRecord(memory)) {
+    return memory === undefined ? adaptedEntry : { ...adaptedEntry, memory };
+  }
+  if (!Object.hasOwn(memory, "search")) {
+    return { ...adaptedEntry, memory };
+  }
+
+  const { search, ...unknownMemory } = memory;
+  return {
+    ...adaptedEntry,
+    ...(search === undefined ? {} : { memorySearch: search }),
+    ...(Object.keys(unknownMemory).length === 0 ? {} : { memory: unknownMemory }),
+  };
+}
+
+function legacyAgentsConfig(agents, memorySearch) {
+  if (agents === undefined) {
+    return memorySearch === undefined ? undefined : { defaults: { memorySearch } };
+  }
+  if (!isRecord(agents)) {
     return agents;
   }
-  const { entries, ...legacyAgents } = agents;
-  if (!entries || typeof entries !== "object" || Array.isArray(entries)) {
-    return legacyAgents;
+
+  const defaults = legacyAgentDefaults(agents.defaults, memorySearch);
+  const withLegacyDefaults = {
+    ...agents,
+    ...(defaults === undefined ? {} : { defaults }),
+  };
+  if (!isRecord(agents.entries)) {
+    return withLegacyDefaults;
   }
+  const entries = Object.entries(agents.entries);
+  if (entries.some(([, entry]) => !isRecord(entry))) {
+    return withLegacyDefaults;
+  }
+
+  const { entries: _entries, ...legacyAgents } = withLegacyDefaults;
   return {
     ...legacyAgents,
-    list: Object.entries(entries).map(([id, entry]) => ({
-      ...(entry && typeof entry === "object" && !Array.isArray(entry) ? entry : {}),
+    list: entries.map(([id, entry]) => ({
+      ...legacyAgentEntry(entry),
       id,
     })),
   };
 }
 
-export function adaptReleaseGatewayConfig(config, packageSpec) {
-  const candidateVersion = parseExactPackageVersion(packageSpec);
-  if (!candidateVersion) {
+function legacyReleaseConfig(config) {
+  const memorySearch =
+    isRecord(config.memory) && Object.hasOwn(config.memory, "search")
+      ? config.memory.search
+      : undefined;
+  const moveSearchToAgentDefaults =
+    memorySearch !== undefined &&
+    (config.agents === undefined ||
+      (isRecord(config.agents) &&
+        (config.agents.defaults === undefined || isRecord(config.agents.defaults))));
+  const agents = legacyAgentsConfig(
+    config.agents,
+    moveSearchToAgentDefaults ? memorySearch : undefined,
+  );
+  const memory = legacyMemoryConfig(config.memory, moveSearchToAgentDefaults);
+
+  const synthesizeAgents = !Object.hasOwn(config, "agents") && agents !== undefined;
+  if (!Object.hasOwn(config, "agents") && !Object.hasOwn(config, "memory") && !synthesizeAgents) {
     return config;
   }
-  const legacyConfig = compareVersions(candidateVersion, LEGACY_CONFIG_CUTOFF) < 0;
+  return {
+    ...config,
+    ...(Object.hasOwn(config, "agents") || synthesizeAgents ? { agents } : {}),
+    ...(Object.hasOwn(config, "memory") ? { memory } : {}),
+  };
+}
+
+function stampCandidateVersion(config, version) {
+  if (!isRecord(config)) {
+    return config;
+  }
   return {
     ...config,
     meta: {
-      ...config.meta,
-      lastTouchedVersion: candidateVersion.version,
+      ...(isRecord(config.meta) ? config.meta : {}),
+      lastTouchedVersion: version,
     },
-    ...(legacyConfig
-      ? {
-          agents: legacyAgentsConfig(config.agents),
-          memory: legacyMemoryConfig(config.memory),
-        }
-      : {}),
   };
+}
+
+export function adaptReleaseGatewayConfig(config, packageSpec) {
+  const candidateVersion = parseExactPackageVersion(packageSpec);
+  if (!candidateVersion || !isRecord(config)) {
+    return config;
+  }
+  const legacyConfig = compareVersions(candidateVersion, LEGACY_CONFIG_CUTOFF) < 0;
+  return stampCandidateVersion(
+    legacyConfig ? legacyReleaseConfig(config) : config,
+    candidateVersion.version,
+  );
 }
