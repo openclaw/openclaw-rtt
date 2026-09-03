@@ -184,8 +184,9 @@ jobs:
                 --spec "$spec" \
                 --version "$version" \
                 --resource-metrics "$metrics_path"
+              node scripts/update-readme.mjs
               node scripts/validate.mjs
-              git add data/channels/telegram/ runs/telegram/
+              git add data/channels/telegram/ runs/telegram/ README.md
               if git diff --cached --quiet --exit-code; then
                 echo "No RSS changes to commit for $spec."
                 exit 0
@@ -194,7 +195,18 @@ jobs:
               git config user.email "github-actions[bot]@users.noreply.github.com"
               git commit -m "data: record release rtt batch"
               git push || {
+                # Drop only generated dashboard state so real data conflicts still fail the rebase.
+                git restore --source=HEAD^ --staged --worktree README.md
+                git commit --amend --no-edit
                 git pull --rebase origin "${GITHUB_REF_NAME:-main}"
+                if [[ "$(git rev-list --count "origin/${GITHUB_REF_NAME:-main}..HEAD")" == "0" ]]; then
+                  echo "Telegram RSS import is already present after rebase."
+                  exit 0
+                fi
+                node scripts/update-readme.mjs
+                node scripts/validate.mjs
+                git add README.md
+                git commit --amend --no-edit
                 git push
               }
             )
@@ -283,6 +295,7 @@ jobs:
               --finished-at "$finished_at" \
               --resource-metrics "$metrics_path"
           done <"${{ steps.rtt.outputs.result_paths }}"
+          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/summary.mjs
 
@@ -292,7 +305,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add data/channels/telegram/ runs/telegram/
+          git add data/channels/telegram/ runs/telegram/ README.md
           if git diff --cached --quiet --exit-code; then
             echo "No RTT changes to commit."
             exit 0
@@ -301,7 +314,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "data: record release rtt batch"
           git push || {
+            # Drop only generated dashboard state so real data conflicts still fail the rebase.
+            git restore --source=HEAD^ --staged --worktree README.md
+            git commit --amend --no-edit
             git pull --rebase origin "${GITHUB_REF_NAME:-main}"
+            if [[ "$(git rev-list --count "origin/${GITHUB_REF_NAME:-main}..HEAD")" == "0" ]]; then
+              echo "Telegram release RTT import is already present after rebase."
+              exit 0
+            fi
+            node scripts/update-readme.mjs
+            node scripts/validate.mjs
+            git add README.md
+            git commit --amend --no-edit
             git push
           }
 

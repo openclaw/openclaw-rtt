@@ -400,6 +400,7 @@ jobs:
                 --provider-mode mock-openai
             fi
           done
+          node scripts/update-readme.mjs
           node scripts/validate.mjs
           node scripts/discord-rtt-summary.mjs
 
@@ -407,7 +408,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add data/channels/discord/ runs/discord/
+          git add data/channels/discord/ runs/discord/ README.md
           if git diff --cached --quiet --exit-code; then
             echo "No Discord release RTT changes to commit."
             exit 0
@@ -416,6 +417,17 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git commit -m "data: record discord release rtt"
           git push || {
+            # Drop only generated dashboard state so real data conflicts still fail the rebase.
+            git restore --source=HEAD^ --staged --worktree README.md
+            git commit --amend --no-edit
             git pull --rebase origin "${GITHUB_REF_NAME:-main}"
+            if [[ "$(git rev-list --count "origin/${GITHUB_REF_NAME:-main}..HEAD")" == "0" ]]; then
+              echo "Discord release RTT import is already present after rebase."
+              exit 0
+            fi
+            node scripts/update-readme.mjs
+            node scripts/validate.mjs
+            git add README.md
+            git commit --amend --no-edit
             git push
           }
