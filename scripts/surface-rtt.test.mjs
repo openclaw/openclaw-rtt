@@ -28,6 +28,32 @@ async function readJsonl(pathname) {
     .map((line) => JSON.parse(line));
 }
 
+async function writeRpcArtifactSample(artifactRoot, name, second, rttMs) {
+  const sampleDir = path.join(artifactRoot, name);
+  await writeJson(path.join(sampleDir, "qa-suite-summary.json"), {
+    counts: { total: 1, passed: 1, failed: 0 },
+    run: {
+      startedAt: `2026-05-16T00:00:${String(second).padStart(2, "0")}.000Z`,
+      finishedAt: `2026-05-16T00:00:${String(second + 1).padStart(2, "0")}.000Z`,
+      providerMode: "gateway-rpc",
+    },
+    scenarios: [
+      {
+        id: "rpc-gateway-smoke",
+        status: "pass",
+        rttMeasurement: {
+          finalMatchedReplyRttMs: rttMs,
+          source: "gateway-rpc",
+        },
+      },
+    ],
+  });
+  await fs.writeFile(
+    path.join(sampleDir, "resource-metrics.env"),
+    `max_rss_kb=${100000 + rttMs}\nelapsed_seconds=1\nattempts=1\n`,
+  );
+}
+
 test("imports Control UI surface RTT from performance events", async () => {
   const workspace = await makeWorkspace();
   const summaryPath = path.join(workspace, "sample-1", "qa-suite-summary.json");
@@ -196,4 +222,96 @@ test("imports explicit native Gateway RPC failure evidence", async () => {
     await fs.readFile(path.join(workspace, row.artifacts.resultPath), "utf8"),
   );
   assert.deepEqual(result, row);
+});
+
+test("imports numerically sorted RPC sample directories from an artifact root", async () => {
+  const workspace = await makeWorkspace();
+  const artifactRoot = path.join(workspace, "artifacts");
+  await writeRpcArtifactSample(artifactRoot, "sample-10", 10, 110);
+  await writeRpcArtifactSample(artifactRoot, "sample-2", 2, 22);
+
+  await execFileAsync(
+    process.execPath,
+    [
+      IMPORT_SCRIPT,
+      "--artifact-root",
+      artifactRoot,
+      "--surface",
+      "rpc",
+      "--spec",
+      "openclaw@main",
+      "--version",
+      "2026.5.16+artifact",
+      "--provider-mode",
+      "gateway-rpc",
+      "--scenario",
+      "rpc-gateway-smoke",
+      "--require-pass",
+    ],
+    { cwd: workspace },
+  );
+
+  const [row] = await readJsonl(
+    path.join(workspace, "data/surfaces/rpc/2026.5.16+artifact.jsonl"),
+  );
+  assert.deepEqual(
+    row.samples.map((sample) => sample.rttMs),
+    [22, 110],
+  );
+  assert.equal(row.run.startedAt, "2026-05-16T00:00:02.000Z");
+  assert.equal(row.run.finishedAt, "2026-05-16T00:00:11.000Z");
+});
+
+test("artifact roots require complete surface-specific evidence", async () => {
+  const workspace = await makeWorkspace();
+  const artifactRoot = path.join(workspace, "artifacts");
+  const sampleDir = path.join(artifactRoot, "sample-1");
+  await fs.mkdir(artifactRoot, { recursive: true });
+  const args = [
+    IMPORT_SCRIPT,
+    "--artifact-root",
+    artifactRoot,
+    "--surface",
+    "control-ui",
+    "--spec",
+    "openclaw@main",
+    "--version",
+    "2026.5.16+artifact",
+  ];
+
+  await assert.rejects(execFileAsync(process.execPath, args, { cwd: workspace }), /No surface RTT samples/u);
+  await fs.mkdir(sampleDir);
+  await assert.rejects(execFileAsync(process.execPath, args, { cwd: workspace }), /qa-suite-summary\.json/u);
+  await writeJson(path.join(sampleDir, "qa-suite-summary.json"), {});
+  await assert.rejects(execFileAsync(process.execPath, args, { cwd: workspace }), /resource-metrics\.env/u);
+  await fs.writeFile(path.join(sampleDir, "resource-metrics.env"), "attempts=1\n");
+  await assert.rejects(execFileAsync(process.execPath, args, { cwd: workspace }), /control-ui-events\.json/u);
+});
+
+test("artifact-root input is mutually exclusive with sample-paths TSV input", async () => {
+  const workspace = await makeWorkspace();
+  const samplesPath = path.join(workspace, "samples.tsv");
+  const artifactRoot = path.join(workspace, "artifacts");
+  await fs.writeFile(samplesPath, "");
+  await fs.mkdir(artifactRoot);
+
+  await assert.rejects(
+    execFileAsync(
+      process.execPath,
+      [
+        IMPORT_SCRIPT,
+        samplesPath,
+        "--artifact-root",
+        artifactRoot,
+        "--surface",
+        "rpc",
+        "--spec",
+        "openclaw@main",
+        "--version",
+        "2026.5.16+artifact",
+      ],
+      { cwd: workspace },
+    ),
+    /mutually exclusive/u,
+  );
 });

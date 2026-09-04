@@ -20,6 +20,15 @@ function jobBlock(workflow, jobName) {
   return remainder.slice(0, nextJob === -1 ? undefined : nextJob);
 }
 
+function stepBlock(job, stepName) {
+  const marker = `      - name: ${stepName}\n`;
+  const start = job.indexOf(marker);
+  assert.notEqual(start, -1, `missing ${stepName} step`);
+  const remainder = job.slice(start + marker.length);
+  const nextStep = remainder.indexOf("\n      - name:");
+  return remainder.slice(0, nextStep === -1 ? undefined : nextStep);
+}
+
 test("CI owns README validation without a hydration workflow", async () => {
   await assert.rejects(
     fs.access(path.join(WORKFLOWS_ROOT, "readme-hydration.yml")),
@@ -46,6 +55,7 @@ test("CI owns README validation without a hydration workflow", async () => {
 
 const SPLIT_WRITER_WORKFLOWS = [
   "main-channel-rtt.yml",
+  "main-surface-rtt.yml",
   "stable-release-discord-rtt.yml",
   "release-channel-rtt.yml",
   "release-surface-rtt.yml",
@@ -68,6 +78,89 @@ for (const filename of SPLIT_WRITER_WORKFLOWS) {
     assert.match(report, /^    permissions:\n      actions: read\n      contents: write$/mu);
   });
 }
+
+test("Main Surface preserves partial evidence across its read-only measurement boundary", async () => {
+  const workflow = await readWorkflow("main-surface-rtt.yml");
+  const measure = jobBlock(workflow, "measure");
+  const report = jobBlock(workflow, "report");
+  const prepare = stepBlock(measure, "Prepare main surface import artifact");
+  const upload = stepBlock(measure, "Upload main surface import artifact");
+  const localValidation = stepBlock(measure, "Validate Surface RTT imports");
+  const download = stepBlock(report, "Download main surface import artifact");
+  const importRpc = stepBlock(report, "Import main RPC Surface RTT");
+  const importControlUi = stepBlock(report, "Import main Control UI Surface RTT");
+  const validate = stepBlock(report, "Validate imported Surface RTT");
+  const commit = stepBlock(report, "Commit imported Surface RTT");
+  const terminal = stepBlock(report, "Fail after partial Surface RTT import");
+
+  assert.doesNotMatch(measure, /\bgit push\b/u);
+  assert.match(localValidation, /node "\$RTT_SCRIPTS_DIR\/update-readme\.mjs" --latest-main-only/u);
+  assert.match(localValidation, /node "\$RTT_SCRIPTS_DIR\/validate\.mjs"/u);
+  assert.match(
+    measure,
+    /^    outputs:\n      artifact_id: \$\{\{ steps\.upload_import\.outputs\.artifact-id \}\}\n      version: \$\{\{ steps\.openclaw_ref\.outputs\.version \}\}$/mu,
+  );
+  assert.match(report, /^    needs: measure$/mu);
+  assert.match(report, /^    if: always\(\) && github\.event_name != 'pull_request'$/mu);
+  assert.match(
+    prepare,
+    /if: always\(\) && \(steps\.rpc_surface_rtt\.outcome == 'success' \|\| steps\.surface_rtt\.outcome == 'success'\)/u,
+  );
+  assert.doesNotMatch(prepare, /manifest|metadata/u);
+  assert.match(prepare, /cp -R "\$\{\{ steps\.rpc_surface_rtt\.outputs\.output_root \}\}" "\$BUNDLE_DIR\/rpc"/u);
+  assert.match(
+    prepare,
+    /cp -R "\$\{\{ steps\.surface_rtt\.outputs\.output_root \}\}" "\$BUNDLE_DIR\/control-ui"/u,
+  );
+  assert.match(upload, /^        id: upload_import$/mu);
+  assert.match(upload, /name: main-surface-rtt-import-v1-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/u);
+  assert.doesNotMatch(upload, /overwrite:/u);
+  assert.match(upload, /if-no-files-found: error/u);
+  assert.match(download, /if: needs\.measure\.outputs\.artifact_id != ''/u);
+  assert.match(download, /artifact-ids: \$\{\{ needs\.measure\.outputs\.artifact_id \}\}/u);
+  assert.doesNotMatch(download, /^\s+name:/mu);
+  assert.match(download, /merge-multiple: true/u);
+  for (const [step, surface, root, label] of [
+    [importRpc, "rpc", "rpc", "RPC"],
+    [importControlUi, "control-ui", "control-ui", "Control UI"],
+  ]) {
+    assert.match(step, /continue-on-error: true/u);
+    assert.match(step, new RegExp(`--artifact-root "\\$artifact_root"[\\s\\S]*--surface ${surface}`, "u"));
+    assert.match(step, new RegExp(`main-surface-rtt-import-v1/${root}`, "u"));
+    assert.match(
+      step,
+      new RegExp(
+        `if \\[\\[ ! -d "\\$artifact_root" \\]\\]; then[\\s\\S]*echo "Missing expected ${label} artifact root: \\$artifact_root" >&2[\\s\\S]*exit 1`,
+        "u",
+      ),
+    );
+    assert.match(step, /--version "\$VERSION"/u);
+  }
+  assert.match(importRpc, /--provider-mode gateway-rpc[\s\S]*--scenario rpc-gateway-smoke[\s\S]*--require-pass/u);
+  assert.match(importControlUi, /--provider-mode mock-openai[\s\S]*--require-pass/u);
+  assert.match(validate, /if: always\(\)/u);
+  assert.match(validate, /continue-on-error: true/u);
+  assert.match(validate, /node "\$RTT_SCRIPTS_DIR\/update-readme\.mjs" --latest-main-only/u);
+  assert.match(validate, /node "\$RTT_SCRIPTS_DIR\/validate\.mjs"/u);
+  assert.match(commit, /steps\.validate_imports\.outcome == 'success'/u);
+  assert.doesNotMatch(commit, /import_(?:rpc|control_ui)_surface_rtt\.outcome == 'success'/u);
+  assert.ok(
+    report.indexOf("      - name: Import main RPC Surface RTT\n") <
+      report.indexOf("      - name: Import main Control UI Surface RTT\n") &&
+      report.indexOf("      - name: Import main Control UI Surface RTT\n") <
+        report.indexOf("      - name: Validate imported Surface RTT\n") &&
+      report.indexOf("      - name: Validate imported Surface RTT\n") <
+        report.indexOf("      - name: Commit imported Surface RTT\n") &&
+    report.indexOf("      - name: Commit imported Surface RTT\n") <
+      report.indexOf("      - name: Fail after partial Surface RTT import\n"),
+    "RPC evidence must validate and commit before a Control UI import failure becomes terminal",
+  );
+  assert.match(terminal, /if: always\(\)/u);
+  assert.match(terminal, /CONTROL_UI_IMPORT_RESULT: \$\{\{ steps\.import_control_ui_surface_rtt\.outcome \}\}/u);
+  assert.match(terminal, /if \[\[ "\$MEASURE_RESULT" != "success" \]\]/u);
+  assert.match(workflow, /pull_request:[\s\S]*- "scripts\/import-surface-rtt\.mjs"/u);
+  assert.doesNotMatch(workflow, /import-surface-bundle/u);
+});
 
 test("Release Channel keeps coverage serial while avoiding the main-channel schedule", async () => {
   const workflow = await readWorkflow("release-channel-rtt.yml");

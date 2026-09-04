@@ -11,6 +11,7 @@ import { resolveSurfaceRttSurface, surfaceRttRunsDir } from "./surface-rtt-confi
 function usage() {
   return [
     "Usage: node scripts/import-surface-rtt.mjs <sample-paths.tsv>",
+    "   or: node scripts/import-surface-rtt.mjs --artifact-root <dir>",
     "  --surface <rpc|control-ui>",
     "  --spec <openclaw@spec>",
     "  --version <version-or-ref>",
@@ -32,6 +33,10 @@ function parseArgs(argv) {
     }
     if (arg === "--surface") {
       args.surfaceId = argv[(index += 1)];
+      continue;
+    }
+    if (arg === "--artifact-root") {
+      args.artifactRoot = argv[(index += 1)];
       continue;
     }
     if (arg === "--spec") {
@@ -56,7 +61,15 @@ function parseArgs(argv) {
     }
     throw new Error(`Unknown argument: ${arg}\n${usage()}`);
   }
-  if (!args.samplesPath || !args.surfaceId || !args.spec || !args.version) {
+  if (args.samplesPath && args.artifactRoot) {
+    throw new Error("--artifact-root is mutually exclusive with sample-paths TSV input.");
+  }
+  if (
+    (!args.samplesPath && !args.artifactRoot) ||
+    !args.surfaceId ||
+    !args.spec ||
+    !args.version
+  ) {
     throw new Error(usage());
   }
   return args;
@@ -137,6 +150,52 @@ async function readSampleEntries(samplesPath) {
       }
       return { summaryPath, resourceMetricsPath, performanceEventsPath };
     });
+}
+
+async function requireArtifactFile(sampleDir, filename) {
+  const pathname = path.join(sampleDir, filename);
+  let stat;
+  try {
+    stat = await fs.stat(pathname);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      throw new Error(`Missing ${filename} under ${sampleDir}.`);
+    }
+    throw error;
+  }
+  if (!stat.isFile()) {
+    throw new Error(`Expected ${filename} to be a file under ${sampleDir}.`);
+  }
+  return pathname;
+}
+
+async function readArtifactEntries(artifactRoot, surfaceId) {
+  const entries = await fs.readdir(artifactRoot, { withFileTypes: true });
+  const sampleDirs = entries
+    .filter((entry) => entry.isDirectory() && entry.name.startsWith("sample-"))
+    .map((entry) => entry.name)
+    .sort((left, right) => left.localeCompare(right, "en", { numeric: true }));
+  if (sampleDirs.length === 0) {
+    throw new Error(`No surface RTT samples found under ${artifactRoot}.`);
+  }
+
+  const samples = [];
+  for (const sampleName of sampleDirs) {
+    const sampleDir = path.join(artifactRoot, sampleName);
+    samples.push({
+      summaryPath: await requireArtifactFile(sampleDir, "qa-suite-summary.json"),
+      resourceMetricsPath: await requireArtifactFile(sampleDir, "resource-metrics.env"),
+      ...(surfaceId === "control-ui"
+        ? {
+            performanceEventsPath: await requireArtifactFile(
+              sampleDir,
+              "control-ui-events.json",
+            ),
+          }
+        : {}),
+    });
+  }
+  return samples;
 }
 
 function readAttemptCount(value) {
@@ -382,7 +441,9 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const surface = resolveSurfaceRttSurface(args.surfaceId);
   const scenarioId = args.scenario ?? surface.defaultScenario;
-  const entries = await readSampleEntries(path.resolve(args.samplesPath));
+  const entries = args.artifactRoot
+    ? await readArtifactEntries(path.resolve(args.artifactRoot), surface.id)
+    : await readSampleEntries(path.resolve(args.samplesPath));
   if (entries.length === 0) {
     throw new Error("No surface RTT samples to import.");
   }
