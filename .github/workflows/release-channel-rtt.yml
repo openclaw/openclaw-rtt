@@ -30,6 +30,11 @@ on:
         required: false
         default: true
         type: boolean
+      prepare_only:
+        description: Prepare and save build caches without sampling
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   actions: read
@@ -93,7 +98,7 @@ jobs:
     timeout-minutes: 120
     environment: qa-live-shared
     concurrency:
-      group: channel-rtt-measure-${{ matrix.package.channel }}
+      group: ${{ github.event_name == 'workflow_dispatch' && inputs.prepare_only && format('release-channel-rtt-prepare-{0}', github.run_id) || format('channel-rtt-measure-{0}', matrix.package.channel) }}
       cancel-in-progress: false
       queue: max
     strategy:
@@ -278,6 +283,7 @@ jobs:
           key: ${{ steps.restore_qa_build_cache.outputs.cache-primary-key }}
 
       - name: Link OpenClaw release channel package
+        if: github.event_name != 'workflow_dispatch' || inputs.prepare_only != true
         shell: bash
         run: |
           set -euo pipefail
@@ -303,6 +309,7 @@ jobs:
 
       - name: Run ${{ matrix.package.label }} RTT samples
         id: channel_rtt
+        if: github.event_name != 'workflow_dispatch' || inputs.prepare_only != true
         working-directory: openclaw
         env:
           INPUT_SAMPLES: ${{ github.event_name == 'workflow_dispatch' && inputs.samples || '' }}
@@ -442,6 +449,7 @@ jobs:
           done
 
       - name: Prepare ${{ matrix.package.label }} release import artifact
+        if: github.event_name != 'workflow_dispatch' || inputs.prepare_only != true
         working-directory: openclaw
         shell: bash
         run: |
@@ -460,6 +468,7 @@ jobs:
           } >"$import_dir/metadata.env"
 
       - name: Upload ${{ matrix.package.label }} release import artifact
+        if: github.event_name != 'workflow_dispatch' || inputs.prepare_only != true
         uses: actions/upload-artifact@v7.0.1
         with:
           name: release-channel-rtt-import-${{ matrix.package.channel }}-${{ matrix.package.version }}
@@ -468,7 +477,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload ${{ matrix.package.label }} RTT artifacts
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.prepare_only != true)
         uses: actions/upload-artifact@v7.0.1
         with:
           name: release-channel-rtt-${{ matrix.package.channel }}-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -481,7 +490,7 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && needs.resolve.outputs.should_run == 'true' && (github.event_name != 'workflow_dispatch' || inputs.publish_results)
+    if: always() && needs.resolve.outputs.should_run == 'true' && (github.event_name != 'workflow_dispatch' || (inputs.prepare_only != true && inputs.publish_results))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

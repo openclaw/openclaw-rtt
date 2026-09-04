@@ -174,6 +174,24 @@ test("Release Channel keeps coverage serial while avoiding the main-channel sche
   );
 });
 
+test("Release Channel confines live credentials to the skipped sample step", async () => {
+  const workflow = await readWorkflow("release-channel-rtt.yml");
+  const measure = jobBlock(workflow, "measure");
+  const sample = stepBlock(measure, "Run ${{ matrix.package.label }} RTT samples");
+  const workflowSecrets = workflow.match(/\$\{\{ secrets\.[A-Z0-9_]+ \}\}/gu) ?? [];
+  const sampleSecrets = sample.match(/\$\{\{ secrets\.[A-Z0-9_]+ \}\}/gu) ?? [];
+
+  assert.deepEqual(sampleSecrets, [
+    "${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}",
+    "${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}",
+  ]);
+  assert.deepEqual(workflowSecrets, sampleSecrets);
+  assert.match(
+    sample,
+    /if: github\.event_name != 'workflow_dispatch' \|\| inputs\.prepare_only != true/u,
+  );
+});
+
 const RELEASE_MATRIX_JOB_NAMES = new Map([
   [
     "stable-release-discord-rtt.yml",

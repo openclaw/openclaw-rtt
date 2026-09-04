@@ -30,10 +30,6 @@ const channelWorkflows = [
     filename: "main-channel-rtt.yml",
     measureGroup: "channel-rtt-measure-${{ matrix.channel }}",
   },
-  {
-    filename: "release-channel-rtt.yml",
-    measureGroup: "channel-rtt-measure-${{ matrix.package.channel }}",
-  },
 ];
 
 for (const { filename, measureGroup } of channelWorkflows) {
@@ -50,6 +46,25 @@ for (const { filename, measureGroup } of channelWorkflows) {
     assertLine(strategy, "      max-parallel: 1");
   });
 }
+
+test("release-channel-rtt.yml isolates prepare-only runs without changing normal channel queues", async () => {
+  const workflow = await fs.readFile(new URL("release-channel-rtt.yml", workflowsDir), "utf8");
+  const measure = extractJob(workflow, "measure");
+  const concurrency = extractBlock(measure, "concurrency");
+  const strategy = extractBlock(measure, "strategy");
+
+  assertLine(
+    concurrency,
+    "      group: ${{ github.event_name == 'workflow_dispatch' && inputs.prepare_only && format('release-channel-rtt-prepare-{0}', github.run_id) || format('channel-rtt-measure-{0}', matrix.package.channel) }}",
+  );
+  assert.match(concurrency, /format\('channel-rtt-measure-\{0\}', matrix\.package\.channel\)/u);
+  assert.match(concurrency, /format\('release-channel-rtt-prepare-\{0\}', github\.run_id\)/u);
+  assertLine(concurrency, "      cancel-in-progress: false");
+  assertLine(concurrency, "      queue: max");
+  assert.doesNotMatch(concurrency, /github\.ref/u);
+  assertLine(strategy, "      max-parallel: 1");
+  assertLine(measure, "    environment: qa-live-shared");
+});
 
 const reportWorkflows = [
   "main-channel-rtt.yml",

@@ -18,7 +18,7 @@ function stepIndex(workflow, name) {
   return index;
 }
 
-test("benchmark dispatch can skip publication without changing schedule behavior", async () => {
+test("dispatch modes preserve safe publication defaults", async () => {
   const workflow = await fs.readFile(workflowPath, "utf8");
   assert.match(
     workflow,
@@ -26,7 +26,11 @@ test("benchmark dispatch can skip publication without changing schedule behavior
   );
   assert.match(
     workflow,
-    /if: always\(\) && needs\.resolve\.outputs\.should_run == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| inputs\.publish_results\)/u,
+    /prepare_only:\n\s+description: Prepare and save build caches without sampling\n\s+required: false\n\s+default: false\n\s+type: boolean/u,
+  );
+  assert.match(
+    workflow,
+    /if: always\(\) && needs\.resolve\.outputs\.should_run == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| \(inputs\.prepare_only != true && inputs\.publish_results\)\)/u,
   );
 });
 
@@ -117,4 +121,24 @@ test("native cache restore and save tightly wrap both full builds", async () => 
   assert.notEqual(linkIndex, -1);
   assert.equal(stepNames[linkIndex - 1], "Save OpenClaw QA harness build cache");
   assert.equal(stepNames[linkIndex + 1], "Run ${{ matrix.package.label }} RTT samples");
+});
+
+test("prepare-only dispatch skips sampling and all evidence publication", async () => {
+  const workflow = await fs.readFile(workflowPath, "utf8");
+  const prepareGate =
+    /if: github\.event_name != 'workflow_dispatch' \|\| inputs\.prepare_only != true/u;
+
+  for (const name of [
+    "Link OpenClaw release channel package",
+    "Run ${{ matrix.package.label }} RTT samples",
+    "Prepare ${{ matrix.package.label }} release import artifact",
+    "Upload ${{ matrix.package.label }} release import artifact",
+  ]) {
+    assert.match(extractStep(workflow, name), prepareGate);
+  }
+
+  assert.match(
+    extractStep(workflow, "Upload ${{ matrix.package.label }} RTT artifacts"),
+    /if: always\(\) && \(github\.event_name != 'workflow_dispatch' \|\| inputs\.prepare_only != true\)/u,
+  );
 });
