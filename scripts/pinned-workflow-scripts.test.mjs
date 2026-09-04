@@ -20,7 +20,6 @@ const WORKFLOW_FILES = [
   ".github/workflows/stable-release-discord-rtt.yml",
   ".github/workflows/release-channel-rtt.yml",
   ".github/workflows/release-surface-rtt.yml",
-  ".github/workflows/readme-hydration.yml",
 ];
 const WRITER_PATHS = [
   {
@@ -72,11 +71,6 @@ const WRITER_PATHS = [
     name: "release surface",
     workflow: ".github/workflows/release-surface-rtt.yml",
     writerStep: "Import surface release RTT results",
-  },
-  {
-    name: "README hydration",
-    workflow: ".github/workflows/readme-hydration.yml",
-    writerStep: "Hydrate README",
   },
 ];
 const EXPECTED_ENTRYPOINTS = [
@@ -130,9 +124,9 @@ function dynamicImportExpressions(source) {
     .filter((expression) => !/^["'][^"']+["']$/u.test(expression));
 }
 
-test("all nine workflows snapshot scripts before ten writer pulls", async (t) => {
-  assert.equal(WORKFLOW_FILES.length, 9);
-  assert.equal(WRITER_PATHS.length, 10);
+test("all eight workflows snapshot scripts before nine writer pulls", async (t) => {
+  assert.equal(WORKFLOW_FILES.length, 8);
+  assert.equal(WRITER_PATHS.length, 9);
   const workflowCache = new Map();
   const pinnedEntrypoints = new Set();
 

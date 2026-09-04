@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   NODE_COMPILE_CACHE: .cache/node-compile
 
@@ -56,7 +60,6 @@ jobs:
         run: node scripts/validate.mjs
 
       - name: Verify README generation
-        if: github.event_name != 'push'
         shell: bash
         run: |
           set -euo pipefail

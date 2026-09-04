@@ -10,6 +10,35 @@ const execFileAsync = promisify(execFile);
 const workflowsDir = new URL("../.github/workflows/", import.meta.url);
 const MANAGE_VERSION_ENV = 'PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"';
 const LATE_MANAGE_VERSION_SETTING = "--config.manage-package-manager-versions=false";
+const MEASUREMENT_WORKFLOWS = [
+  "main-rtt.yml",
+  "main-discord-rtt.yml",
+  "main-channel-rtt.yml",
+  "main-surface-rtt.yml",
+  "stable-release-rtt.yml",
+  "stable-release-discord-rtt.yml",
+  "release-channel-rtt.yml",
+  "release-surface-rtt.yml",
+];
+
+test("RTT measurement workflows use the native pnpm runtime setup", async () => {
+  for (const filename of MEASUREMENT_WORKFLOWS) {
+    const workflow = await fs.readFile(new URL(filename, workflowsDir), "utf8");
+    assert.doesNotMatch(workflow, /pnpm\/action-setup@/u, `${filename} uses legacy pnpm setup`);
+    assert.equal(
+      workflow.match(/uses: pnpm\/setup@v2\.1\.0/gu)?.length,
+      1,
+      `${filename} must configure one native pnpm runtime`,
+    );
+    const setup = workflow
+      .split("      - name: Setup Node and pnpm\n")[1]
+      ?.split(/\n      - name:/u)[0];
+    assert.ok(setup, `${filename} is missing the combined runtime setup`);
+    assert.match(setup, /version: \$\{\{ env\.PNPM_VERSION \}\}/u);
+    assert.match(setup, /runtime: node@\$\{\{ env\.NODE_VERSION \}\}/u);
+    assert.match(setup, /install: false/u);
+  }
+});
 
 test("workflow-owned pnpm remains authoritative during every OpenClaw install", async () => {
   let installCount = 0;
