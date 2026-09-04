@@ -25,6 +25,13 @@ const WORKFLOWS = [
   },
 ];
 
+function extractStep(workflow, stepName) {
+  const marker = `      - name: ${stepName}\n`;
+  const step = workflow.split(marker)[1]?.split("\n      - name: ")[0];
+  assert.ok(step, `expected workflow step: ${stepName}`);
+  return step;
+}
+
 test("missing release imports fail only after a successful matrix", async () => {
   for (const result of ["failure", "cancelled"]) {
     const { stdout, stderr } = await execFileAsync(process.execPath, [
@@ -112,4 +119,27 @@ test("release surface workflow measures native RPC and Control UI", async () => 
     workflow,
     /if \[\[ "\$surface" == "control-ui" \]\]; then[\s\S]*import_args\+=\(--require-pass\)/u,
   );
+});
+
+test("surface workflows build runtime and Control UI artifacts before sampling", async () => {
+  for (const { workflowPath, measurementStep } of [
+    {
+      workflowPath: ".github/workflows/main-surface-rtt.yml",
+      measurementStep: "Run RPC RTT samples",
+    },
+    {
+      workflowPath: ".github/workflows/release-surface-rtt.yml",
+      measurementStep: "Run ${{ matrix.package.label }} RTT samples",
+    },
+  ]) {
+    const workflow = await fs.readFile(path.join(REPO_ROOT, workflowPath), "utf8");
+    const buildStep = extractStep(workflow, "Build OpenClaw CI artifacts");
+    assert.match(buildStep, /working-directory: openclaw/u);
+    assert.match(buildStep, /pnpm build:ci-artifacts/u);
+    assert.ok(
+      workflow.indexOf("      - name: Build OpenClaw CI artifacts\n") <
+        workflow.indexOf(`      - name: ${measurementStep}\n`),
+      `${workflowPath}: build must finish before measurement`,
+    );
+  }
 });

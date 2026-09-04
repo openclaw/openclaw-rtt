@@ -53,6 +53,7 @@ for (const { filename, measureGroup } of channelWorkflows) {
 
 const reportWorkflows = [
   "main-channel-rtt.yml",
+  "main-surface-rtt.yml",
   "release-channel-rtt.yml",
   "release-surface-rtt.yml",
   "stable-release-discord-rtt.yml",

@@ -43,7 +43,7 @@ const IMPORT_PATHS = [
   {
     name: "main surface",
     workflow: ".github/workflows/main-surface-rtt.yml",
-    importStep: "Update Surface Dashboard",
+    importStep: "Validate imported Surface RTT",
     commitStep: "Commit imported Surface RTT",
     mode: "main",
     stage: "git add data/surfaces runs/surfaces README.md",

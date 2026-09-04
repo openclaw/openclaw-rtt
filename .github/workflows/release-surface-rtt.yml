@@ -157,6 +157,13 @@ jobs:
             exit 1
           fi
 
+      - name: Build OpenClaw CI artifacts
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm build:ci-artifacts
+
       - name: Run ${{ matrix.package.label }} RTT samples
         id: surface_rtt
         working-directory: openclaw

@@ -43,7 +43,6 @@ const WRITER_PATHS = [
     name: "main surface",
     workflow: ".github/workflows/main-surface-rtt.yml",
     writerStep: "Refresh RTT tracker",
-    checkoutPath: "openclaw-rtt",
   },
   {
     name: "release Telegram RSS backfill",
@@ -192,6 +191,11 @@ test("all eight workflows snapshot scripts before nine writer pulls", async (t) 
     });
   }
 
+  for (const contents of workflowCache.values()) {
+    for (const match of contents.matchAll(/"\$RTT_SCRIPTS_DIR\/([^"]+\.mjs)"/gu)) {
+      pinnedEntrypoints.add(match[1]);
+    }
+  }
   assert.deepEqual([...pinnedEntrypoints].sort(), EXPECTED_ENTRYPOINTS);
 });
 

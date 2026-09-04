@@ -29,7 +29,7 @@ on:
 
 permissions:
   actions: read
-  contents: write
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -39,10 +39,13 @@ env:
   SURFACE_RTT_PR_SAMPLES: "3"
 
 jobs:
-  measure-surface-rtt:
+  measure:
     name: Measure OpenClaw main surface RTT
     runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 45
+    outputs:
+      artifact_id: ${{ steps.upload_import.outputs.artifact-id }}
+      version: ${{ steps.openclaw_ref.outputs.version }}
     concurrency:
       group: surface-rtt-measure-main-${{ github.ref }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -52,6 +55,7 @@ jobs:
         with:
           path: openclaw-rtt
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Archive workflow scripts
         working-directory: openclaw-rtt
@@ -78,14 +82,6 @@ jobs:
           runtime: node@${{ env.NODE_VERSION }}
           install: false
 
-      - name: Refresh RTT tracker
-        if: github.event_name != 'pull_request'
-        working-directory: openclaw-rtt
-        shell: bash
-        run: |
-          set -euo pipefail
-          git pull --rebase origin main
-
       - name: Locate pnpm store
         id: pnpm-store
         working-directory: openclaw
@@ -111,13 +107,6 @@ jobs:
           set -euo pipefail
           time pnpm install --frozen-lockfile --prefer-offline --config.engine-strict=false --config.enable-pre-post-scripts=true --config.side-effects-cache=true
 
-      - name: Install Playwright Chromium
-        working-directory: openclaw
-        shell: bash
-        run: |
-          set -euo pipefail
-          node --import tsx scripts/ensure-playwright-chromium.mts
-
       - name: Resolve OpenClaw ref
         id: openclaw_ref
         working-directory: openclaw
@@ -127,6 +116,20 @@ jobs:
           version="$(node -p "require('./package.json').version")"
           revision="$(git rev-parse --short=10 HEAD)"
           echo "version=${version}+${revision}" >>"$GITHUB_OUTPUT"
+
+      - name: Build OpenClaw CI artifacts
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm build:ci-artifacts
+
+      - name: Install Playwright Chromium
+        working-directory: openclaw
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --import tsx scripts/ensure-playwright-chromium.mts
 
       - name: Run RPC RTT samples
         id: rpc_surface_rtt
@@ -178,22 +181,6 @@ jobs:
           path: openclaw/${{ steps.rpc_surface_rtt.outputs.output_root }}
           if-no-files-found: ignore
           retention-days: 14
-
-      - name: Import RPC Surface RTT
-        id: import_rpc_surface_rtt
-        if: steps.rpc_surface_rtt.outcome == 'success'
-        working-directory: openclaw-rtt
-        shell: bash
-        run: |
-          set -euo pipefail
-          node "$RTT_SCRIPTS_DIR/import-surface-rtt.mjs" \
-            "${{ steps.rpc_surface_rtt.outputs.sample_paths }}" \
-            --surface rpc \
-            --spec openclaw@main \
-            --version "${{ steps.openclaw_ref.outputs.version }}" \
-            --provider-mode gateway-rpc \
-            --scenario rpc-gateway-smoke \
-            --require-pass
 
       - name: Run Control UI RTT samples
         id: surface_rtt
@@ -250,6 +237,51 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Prepare main surface import artifact
+        if: always() && (steps.rpc_surface_rtt.outcome == 'success' || steps.surface_rtt.outcome == 'success')
+        working-directory: openclaw
+        env:
+          BUNDLE_DIR: ${{ runner.temp }}/main-surface-rtt-import-v1
+          CONTROL_UI_COMPLETE: ${{ steps.surface_rtt.outcome == 'success' }}
+          RPC_COMPLETE: ${{ steps.rpc_surface_rtt.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$BUNDLE_DIR"
+          mkdir -p "$BUNDLE_DIR"
+          if [[ "$RPC_COMPLETE" == "true" ]]; then
+            cp -R "${{ steps.rpc_surface_rtt.outputs.output_root }}" "$BUNDLE_DIR/rpc"
+          fi
+          if [[ "$CONTROL_UI_COMPLETE" == "true" ]]; then
+            cp -R "${{ steps.surface_rtt.outputs.output_root }}" "$BUNDLE_DIR/control-ui"
+          fi
+
+      - name: Upload main surface import artifact
+        id: upload_import
+        if: always() && (steps.rpc_surface_rtt.outcome == 'success' || steps.surface_rtt.outcome == 'success')
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: main-surface-rtt-import-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/main-surface-rtt-import-v1
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Import RPC Surface RTT
+        id: import_rpc_surface_rtt
+        if: steps.rpc_surface_rtt.outcome == 'success'
+        working-directory: openclaw-rtt
+        shell: bash
+        run: |
+          set -euo pipefail
+          node "$RTT_SCRIPTS_DIR/import-surface-rtt.mjs" \
+            "${{ steps.rpc_surface_rtt.outputs.sample_paths }}" \
+            --surface rpc \
+            --spec openclaw@main \
+            --version "${{ steps.openclaw_ref.outputs.version }}" \
+            --provider-mode gateway-rpc \
+            --scenario rpc-gateway-smoke \
+            --require-pass
+
       - name: Import Control UI Surface RTT
         id: import_control_ui_surface_rtt
         if: steps.surface_rtt.outcome == 'success'
@@ -265,7 +297,7 @@ jobs:
             --provider-mode mock-openai \
             --require-pass
 
-      - name: Update Surface Dashboard
+      - name: Validate Surface RTT imports
         if: always() && (steps.import_rpc_surface_rtt.outcome == 'success' || steps.import_control_ui_surface_rtt.outcome == 'success')
         working-directory: openclaw-rtt
         shell: bash
@@ -275,9 +307,124 @@ jobs:
           node "$RTT_SCRIPTS_DIR/validate.mjs"
           node "$RTT_SCRIPTS_DIR/surface-rtt-summary.mjs"
 
+      - name: Fail on Surface RTT errors
+        if: always() && (steps.rpc_surface_rtt.outcome == 'failure' || steps.surface_rtt.outcome == 'failure' || steps.import_rpc_surface_rtt.outcome == 'failure' || steps.import_control_ui_surface_rtt.outcome == 'failure')
+        shell: bash
+        run: |
+          echo "RPC samples: ${{ steps.rpc_surface_rtt.outcome }}"
+          echo "Control UI samples: ${{ steps.surface_rtt.outcome }}"
+          echo "RPC import: ${{ steps.import_rpc_surface_rtt.outcome }}"
+          echo "Control UI import: ${{ steps.import_control_ui_surface_rtt.outcome }}"
+          exit 1
+
+  report:
+    name: Import main surface RTT report
+    needs: measure
+    if: always() && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    concurrency:
+      group: rtt-report-writer-${{ github.ref }}
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - name: Checkout RTT tracker
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Archive workflow scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          scripts_archive_dir="$(mktemp -d "$RUNNER_TEMP/rtt-workflow-scripts.XXXXXX")"
+          git archive "${{ github.workflow_sha }}" scripts | tar -x -C "$scripts_archive_dir"
+          printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download main surface import artifact
+        id: download_import
+        if: needs.measure.outputs.artifact_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v8.0.1
+        with:
+          artifact-ids: ${{ needs.measure.outputs.artifact_id }}
+          path: ${{ runner.temp }}/main-surface-rtt-import-v1
+          merge-multiple: true
+
+      - name: Refresh RTT tracker
+        id: refresh_tracker
+        if: always() && needs.measure.outputs.artifact_id != '' && steps.download_import.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+
+      - name: Import main RPC Surface RTT
+        id: import_rpc_surface_rtt
+        if: always() && needs.measure.outputs.artifact_id != '' && steps.download_import.outcome == 'success' && steps.refresh_tracker.outcome == 'success'
+        continue-on-error: true
+        env:
+          VERSION: ${{ needs.measure.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_root="$RUNNER_TEMP/main-surface-rtt-import-v1/rpc"
+          if [[ ! -d "$artifact_root" ]]; then
+            echo "Missing expected RPC artifact root: $artifact_root" >&2
+            exit 1
+          fi
+          node "$RTT_SCRIPTS_DIR/import-surface-rtt.mjs" \
+            --artifact-root "$artifact_root" \
+            --surface rpc \
+            --spec openclaw@main \
+            --version "$VERSION" \
+            --provider-mode gateway-rpc \
+            --scenario rpc-gateway-smoke \
+            --require-pass
+
+      - name: Import main Control UI Surface RTT
+        id: import_control_ui_surface_rtt
+        if: always() && needs.measure.outputs.artifact_id != '' && steps.download_import.outcome == 'success' && steps.refresh_tracker.outcome == 'success'
+        continue-on-error: true
+        env:
+          VERSION: ${{ needs.measure.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_root="$RUNNER_TEMP/main-surface-rtt-import-v1/control-ui"
+          if [[ ! -d "$artifact_root" ]]; then
+            echo "Missing expected Control UI artifact root: $artifact_root" >&2
+            exit 1
+          fi
+          node "$RTT_SCRIPTS_DIR/import-surface-rtt.mjs" \
+            --artifact-root "$artifact_root" \
+            --surface control-ui \
+            --spec openclaw@main \
+            --version "$VERSION" \
+            --provider-mode mock-openai \
+            --require-pass
+
+      - name: Validate imported Surface RTT
+        id: validate_imports
+        if: always() && needs.measure.outputs.artifact_id != '' && steps.download_import.outcome == 'success' && steps.refresh_tracker.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
+          node "$RTT_SCRIPTS_DIR/validate.mjs"
+          node "$RTT_SCRIPTS_DIR/surface-rtt-summary.mjs"
+
       - name: Commit imported Surface RTT
-        if: always() && github.event_name != 'pull_request' && (steps.import_rpc_surface_rtt.outcome == 'success' || steps.import_control_ui_surface_rtt.outcome == 'success')
-        working-directory: openclaw-rtt
+        if: always() && needs.measure.outputs.artifact_id != '' && steps.download_import.outcome == 'success' && steps.refresh_tracker.outcome == 'success' && steps.validate_imports.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -305,12 +452,40 @@ jobs:
             git push
           }
 
-      - name: Fail on Surface RTT errors
-        if: always() && (steps.rpc_surface_rtt.outcome == 'failure' || steps.surface_rtt.outcome == 'failure' || steps.import_rpc_surface_rtt.outcome == 'failure' || steps.import_control_ui_surface_rtt.outcome == 'failure')
+      - name: Fail after partial Surface RTT import
+        if: always()
+        env:
+          ARTIFACT_ID: ${{ needs.measure.outputs.artifact_id }}
+          CONTROL_UI_IMPORT_RESULT: ${{ steps.import_control_ui_surface_rtt.outcome }}
+          DOWNLOAD_RESULT: ${{ steps.download_import.outcome }}
+          MEASURE_RESULT: ${{ needs.measure.result }}
+          REFRESH_RESULT: ${{ steps.refresh_tracker.outcome }}
+          RPC_IMPORT_RESULT: ${{ steps.import_rpc_surface_rtt.outcome }}
+          VALIDATE_RESULT: ${{ steps.validate_imports.outcome }}
         shell: bash
         run: |
-          echo "RPC samples: ${{ steps.rpc_surface_rtt.outcome }}"
-          echo "Control UI samples: ${{ steps.surface_rtt.outcome }}"
-          echo "RPC import: ${{ steps.import_rpc_surface_rtt.outcome }}"
-          echo "Control UI import: ${{ steps.import_control_ui_surface_rtt.outcome }}"
-          exit 1
+          set -euo pipefail
+          failed=false
+          if [[ "$MEASURE_RESULT" != "success" ]]; then
+            echo "Surface RTT measurement result: ${MEASURE_RESULT}"
+            failed=true
+          fi
+          if [[ -z "$ARTIFACT_ID" ]]; then
+            echo "No exact surface RTT import artifact was produced."
+            failed=true
+          else
+            for result in "$DOWNLOAD_RESULT" "$REFRESH_RESULT" "$RPC_IMPORT_RESULT" "$CONTROL_UI_IMPORT_RESULT" "$VALIDATE_RESULT"; do
+              if [[ "$result" != "success" ]]; then
+                failed=true
+              fi
+            done
+            echo "Surface RTT artifact id: ${ARTIFACT_ID}"
+            echo "Download: ${DOWNLOAD_RESULT}"
+            echo "Refresh: ${REFRESH_RESULT}"
+            echo "RPC import: ${RPC_IMPORT_RESULT}"
+            echo "Control UI import: ${CONTROL_UI_IMPORT_RESULT}"
+            echo "Validation: ${VALIDATE_RESULT}"
+          fi
+          if [[ "$failed" == "true" ]]; then
+            exit 1
+          fi
