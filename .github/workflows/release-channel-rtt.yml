@@ -25,6 +25,11 @@ on:
         required: false
         default: "20"
         type: string
+      publish_results:
+        description: Import successful measurements into the RTT tracker
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   actions: read
@@ -216,6 +221,43 @@ jobs:
             exit 1
           fi
 
+      - name: Resolve OpenClaw build cache identity
+        id: build_cache
+        env:
+          CACHE_ARCH: ${{ runner.arch }}
+          CACHE_OS: ${{ runner.os }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_version="$(node --version)"
+          pnpm_version="$(pnpm --version)"
+          release_head="$(git -C openclaw rev-parse HEAD)"
+          qa_head="$(git -C openclaw-qa rev-parse HEAD)"
+          qa_patch_digest="$(
+            {
+              git -C openclaw-qa diff --binary --no-ext-diff HEAD --
+              while IFS= read -r -d '' file; do
+                printf 'untracked:%s\0' "$file"
+                git -C openclaw-qa hash-object -- "$file"
+              done < <(git -C openclaw-qa ls-files --others --exclude-standard -z | sort -z)
+            } | sha256sum | cut -d' ' -f1
+          )"
+          identity="openclaw-release-channel-rtt-build-v1-${CACHE_OS}-${CACHE_ARCH}-node-${node_version}-pnpm-${pnpm_version}-full-private-qa"
+          # Channel links live under ignored node_modules; both builds compile the
+          # complete checked-out source tree. Exact source and patch identities
+          # therefore permit cross-channel reuse without restoring channel output.
+          {
+            printf 'release_key=%s-release-%s\n' "$identity" "$release_head"
+            printf 'qa_key=%s-qa-%s-patch-%s\n' "$identity" "$qa_head" "$qa_patch_digest"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Restore OpenClaw release build cache
+        id: restore_release_build_cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: openclaw/.artifacts/build-all-cache
+          key: ${{ steps.build_cache.outputs.release_key }}
+
       - name: Build OpenClaw release
         working-directory: openclaw
         env:
@@ -227,6 +269,20 @@ jobs:
           set -euo pipefail
           time pnpm build
 
+      - name: Save OpenClaw release build cache
+        if: steps.restore_release_build_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: openclaw/.artifacts/build-all-cache
+          key: ${{ steps.restore_release_build_cache.outputs.cache-primary-key }}
+
+      - name: Restore OpenClaw QA harness build cache
+        id: restore_qa_build_cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: openclaw-qa/.artifacts/build-all-cache
+          key: ${{ steps.build_cache.outputs.qa_key }}
+
       - name: Build OpenClaw QA harness
         working-directory: openclaw-qa
         env:
@@ -237,6 +293,13 @@ jobs:
         run: |
           set -euo pipefail
           time pnpm build
+
+      - name: Save OpenClaw QA harness build cache
+        if: steps.restore_qa_build_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: openclaw-qa/.artifacts/build-all-cache
+          key: ${{ steps.restore_qa_build_cache.outputs.cache-primary-key }}
 
       - name: Run ${{ matrix.package.label }} RTT samples
         id: channel_rtt
@@ -418,7 +481,7 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && needs.resolve.outputs.should_run == 'true'
+    if: always() && needs.resolve.outputs.should_run == 'true' && (github.event_name != 'workflow_dispatch' || inputs.publish_results)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
