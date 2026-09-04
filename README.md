@@ -33,13 +33,13 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-09-04T01:39:44.498Z` · latest `2026.8.1` / `75130176b9`
+Latest imported channel run: `2026-09-04T07:28:54.572Z` · latest `2026.8.1` / `cbcbb005fd`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| Telegram | `998ms` | `2,005ms` | `87MB` | `87MB` | ok |
-| Discord | `1,445ms` | `1,582ms` | `762MB` | `771MB` | ok |
-| Slack | `3,323ms` | `3,506ms` | `752MB` | `762MB` | ok |
+| Telegram | `1,000ms` | `2,004ms` | `87MB` | `87MB` | ok |
+| Discord | `1,599ms` | `2,281ms` | `663MB` | `669MB` | ok |
+| Slack | `1,654ms` | `2,950ms` | `640MB` | `651MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed: QA command exited with status 1 after producing a missing summary.) |
 
 <!-- latest-main:end -->
@@ -52,12 +52,12 @@ RPC and Control UI rows use the same normalized RTT shape as channel rows, but t
 
 <!-- surface-latest:start -->
 
-Latest imported surface run: `2026-09-04T01:04:58.734Z` · latest `2026.8.1` / `3d30b3accb`
+Latest imported surface run: `2026-09-04T06:56:44.530Z` · latest `2026.8.1` / `3b19d3db23`
 
 | Surface | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| RPC | `1ms` | `2ms` | `92MB` | `110MB` | ok: gateway RPC |
-| Control UI | `187ms` | `279ms` | `500MB` | `1,013MB` | ok: browser/Gateway |
+| RPC | `1ms` | `2ms` | `92MB` | `109MB` | ok: gateway RPC |
+| Control UI | `146ms` | `267ms` | `506MB` | `1,035MB` | ok: browser/Gateway |
 
 <!-- surface-latest:end -->
 

@@ -28,7 +28,7 @@ on:
 
 permissions:
   actions: read
-  contents: write
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -74,7 +74,7 @@ jobs:
           echo "No surface release versions to measure (${{ steps.release.outputs.reason }})"
 
   measure:
-    name: Measure OpenClaw ${{ matrix.package.label }} release RTT
+    name: Measure OpenClaw ${{ matrix.package.label }} ${{ matrix.package.version }} release RTT
     needs: resolve
     if: needs.resolve.outputs.should_run == 'true'
     runs-on: blacksmith-16vcpu-ubuntu-2404
@@ -93,6 +93,7 @@ jobs:
         with:
           path: openclaw-rtt
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout OpenClaw release
         uses: actions/checkout@v7
@@ -103,15 +104,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6.0.10
+      - name: Setup Node and pnpm
+        uses: pnpm/setup@v2.1.0
         with:
           version: ${{ env.PNPM_VERSION }}
+          runtime: node@${{ env.NODE_VERSION }}
+          install: false
 
       - name: Locate pnpm store
         id: pnpm-store
@@ -262,6 +260,9 @@ jobs:
     if: always() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
     concurrency:
       group: rtt-report-writer-${{ github.ref }}
       cancel-in-progress: false

@@ -95,6 +95,40 @@ test("queues explicit channel release versions even when already measured", asyn
   ]);
 });
 
+test("scheduled channel release discovery keeps four versions per channel", async () => {
+  const workspace = await makeWorkspace();
+  const versions = [
+    "2026.5.16-beta.1",
+    "2026.5.16-beta.2",
+    "2026.5.16-beta.3",
+    "2026.5.16-beta.4",
+    "2026.5.16-beta.5",
+  ];
+
+  const { stdout } = await execFileAsync(process.execPath, [RESOLVE_SCRIPT], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      GITHUB_OUTPUT: "",
+      INPUT_AVAILABLE_VERSIONS: versions.join(" "),
+      INPUT_CHANNELS: "slack",
+      INPUT_VERSIONS: "",
+      INPUT_VERSION_LIMIT: "",
+    },
+  });
+
+  const outputs = Object.fromEntries(
+    stdout
+      .trim()
+      .split("\n")
+      .map((line) => line.split(/=(.*)/su).slice(0, 2)),
+  );
+  assert.deepEqual(
+    JSON.parse(outputs.matrix).map((entry) => entry.version),
+    versions.slice(0, 4),
+  );
+});
+
 test("auto-requeues failed channel release versions", async () => {
   const workspace = await makeWorkspace();
   for (const version of ["2026.5.16-beta.6", "2026.5.16-beta.7"]) {
