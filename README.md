@@ -69,22 +69,22 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-04T13:59:09.920Z`
+Latest imported release coverage run: `2026-09-04T15:45:55.379Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.9.1` | `1,481ms` | `1,002ms` | `3,692ms` | fail | fail | `1ms` | `156ms` |
-| `2026.9.1-beta.1` | `579ms` | `999ms` | `1,492ms` | fail | fail | `1ms` | `334ms` |
-| `2026.8.2` | `569ms` | `1,002ms` | `1,392ms` | fail | fail | `0ms` | `207ms` |
-| `2026.8.1` | `904ms` | `1,001ms` | `2,329ms` | fail | fail | `1ms` | `260ms` |
-| `2026.8.1-beta.3` | `732ms` | `1,016ms` | `1,862ms` | fail | fail | `1ms` | `222ms` |
-| `2026.8.1-beta.2` | `443ms` | `1,022ms` | timeout | fail | fail | `1ms` | `194ms` |
-| `2026.8.1-beta.1` | `1,476ms` | `1,023ms` | `3,700ms` | fail | fail | `1ms` | `201ms` |
-| `2026.7.2-beta.7` | `1,233ms` | `1,020ms` | `3,072ms` | fail | fail | `0ms` | `109ms` |
-| `2026.7.2-beta.6` | `1,202ms` | `1,051ms` | `2,996ms` | fail | fail | `1ms` | `106ms` |
-| `2026.7.2-beta.5` | `1,591ms` | `1,031ms` | `3,938ms` | fail | fail | `13ms` | `102ms` |
-| `2026.7.2-beta.4` | `858ms` | `1,024ms` | `2,149ms` | fail | fail | `22ms` | `113ms` |
-| `2026.7.2-beta.3` | `2,423ms` | `1,024ms` | `5,977ms` | fail | fail | `5ms` | `313ms` |
+| `2026.9.1` | `1,491ms` | `1,002ms` | `3,692ms` | `2,925ms` | fail | `1ms` | `156ms` |
+| `2026.9.1-beta.1` | `1,047ms` | `999ms` | `1,492ms` | `2,983ms` | fail | `1ms` | `334ms` |
+| `2026.8.2` | `1,029ms` | `1,002ms` | `1,392ms` | `2,887ms` | fail | `0ms` | `207ms` |
+| `2026.8.1` | `1,151ms` | `1,001ms` | `2,329ms` | `2,944ms` | fail | `1ms` | `260ms` |
+| `2026.8.1-beta.3` | `737ms` | `1,016ms` | `1,862ms` | `1,618ms` | fail | `1ms` | `222ms` |
+| `2026.8.1-beta.2` | `1,701ms` | `1,022ms` | timeout | `4,233ms` | fail | `1ms` | `194ms` |
+| `2026.8.1-beta.1` | `1,486ms` | `1,023ms` | `3,700ms` | `2,935ms` | fail | `1ms` | `201ms` |
+| `2026.7.2-beta.7` | `1,681ms` | `1,020ms` | `3,072ms` | `4,223ms` | fail | `0ms` | `109ms` |
+| `2026.7.2-beta.6` | `1,477ms` | `1,051ms` | `2,996ms` | `3,569ms` | fail | `1ms` | `106ms` |
+| `2026.7.2-beta.5` | `1,833ms` | `1,031ms` | `3,938ms` | `4,162ms` | fail | `13ms` | `102ms` |
+| `2026.7.2-beta.4` | `1,121ms` | `1,024ms` | `2,149ms` | `2,870ms` | fail | `22ms` | `113ms` |
+| `2026.7.2-beta.3` | `4,532ms` | `1,024ms` | `5,977ms` | `11,782ms` | fail | `5ms` | `313ms` |
 | `2026.7.2-beta.2` | `1,076ms` | `1,018ms` | `2,042ms` | `2,889ms` | fail | `5ms` | `314ms` |
 | `2026.7.2-beta.1` | `1,711ms` | `1,024ms` | `1,872ms` | `4,764ms` | fail | `6ms` | `306ms` |
 | `2026.7.1-2` | `1,146ms` | `1,001ms` | `2,090ms` | `3,071ms` | fail | `4ms` | `281ms` |
@@ -514,18 +514,18 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.9.1` | - | - | `5,289MB` | `5,289MB` | failed |
-| `2026.9.1-beta.1` | - | - | `891MB` | `891MB` | failed |
-| `2026.8.2` | - | - | `1,244MB` | `1,244MB` | failed |
-| `2026.8.1` | - | - | `1,264MB` | `1,264MB` | failed |
-| `2026.8.1-beta.3` | - | - | `1,293MB` | `1,293MB` | failed |
-| `2026.8.1-beta.2` | - | - | `1,447MB` | `1,447MB` | failed |
-| `2026.8.1-beta.1` | - | - | `5,426MB` | `5,426MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.7.2-beta.7` | - | - | `4,936MB` | `4,936MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.7.2-beta.6` | - | - | `5,295MB` | `5,295MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.7.2-beta.5` | - | - | `5,176MB` | `5,176MB` | failed |
-| `2026.7.2-beta.4` | - | - | `5,250MB` | `5,250MB` | failed |
-| `2026.7.2-beta.3` | - | - | `4,951MB` | `4,951MB` | failed |
+| `2026.9.1` | `2,925ms` | `2,925ms` | `5,159MB` | `5,159MB` | ok |
+| `2026.9.1-beta.1` | `2,983ms` | `2,983ms` | `5,097MB` | `5,097MB` | ok |
+| `2026.8.2` | `2,887ms` | `2,887ms` | `5,273MB` | `5,273MB` | ok |
+| `2026.8.1` | `2,944ms` | `2,944ms` | `5,094MB` | `5,094MB` | ok |
+| `2026.8.1-beta.3` | `1,618ms` | `1,618ms` | `5,194MB` | `5,194MB` | ok |
+| `2026.8.1-beta.2` | `4,233ms` | `4,233ms` | `4,996MB` | `4,996MB` | ok |
+| `2026.8.1-beta.1` | `2,935ms` | `2,935ms` | `5,375MB` | `5,375MB` | ok |
+| `2026.7.2-beta.7` | `4,223ms` | `4,223ms` | `5,357MB` | `5,357MB` | ok |
+| `2026.7.2-beta.6` | `3,569ms` | `3,569ms` | `5,335MB` | `5,335MB` | ok |
+| `2026.7.2-beta.5` | `4,162ms` | `4,162ms` | `5,176MB` | `5,176MB` | failed |
+| `2026.7.2-beta.4` | `2,870ms` | `2,870ms` | `5,250MB` | `5,250MB` | failed |
+| `2026.7.2-beta.3` | `11,782ms` | `11,782ms` | `4,951MB` | `4,951MB` | failed |
 | `2026.7.2-beta.2` | `2,889ms` | `2,889ms` | `5,260MB` | `5,260MB` | failed |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1-2` | `3,071ms` | `3,071ms` | `883MB` | `883MB` | ok |
