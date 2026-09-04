@@ -173,30 +173,6 @@ jobs:
           set -euo pipefail
           node scripts/patch-openclaw-release-qa-harness.mjs ../openclaw-qa
 
-      - name: Link OpenClaw release channel package
-        shell: bash
-        run: |
-          set -euo pipefail
-          channel_dir="openclaw/extensions/${{ matrix.package.channel }}"
-          if [[ ! -d "$channel_dir" ]]; then
-            echo "OpenClaw release does not contain ${channel_dir}." >&2
-            exit 1
-          fi
-          release_channel_dir="${GITHUB_WORKSPACE:?}/${channel_dir}"
-          mkdir -p openclaw/node_modules/@openclaw
-          ln -sfn "$release_channel_dir" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
-          mkdir -p openclaw-qa/node_modules/@openclaw
-          ln -sfn "$release_channel_dir" "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
-          for link_path in \
-            "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}" \
-            "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
-          do
-            if [[ "$(realpath "$link_path")" != "$(realpath "$release_channel_dir")" ]]; then
-              echo "${link_path} does not resolve to ${release_channel_dir}." >&2
-              exit 1
-            fi
-          done
-
       - name: Verify OpenClaw release ref
         working-directory: openclaw
         shell: bash
@@ -242,10 +218,10 @@ jobs:
               done < <(git -C openclaw-qa ls-files --others --exclude-standard -z | sort -z)
             } | sha256sum | cut -d' ' -f1
           )"
-          identity="openclaw-release-channel-rtt-build-v1-${CACHE_OS}-${CACHE_ARCH}-node-${node_version}-pnpm-${pnpm_version}-full-private-qa"
-          # Channel links live under ignored node_modules; both builds compile the
-          # complete checked-out source tree. Exact source and patch identities
-          # therefore permit cross-channel reuse without restoring channel output.
+          identity="openclaw-release-channel-rtt-build-v2-${CACHE_OS}-${CACHE_ARCH}-node-${node_version}-pnpm-${pnpm_version}-full-private-qa"
+          # Channel links are created only after both builds and cache saves.
+          # Exact source and patch identities can therefore be reused across
+          # channels without capturing channel-dependent node_modules state.
           {
             printf 'release_key=%s-release-%s\n' "$identity" "$release_head"
             printf 'qa_key=%s-qa-%s-patch-%s\n' "$identity" "$qa_head" "$qa_patch_digest"
@@ -300,6 +276,30 @@ jobs:
         with:
           path: openclaw-qa/.artifacts/build-all-cache
           key: ${{ steps.restore_qa_build_cache.outputs.cache-primary-key }}
+
+      - name: Link OpenClaw release channel package
+        shell: bash
+        run: |
+          set -euo pipefail
+          channel_dir="openclaw/extensions/${{ matrix.package.channel }}"
+          if [[ ! -d "$channel_dir" ]]; then
+            echo "OpenClaw release does not contain ${channel_dir}." >&2
+            exit 1
+          fi
+          release_channel_dir="${GITHUB_WORKSPACE:?}/${channel_dir}"
+          mkdir -p openclaw/node_modules/@openclaw
+          ln -sfn "$release_channel_dir" "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}"
+          mkdir -p openclaw-qa/node_modules/@openclaw
+          ln -sfn "$release_channel_dir" "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
+          for link_path in \
+            "openclaw/node_modules/@openclaw/${{ matrix.package.channel }}" \
+            "openclaw-qa/node_modules/@openclaw/${{ matrix.package.channel }}"
+          do
+            if [[ "$(realpath "$link_path")" != "$(realpath "$release_channel_dir")" ]]; then
+              echo "${link_path} does not resolve to ${release_channel_dir}." >&2
+              exit 1
+            fi
+          done
 
       - name: Run ${{ matrix.package.label }} RTT samples
         id: channel_rtt

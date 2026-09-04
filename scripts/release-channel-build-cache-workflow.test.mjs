@@ -43,8 +43,9 @@ test("release and QA native build caches use exact source identities", async () 
   assert.match(identity, /sha256sum \| cut -d' ' -f1/u);
   assert.match(
     identity,
-    /identity="openclaw-release-channel-rtt-build-v1-\$\{CACHE_OS\}-\$\{CACHE_ARCH\}-node-\$\{node_version\}-pnpm-\$\{pnpm_version\}-full-private-qa"/u,
+    /identity="openclaw-release-channel-rtt-build-v2-\$\{CACHE_OS\}-\$\{CACHE_ARCH\}-node-\$\{node_version\}-pnpm-\$\{pnpm_version\}-full-private-qa"/u,
   );
+  assert.doesNotMatch(identity, /openclaw-release-channel-rtt-build-v1/u);
   assert.match(
     identity,
     /printf 'release_key=%s-release-%s\\n' "\$identity" "\$release_head"/u,
@@ -65,6 +66,8 @@ test("native cache restore and save tightly wrap both full builds", async () => 
     "Restore OpenClaw QA harness build cache",
     "Build OpenClaw QA harness",
     "Save OpenClaw QA harness build cache",
+    "Link OpenClaw release channel package",
+    "Run ${{ matrix.package.label }} RTT samples",
   ];
   const indices = names.map((name) => stepIndex(workflow, name));
   assert.deepEqual(indices, indices.toSorted((left, right) => left - right));
@@ -108,4 +111,10 @@ test("native cache restore and save tightly wrap both full builds", async () => 
   );
   assert.equal((workflow.match(/\btime pnpm build$/gmu) ?? []).length, 2);
   assert.doesNotMatch(workflow, /pnpm build:ci-artifacts/u);
+
+  const stepNames = [...workflow.matchAll(/^      - name: (.+)$/gmu)].map((match) => match[1]);
+  const linkIndex = stepNames.indexOf("Link OpenClaw release channel package");
+  assert.notEqual(linkIndex, -1);
+  assert.equal(stepNames[linkIndex - 1], "Save OpenClaw QA harness build cache");
+  assert.equal(stepNames[linkIndex + 1], "Run ${{ matrix.package.label }} RTT samples");
 });
