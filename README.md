@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-03T20:22:53.505Z`
+Latest imported release coverage run: `2026-09-04T01:16:41.169Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -698,7 +698,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
 | `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
 | `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
-| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `5,187MB` | `5,187MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `4,927MB` | `4,927MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` | ok |
