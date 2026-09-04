@@ -23,14 +23,13 @@ on:
 
 permissions:
   actions: read
-  contents: write
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
   PNPM_VERSION: "12.1.0"
   PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"
-  CHANNEL_RTT_PR_SAMPLES: "3"
   CHANNEL_RTT_MAX_ATTEMPTS: "3"
   CHANNEL_RTT_RETRY_BASE_SECONDS: "15"
   CHANNEL_RTT_RETRY_MAX_SECONDS: "60"
@@ -106,6 +105,7 @@ jobs:
         with:
           path: openclaw-rtt
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Checkout OpenClaw main
         uses: actions/checkout@v7
@@ -116,15 +116,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6.0.10
+      - name: Setup Node and pnpm
+        uses: pnpm/setup@v2.1.0
         with:
           version: ${{ env.PNPM_VERSION }}
+          runtime: node@${{ env.NODE_VERSION }}
+          install: false
 
       - name: Locate pnpm store
         id: pnpm-store
@@ -187,11 +184,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            samples="${INPUT_SAMPLES:-$CHANNEL_RTT_PR_SAMPLES}"
-          else
-            samples="${INPUT_SAMPLES:-20}"
-          fi
+          samples="${INPUT_SAMPLES:-20}"
           if ! [[ "$samples" =~ ^[1-9][0-9]*$ ]]; then
             echo "samples must be a positive integer, got: $samples" >&2
             exit 1
@@ -358,6 +351,9 @@ jobs:
     if: always() && !cancelled() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
     concurrency:
       group: rtt-report-writer-${{ github.event_name == 'pull_request' && github.run_id || github.ref }}
       cancel-in-progress: false
