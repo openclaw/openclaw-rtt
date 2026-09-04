@@ -1,1 +1,1 @@
-export const OPENCLAW_QA_HARNESS_SHA = "7a89ddc07b06ca458a110b4b0f28d686808ba17b";
+export const OPENCLAW_QA_HARNESS_SHA = "e0c230789b33d4a59a8cda1f7b0858c4af0d5e7a";

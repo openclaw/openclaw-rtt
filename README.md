@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-04T01:16:41.169Z`
+Latest imported release coverage run: `2026-09-04T09:58:38.718Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -85,7 +85,7 @@ Latest imported release coverage run: `2026-09-04T01:16:41.169Z`
 | `2026.7.2-beta.5` | `1,591ms` | `1,031ms` | `3,938ms` | fail | fail | `13ms` | `102ms` |
 | `2026.7.2-beta.4` | `858ms` | `1,024ms` | `2,149ms` | fail | fail | `22ms` | `113ms` |
 | `2026.7.2-beta.3` | `2,423ms` | `1,024ms` | `5,977ms` | fail | fail | `5ms` | `313ms` |
-| `2026.7.2-beta.2` | `783ms` | `1,018ms` | `2,042ms` | fail | fail | `5ms` | `314ms` |
+| `2026.7.2-beta.2` | `1,076ms` | `1,018ms` | `2,042ms` | `2,889ms` | fail | `5ms` | `314ms` |
 | `2026.7.2-beta.1` | `1,711ms` | `1,024ms` | `1,872ms` | `4,764ms` | fail | `6ms` | `306ms` |
 | `2026.7.1-2` | `1,146ms` | `1,001ms` | `2,090ms` | `3,071ms` | fail | `4ms` | `281ms` |
 | `2026.7.1-1` | `1,348ms` | `1,028ms` | `2,088ms` | `3,655ms` | fail | `8ms` | `195ms` |
@@ -526,7 +526,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.7.2-beta.5` | - | - | `4,944MB` | `4,944MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.4` | - | - | `5,353MB` | `5,353MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.7.2-beta.3` | - | - | `5,310MB` | `5,310MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.7.2-beta.2` | - | - | `4,879MB` | `4,879MB` | failed |
+| `2026.7.2-beta.2` | `2,889ms` | `2,889ms` | `5,387MB` | `5,387MB` | ok |
 | `2026.7.2-beta.1` | `4,764ms` | `4,764ms` | `1,114MB` | `1,114MB` | ok |
 | `2026.7.1-2` | `3,071ms` | `3,071ms` | `883MB` | `883MB` | ok |
 | `2026.7.1-1` | `3,655ms` | `3,655ms` | `857MB` | `857MB` | ok |
