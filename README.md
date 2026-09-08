@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-07T22:21:20.974Z`
+Latest imported release coverage run: `2026-09-08T04:28:00.219Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -661,11 +661,11 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.9` | - | - | `636MB` | `636MB` | failed |
 | `2026.6.9-beta.1` | - | - | `667MB` | `667MB` | failed |
 | `2026.6.8` | - | - | `667MB` | `667MB` | failed |
-| `2026.6.8-beta.2` | - | - | `5,348MB` | `5,348MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.8-beta.2` | - | - | `5,472MB` | `5,472MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.6.8-beta.1` | `3,344ms` | `3,344ms` | `1,096MB` | `1,096MB` | ok |
 | `2026.6.7-beta.1` | `3,326ms` | `3,326ms` | `1,098MB` | `1,098MB` | ok |
-| `2026.6.6` | - | - | `5,399MB` | `5,399MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.6.6-beta.2` | - | - | `5,546MB` | `5,546MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.6` | - | - | `5,519MB` | `5,519MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.6-beta.2` | - | - | `5,291MB` | `5,291MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.6.5` | `3,135ms` | `3,936ms` | `1,013MB` | `1,036MB` | ok |
 | `2026.6.5-beta.6` | `3,125ms` | `4,420ms` | `1,017MB` | `1,041MB` | ok |
 | `2026.6.5-beta.5` | `2,668ms` | `3,611ms` | `1,060MB` | `1,073MB` | ok |
@@ -704,7 +704,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
 | `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
 | `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
-| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `5,368MB` | `5,368MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `5,316MB` | `5,316MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` | ok |
