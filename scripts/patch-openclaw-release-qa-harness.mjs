@@ -1,8 +1,53 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const PATCH_ASSET_ROOT = path.dirname(fileURLToPath(import.meta.url));
+
+// Runs inside a one-shot child process whose OPENCLAW_STATE_DIR is the QA
+// state root of exactly one seeding agent. Candidate release auth runtimes
+// read state paths from the process environment (module-evaluation time or
+// per call), so serialization must not share a process-global env window
+// with concurrently seeding agents.
+export const isolatedAuthStoreWorker = `
+import { pathToFileURL } from "node:url";
+
+const chunks = [];
+for await (const chunk of process.stdin) {
+  chunks.push(chunk);
+}
+const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+
+const releaseAuthRuntime = await import(
+  pathToFileURL(input.releaseAuthRuntimePath).href
+);
+const loadStore = releaseAuthRuntime.loadAuthProfileStoreWithoutExternalProfiles;
+const saveStore = releaseAuthRuntime.saveAuthProfileStore;
+if (typeof loadStore !== "function" || typeof saveStore !== "function") {
+  throw new Error(
+    "Candidate release auth runtime must export loadAuthProfileStoreWithoutExternalProfiles and saveAuthProfileStore."
+  );
+}
+
+const existing = loadStore(input.agentDir, { inheritedAuthDir: input.agentDir });
+const nextStore = {
+  ...existing,
+  version: 1,
+  profiles: input.replace
+    ? { ...input.profiles }
+    : { ...(existing.profiles ?? {}), ...input.profiles },
+};
+if (input.replace) {
+  delete nextStore.order;
+  delete nextStore.lastGood;
+  delete nextStore.usageStats;
+}
+saveStore(nextStore, input.agentDir, {
+  filterExternalAuthProfiles: false,
+  syncExternalCli: false,
+});
+process.stdout.write(JSON.stringify({ ok: true }));
+`;
 
 const gatewayConfigWriteAnchor = `        await fs.writeFile(configPath, \`\${JSON.stringify(cfg, null, 2)}\\n\`, {
           encoding: "utf8",
@@ -90,45 +135,38 @@ const candidateOwnedAuthStoreWrite = `export async function writeQaAuthProfiles(
     }
     return;
   }
-  const previousStateDir = process.env.OPENCLAW_STATE_DIR;
-  process.env.OPENCLAW_STATE_DIR = params.stateDir;
-  try {
-    // Candidate modules cache state paths during evaluation, so the isolated QA
-    // state root must be active before importing the candidate serializer.
-    const releaseAuthRuntime = await releaseCompat.resolveReleaseAuthRuntime(packageSpec, runtimePath);
-    const loadStore =
-      releaseAuthRuntime?.loadAuthProfileStoreWithoutExternalProfiles ??
-      loadAuthProfileStoreWithoutExternalProfiles;
-    const saveStore = releaseAuthRuntime?.saveAuthProfileStore;
-    if (!saveStore) {
-      throw new Error("Candidate release auth runtime does not export saveAuthProfileStore.");
-    }
-    const existing = loadStore(agentDir, {
-      inheritedAuthDir: agentDir,
+  // Candidate release auth runtimes read their state root from the process
+  // environment, so serialization runs in a one-shot child process whose env
+  // is exactly this seeding agent's state dir. This process never mutates its
+  // own env, so concurrently seeding agents can never observe or clobber each
+  // other's state dir across an await boundary.
+  const { spawn } = await import("node:child_process");
+  const worker = ${JSON.stringify(isolatedAuthStoreWorker)};
+  await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ["--input-type=module", "--eval", worker], {
+      env: { ...process.env, OPENCLAW_STATE_DIR: params.stateDir },
+      stdio: ["pipe", "pipe", "pipe"],
     });
-    const nextStore = {
-      ...existing,
-      version: 1,
-      profiles: params.replace
-        ? { ...params.profiles }
-        : { ...existing.profiles, ...params.profiles },
-    };
-    if (params.replace) {
-      delete nextStore.order;
-      delete nextStore.lastGood;
-      delete nextStore.usageStats;
-    }
-    saveStore(nextStore, agentDir, {
-      filterExternalAuthProfiles: false,
-      syncExternalCli: false,
+    let stderr = "";
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
     });
-  } finally {
-    if (previousStateDir === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
-    } else {
-      process.env.OPENCLAW_STATE_DIR = previousStateDir;
-    }
-  }
+    child.on("error", reject);
+    child.on("exit", (code, signal) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(\`Isolated release auth store save failed (\${signal ?? \`exit \${code}\`}): \${stderr.trim()}\`));
+      }
+    });
+    child.stdin.end(JSON.stringify({
+      agentDir,
+      profiles: params.profiles,
+      replace: Boolean(params.replace),
+      releaseAuthRuntimePath,
+    }));
+  });
 }`;
 const unsupportedReplacePathsAnchor = `function isStaleConfigPatchError(error: unknown) {
   return formatErrorMessage(error).toLowerCase().includes("config changed since last load");
@@ -213,9 +251,65 @@ async function preparePatchAsset(sourcePath, targetPath) {
   }
   return {
     contents: source,
+    original: existing,
     path: targetPath,
     staged: existing === undefined,
   };
+}
+
+// Committing the patch as a multi-file set is atomic-enough by construction:
+// every write is staged to a sibling temp file first and only then renamed
+// into place one at a time. If any step fails, files that were already
+// renamed are restored from their recorded original contents (best effort),
+// temp files are cleaned up, and the error names any path that still needs
+// manual recovery.
+export async function commitPatchWrites(writes) {
+  const staged = [];
+  try {
+    for (const { contents, original, path: targetPath } of writes) {
+      const tempPath = path.join(
+        path.dirname(targetPath),
+        `.tmp-${path.basename(targetPath)}`,
+      );
+      await fs.writeFile(tempPath, contents, "utf8");
+      staged.push({ committed: false, original, targetPath, tempPath });
+    }
+    for (const entry of staged) {
+      await fs.rename(entry.tempPath, entry.targetPath);
+      entry.committed = true;
+    }
+  } catch (error) {
+    const needsManualRestore = [];
+    for (const entry of staged) {
+      if (entry.committed) {
+        try {
+          if (entry.original === undefined) {
+            await fs.unlink(entry.targetPath);
+          } else {
+            await fs.writeFile(entry.targetPath, entry.original, "utf8");
+          }
+        } catch {
+          needsManualRestore.push(entry.targetPath);
+        }
+      } else {
+        try {
+          await fs.unlink(entry.tempPath);
+        } catch {
+          // Best-effort temp cleanup only.
+        }
+      }
+    }
+    const message =
+      `release QA patch commit failed (${error instanceof Error ? error.message : String(error)}); ` +
+      `previously moved files were rolled back.`;
+    if (needsManualRestore.length) {
+      throw new Error(
+        `${message} Manual restore needed for: ${needsManualRestore.join(", ")} ` +
+          `(restore the original content or run git checkout -- <path> in the openclaw-qa checkout).`,
+      );
+    }
+    throw new Error(message);
+  }
 }
 
 async function main() {
@@ -288,23 +382,48 @@ async function main() {
     ),
   ]);
 
+  // Each write records the original target contents (undefined for newly
+  // created assets) so commitPatchWrites can roll back already-moved files if
+  // a later rename in the set fails.
   const writes = [];
   if (gatewayPatch.patched) {
-    writes.push(fs.writeFile(gatewaySetupPath, gatewayPatch.contents));
+    writes.push({
+      contents: gatewayPatch.contents,
+      original: originalGatewaySetup,
+      path: gatewaySetupPath,
+    });
   }
   if (authStorePatch.patched) {
-    writes.push(fs.writeFile(authStorePath, authStorePatch.contents));
+    writes.push({
+      contents: authStorePatch.contents,
+      original: originalAuthStore,
+      path: authStorePath,
+    });
   }
   if (replacePathsErrorPatch.patched || liveConfigPatch.patched) {
-    writes.push(fs.writeFile(liveGatewayConfigPath, liveConfigPatch.contents));
+    writes.push({
+      contents: liveConfigPatch.contents,
+      original: originalLiveGatewayConfig,
+      path: liveGatewayConfigPath,
+    });
   }
   if (compatModuleAsset.staged) {
-    writes.push(fs.writeFile(compatModuleAsset.path, compatModuleAsset.contents));
+    writes.push({
+      contents: compatModuleAsset.contents,
+      original: compatModuleAsset.original,
+      path: compatModuleAsset.path,
+    });
   }
   if (compatDeclarationAsset.staged) {
-    writes.push(fs.writeFile(compatDeclarationAsset.path, compatDeclarationAsset.contents));
+    writes.push({
+      contents: compatDeclarationAsset.contents,
+      original: compatDeclarationAsset.original,
+      path: compatDeclarationAsset.path,
+    });
   }
-  await Promise.all(writes);
+  if (writes.length > 0) {
+    await commitPatchWrites(writes);
+  }
 
   const patchCount =
     Number(gatewayPatch.patched) +
@@ -318,7 +437,11 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exitCode = 1;
-});
+const isDirectRun =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}
