@@ -315,3 +315,76 @@ test("artifact-root input is mutually exclusive with sample-paths TSV input", as
     /mutually exclusive/u,
   );
 });
+
+async function importRpcIntervals(workspace, intervals) {
+  const paths = [];
+  for (const [index, [startedAt, finishedAt]] of intervals.entries()) {
+    const summaryPath = path.join(workspace, `sample-${index + 1}`, "qa-suite-summary.json");
+    await writeJson(summaryPath, {
+      counts: { total: 1, passed: 1, failed: 0 },
+      run: { startedAt, finishedAt },
+      scenarios: [{
+        id: "rpc-gateway-smoke",
+        status: "pass",
+        rttMeasurement: { finalMatchedReplyRttMs: index + 1, source: "gateway-rpc" },
+      }],
+    });
+    paths.push(summaryPath);
+  }
+  const samplesPath = path.join(workspace, "samples.tsv");
+  await fs.writeFile(samplesPath, `${paths.join("\n")}\n`);
+  await execFileAsync(process.execPath, [
+    IMPORT_SCRIPT, samplesPath, "--surface", "rpc", "--spec", "openclaw@main",
+    "--version", "2026.5.16+intervals", "--require-pass",
+  ], { cwd: workspace });
+  const [row] = await readJsonl(path.join(workspace, "data/surfaces/rpc/2026.5.16+intervals.jsonl"));
+  return row;
+}
+
+test("surface run bounds cover every sample regardless of TSV order", async (t) => {
+  const workspace = await makeWorkspace();
+  t.after(() => fs.rm(workspace, { recursive: true, force: true }));
+  const row = await importRpcIntervals(workspace, [
+    ["2026-05-16T00:00:10.000Z", "2026-05-16T00:00:11.000Z"],
+    ["2026-05-16T00:00:00.000Z", "2026-05-16T00:00:20.000Z"],
+    ["2026-05-16T00:00:02.000Z", "2026-05-16T00:00:03.000Z"],
+  ]);
+  assert.equal(row.run.startedAt, "2026-05-16T00:00:00.000Z");
+  assert.equal(row.run.finishedAt, "2026-05-16T00:00:20.000Z");
+  assert.equal(row.run.durationMs, 20_000);
+  assert.deepEqual(row.rtt.warmSamples, [1, 2, 3]);
+  assert.deepEqual(JSON.parse(await fs.readFile(path.join(workspace, row.artifacts.resultPath))), row);
+});
+
+test("surface run timestamps and duplicate detection use canonical UTC", async (t) => {
+  const workspace = await makeWorkspace();
+  t.after(() => fs.rm(workspace, { recursive: true, force: true }));
+  const row = await importRpcIntervals(workspace, [
+    ["2026-05-15T17:00:00-07:00", "2026-05-15T17:00:02-07:00"],
+  ]);
+  assert.equal(row.run.startedAt, "2026-05-16T00:00:00.000Z");
+  assert.equal(row.run.finishedAt, "2026-05-16T00:00:02.000Z");
+  await assert.rejects(importRpcIntervals(workspace, [
+    ["2026-05-16T00:00:00.000Z", "2026-05-16T00:00:02.000Z"],
+  ]), /Surface RTT run already imported/u);
+});
+
+test("surface imports reject invalid intermediate intervals before writing rows", async (t) => {
+  for (const interval of [
+    ["not-a-date", "2026-05-16T00:00:02.000Z"],
+    ["2026-05-16T00:00:01.000Z", "not-a-date"],
+    ["2026-05-16T00:00:02.000Z", "2026-05-16T00:00:01.000Z"],
+  ]) {
+    await t.test(interval.join(" to "), async (t) => {
+      const workspace = await makeWorkspace();
+      t.after(() => fs.rm(workspace, { recursive: true, force: true }));
+      await assert.rejects(importRpcIntervals(workspace, [
+        ["2026-05-16T00:00:00.000Z", "2026-05-16T00:00:01.000Z"],
+        interval,
+        ["2026-05-16T00:00:03.000Z", "2026-05-16T00:00:04.000Z"],
+      ]), /Surface RTT sample 2 timestamps must form a valid interval/u);
+      await assert.rejects(fs.access(path.join(workspace, "data")), { code: "ENOENT" });
+      await assert.rejects(fs.access(path.join(workspace, "runs")), { code: "ENOENT" });
+    });
+  }
+});

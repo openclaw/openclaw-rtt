@@ -38,3 +38,5 @@ Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless ex
 Release RSS backfills only write `resources` onto an existing Telegram or Discord row and its copied `result.json`. The backfill command asserts the stored RTT `p50` and `p95` values are unchanged before it rewrites that version's JSONL file. RSS is process-level data around the sampled command, not isolated channel transport memory.
 
 RPC rows come only from `scripts/measure-rpc-rtt.mjs`, which starts an isolated loopback Gateway, warms each method once, and measures persistent WebSocket calls such as `health` and `config.get`. Channel request/reply timings are not valid RPC measurements. Control UI rows should be imported with explicit scenario RTT measurements or `control-ui.*` performance events.
+
+Surface imports validate every sample's start and finish timestamps before writing data. A finish may equal its start but must not precede it. Run bounds cover the earliest start through the latest finish, regardless of sample order, and are stored in UTC; sample order and RTT measurements are preserved.
