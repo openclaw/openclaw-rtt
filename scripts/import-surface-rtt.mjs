@@ -453,13 +453,22 @@ async function main() {
     samples.push(await readSample(entries[index], index + 1, surface.id, scenarioId));
   }
 
-  const startedAt = samples[0].summary.startedAt;
-  const finishedAt = samples.at(-1).summary.finishedAt;
-  const startedAtMs = Date.parse(startedAt);
-  const finishedAtMs = Date.parse(finishedAt);
-  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs)) {
-    throw new Error("Surface RTT sample timestamps must be parseable.");
-  }
+  const sampleRunBounds = samples.map((sample) => {
+    const startedAtMs = Date.parse(sample.summary.startedAt);
+    const finishedAtMs = Date.parse(sample.summary.finishedAt);
+    if (
+      !Number.isFinite(startedAtMs) ||
+      !Number.isFinite(finishedAtMs) ||
+      finishedAtMs < startedAtMs
+    ) {
+      throw new Error(`Surface RTT sample ${sample.index} timestamps must form a valid interval.`);
+    }
+    return { startedAtMs, finishedAtMs };
+  });
+  const startedAtMs = Math.min(...sampleRunBounds.map((bounds) => bounds.startedAtMs));
+  const finishedAtMs = Math.max(...sampleRunBounds.map((bounds) => bounds.finishedAtMs));
+  const startedAt = new Date(startedAtMs).toISOString();
+  const finishedAt = new Date(finishedAtMs).toISOString();
 
   const runId = buildRunId(startedAt, surface.id, scenarioId, args.spec);
   const seen = await existingSurfaceRunIds(surface.id);
