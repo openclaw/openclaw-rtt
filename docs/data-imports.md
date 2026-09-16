@@ -17,6 +17,8 @@ node scripts/backfill-release-rss.mjs --family discord --spec openclaw@2026.5.16
 node scripts/summary.mjs
 ```
 
+Sample-paths TSV files accept LF or CRLF line endings and ignore empty lines. Tabs separate paths; spaces within each path are preserved. Surface TSV columns are summary, resource metrics, and performance events; channel import and RSS backfill columns are summary, observed messages, and resource metrics. Leave an optional column empty when supplying a later column.
+
 Telegram release imports expect the aggregate `qa-evidence.json` shape emitted by the OpenClaw package Telegram live lane. The OpenClaw harness checkout must include the package Telegram RTT evidence path; older OpenClaw packages can still be the system under test.
 
 ```sh

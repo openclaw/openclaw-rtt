@@ -89,7 +89,7 @@ async function readResources(args) {
 
   const text = await fs.readFile(path.resolve(args.samplePaths), "utf8");
   const samples = [];
-  for (const [index, line] of text.split("\n").filter(Boolean).entries()) {
+  for (const [index, line] of text.split(/\r?\n/u).filter(Boolean).entries()) {
     const resourceMetricsPath = line.split("\t")[2];
     if (!resourceMetricsPath) {
       throw new Error(`sample-paths line ${index + 1} is missing a resource metrics path.`);
