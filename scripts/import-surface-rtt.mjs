@@ -141,7 +141,7 @@ async function readJson(pathname) {
 async function readSampleEntries(samplesPath) {
   const text = await fs.readFile(samplesPath, "utf8");
   return text
-    .split("\n")
+    .split(/\r?\n/u)
     .filter(Boolean)
     .map((line, index) => {
       const [summaryPath, resourceMetricsPath, performanceEventsPath] = line.split("\t");
