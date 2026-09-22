@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-09-22T05:34:12.850Z`
+Latest imported release coverage run: `2026-09-22T12:22:54.450Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -117,7 +117,7 @@ Latest imported release coverage run: `2026-09-22T05:34:12.850Z`
 | `2026.6.8-beta.2` | `1,756ms` | `1,927ms` | `2,016ms` | `4,978ms` | fail | `17ms` | `354ms` |
 | `2026.6.8-beta.1` | `1,254ms` | `1,971ms` | `2,075ms` | `3,096ms` | `3,344ms` | `20ms` | `349ms` |
 | `2026.6.7-beta.1` | `1,261ms` | `1,003ms` | `2,107ms` | `2,947ms` | `3,326ms` | `22ms` | `316ms` |
-| `2026.6.6` | `1,191ms` | `1,038ms` | `2,249ms` | `3,172ms` | fail | `16ms` | `307ms` |
+| `2026.6.6` | `1,191ms` | `1,038ms` | `2,249ms` | `3,172ms` | timeout | `16ms` | `307ms` |
 | `2026.6.6-beta.2` | `1,138ms` | `1,109ms` | `1,929ms` | `3,199ms` | fail | `19ms` | `407ms` |
 | `2026.6.5` | `1,260ms` | `1,002ms` | `2,068ms` | `3,148ms` | `3,135ms` | `10ms` | `308ms` |
 | `2026.6.5-beta.6` | `1,205ms` | `993ms` | `1,800ms` | `2,947ms` | `3,125ms` | `14ms` | `306ms` |
@@ -546,9 +546,9 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.9.5` | - | - | `5,510MB` | `5,510MB` | failed |
-| `2026.9.4` | - | - | `5,333MB` | `5,333MB` | failed |
-| `2026.9.3` | - | - | `5,348MB` | `5,348MB` | failed |
+| `2026.9.5` | - | - | `5,284MB` | `5,284MB` | failed |
+| `2026.9.4` | - | - | `5,399MB` | `5,399MB` | failed |
+| `2026.9.3` | - | - | `5,231MB` | `5,231MB` | failed |
 | `2026.9.2` | `3,328ms` | `3,376ms` | `5,422MB` | `5,510MB` | ok |
 | `2026.9.1` | `2,925ms` | `2,925ms` | `5,159MB` | `5,159MB` | ok |
 | `2026.9.1-beta.1` | `2,983ms` | `2,983ms` | `5,097MB` | `5,097MB` | ok |
@@ -703,11 +703,11 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.9` | - | - | `636MB` | `636MB` | failed |
 | `2026.6.9-beta.1` | - | - | `667MB` | `667MB` | failed |
 | `2026.6.8` | - | - | `667MB` | `667MB` | failed |
-| `2026.6.8-beta.2` | - | - | `5,406MB` | `5,406MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.8-beta.2` | - | - | `5,111MB` | `5,111MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.6.8-beta.1` | `3,344ms` | `3,344ms` | `1,096MB` | `1,096MB` | ok |
 | `2026.6.7-beta.1` | `3,326ms` | `3,326ms` | `1,098MB` | `1,098MB` | ok |
-| `2026.6.6` | - | - | `5,440MB` | `5,440MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.6.6-beta.2` | - | - | `5,378MB` | `5,378MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.6` | - | - | `21MB` | `21MB` | timeout |
+| `2026.6.6-beta.2` | - | - | `5,228MB` | `5,228MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.6.5` | `3,135ms` | `3,936ms` | `1,013MB` | `1,036MB` | ok |
 | `2026.6.5-beta.6` | `3,125ms` | `4,420ms` | `1,017MB` | `1,041MB` | ok |
 | `2026.6.5-beta.5` | `2,668ms` | `3,611ms` | `1,060MB` | `1,073MB` | ok |
@@ -746,7 +746,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
 | `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
 | `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
-| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `5,454MB` | `5,454MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `5,040MB` | `5,040MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` | ok |
