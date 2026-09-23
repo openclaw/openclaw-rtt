@@ -1,5 +1,3 @@
-import { pathToFileURL } from "node:url";
-
 const LEGACY_CONFIG_CUTOFF = {
   major: 2026,
   minor: 7,
@@ -44,11 +42,6 @@ export function resolveReleaseAuthRuntimePath(packageSpec, runtimePath) {
   return parseExactPackageVersion(packageSpec) && typeof runtimePath === "string" && runtimePath.trim()
     ? runtimePath
     : undefined;
-}
-
-export async function resolveReleaseAuthRuntime(packageSpec, runtimePath) {
-  const resolvedPath = resolveReleaseAuthRuntimePath(packageSpec, runtimePath);
-  return resolvedPath ? await import(pathToFileURL(resolvedPath).href) : undefined;
 }
 
 function legacyMemoryConfig(memory, moveSearchToAgentDefaults) {
