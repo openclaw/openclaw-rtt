@@ -21,7 +21,7 @@ const RTT_SELECTION =
 const IMPORT_SCENARIO = "--scenario telegram-reply-chain-exact-marker";
 const CONVEX_SOURCE = "OPENCLAW_QA_CREDENTIAL_SOURCE: convex";
 const CONVEX_ROLE = "OPENCLAW_QA_CREDENTIAL_ROLE: ci";
-const PNPM_VERSION = 'PNPM_VERSION: "12.1.0"';
+const PNPM_VERSION = 'PNPM_VERSION: "12.5.1"';
 
 function countOccurrences(contents, value) {
   return contents.split(value).length - 1;
@@ -41,7 +41,7 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
 
   for (const [index, { contents, relativePath }] of workflows.entries()) {
     assert.equal(countOccurrences(contents, PNPM_VERSION), 1);
-    assert.equal(countOccurrences(contents, "uses: pnpm/setup@v2.1.0"), 1);
+    assert.equal(countOccurrences(contents, "uses: pnpm/setup@v3.0.0"), 1);
     assert.match(contents, /runtime: node@\$\{\{ env\.NODE_VERSION \}\}/u);
     assert.match(contents, /install: false/u);
     assert.doesNotMatch(contents, /--ignore-scripts=false/u);
