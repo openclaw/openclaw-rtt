@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
-import { execFile, spawn } from "node:child_process";
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
+import { stripTypeScriptTypes } from "node:module";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import test from "node:test";
 
 import {
   commitPatchWrites,
-  isolatedAuthStoreWorker,
 } from "./patch-openclaw-release-qa-harness.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -187,19 +187,17 @@ test("fails closed when the upstream release QA contract changes", async (t) => 
   );
 });
 
-// A fake candidate release auth runtime that binds its state root from the
-// process env at call time, like the historical releases the patch targets.
-// It records the observed env root and widens its write window so concurrent
-// agents overlap, which would expose any cross-agent env sharing.
+// Historical runtimes cache their state root when imported.
 async function makeFakeReleaseAuthRuntime(dir) {
   const runtimePath = path.join(dir, "fake-release-auth-runtime.mjs");
   await fs.writeFile(
     runtimePath,
     `import fs from "node:fs";
 import path from "node:path";
+const importedStateRoot = process.env.OPENCLAW_STATE_DIR;
 
 function readStateRoot() {
-  const stateRoot = process.env.OPENCLAW_STATE_DIR;
+  const stateRoot = importedStateRoot;
   if (!stateRoot || stateRoot.trim() === "") {
     throw new Error("candidate release auth runtime requires OPENCLAW_STATE_DIR");
   }
@@ -216,18 +214,15 @@ export function loadAuthProfileStoreWithoutExternalProfiles(agentDir, options) {
   }
   try {
     return JSON.parse(fs.readFileSync(storePath(), "utf8"));
-  } catch {
-    return { version: 0, profiles: {}, meta: { observedRoot: readStateRoot() } };
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    return { version: 0, profiles: {}, order: {}, lastGood: {}, usageStats: {}, meta: { observedRoot: readStateRoot() } };
   }
 }
 
 export function saveAuthProfileStore(store, agentDir, options) {
   if (options?.filterExternalAuthProfiles !== false || options?.syncExternalCli !== false) {
     throw new Error("unexpected save options");
-  }
-  const deadline = Date.now() + 50;
-  while (Date.now() < deadline) {
-    // Busy-wait so concurrent seeding agents overlap inside the runtime.
   }
   store.meta = { ...store.meta, observedRoot: readStateRoot() };
   fs.writeFileSync(storePath(), JSON.stringify(store, null, 2));
@@ -238,37 +233,28 @@ export function saveAuthProfileStore(store, agentDir, options) {
   return runtimePath;
 }
 
-function runIsolatedAuthStoreWorker({ agentDir, profiles, releaseAuthRuntimePath, replace, stateDir }) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(
-      process.execPath,
-      ["--input-type=module", "--eval", isolatedAuthStoreWorker],
-      {
-        env: { ...process.env, OPENCLAW_STATE_DIR: stateDir },
-        stdio: ["pipe", "pipe", "pipe"],
-      },
-    );
-    let stderr = "";
-    child.stderr.setEncoding("utf8");
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk;
+async function loadPatchedAuthWriter(t, runtimePath) {
+  const { root, authPath } = await makeFixture();
+  t.after(() => fs.rm(root, { force: true, recursive: true }));
+  await execFileAsync(process.execPath, [PATCH_SCRIPT, root]);
+  const modulePath = authPath.replace(/\.ts$/u, ".mjs");
+  await fs.writeFile(modulePath, stripTypeScriptTypes(`
+import path from "node:path";
+function resolveQaAgentAuthDir(params) { return path.join(params.stateDir, "agents", params.agentId); }
+${await fs.readFile(authPath, "utf8")}
+`));
+  const envNames = ["OPENCLAW_QA_RELEASE_AUTH_RUNTIME_PATH", "OPENCLAW_QA_RELEASE_PACKAGE_SPEC", "OPENCLAW_STATE_DIR"];
+  const previous = envNames.map((name) => process.env[name]);
+  t.after(() => {
+    envNames.forEach((name, index) => {
+      if (previous[index] === undefined) delete process.env[name];
+      else process.env[name] = previous[index];
     });
-    child.on("error", reject);
-    child.on("exit", (code, signal) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(
-          new Error(
-            `Isolated release auth store save failed (${signal ?? `exit ${code}`}): ${stderr.trim()}`,
-          ),
-        );
-      }
-    });
-    child.stdin.end(
-      JSON.stringify({ agentDir, profiles, releaseAuthRuntimePath, replace: Boolean(replace) }),
-    );
   });
+  process.env.OPENCLAW_QA_RELEASE_AUTH_RUNTIME_PATH = runtimePath;
+  process.env.OPENCLAW_QA_RELEASE_PACKAGE_SPEC = "openclaw@2026.6.1";
+  process.env.OPENCLAW_STATE_DIR = "parent-state-must-not-change";
+  return (await import(pathToFileURL(modulePath).href)).writeQaAuthProfiles;
 }
 
 test("concurrent seeding agents keep their auth stores in disjoint state roots", async (t) => {
@@ -276,6 +262,7 @@ test("concurrent seeding agents keep their auth stores in disjoint state roots",
   t.after(() => fs.rm(root, { force: true, recursive: true }));
 
   const runtimePath = await makeFakeReleaseAuthRuntime(root);
+  const writeAuthProfiles = await loadPatchedAuthWriter(t, runtimePath);
   const stateA = path.join(root, "state-a");
   const stateB = path.join(root, "state-b");
   const agentA = path.join(stateA, "agents/agent-a");
@@ -286,21 +273,19 @@ test("concurrent seeding agents keep their auth stores in disjoint state roots",
   ]);
 
   await Promise.all([
-    runIsolatedAuthStoreWorker({
-      agentDir: agentA,
+    writeAuthProfiles({
+      agentId: "agent-a",
       profiles: { "pA@example.com": { type: "bearer", token: "token-a" } },
-      releaseAuthRuntimePath: runtimePath,
       stateDir: stateA,
     }),
-    runIsolatedAuthStoreWorker({
-      agentDir: agentB,
+    writeAuthProfiles({
+      agentId: "agent-b",
       profiles: { "pB@example.com": { type: "bearer", token: "token-b" } },
-      releaseAuthRuntimePath: runtimePath,
       stateDir: stateB,
     }),
   ]);
 
-  assert.equal(process.env.OPENCLAW_STATE_DIR, undefined);
+  assert.equal(process.env.OPENCLAW_STATE_DIR, "parent-state-must-not-change");
   const storeA = JSON.parse(await fs.readFile(path.join(stateA, "auth-profiles.json"), "utf8"));
   const storeB = JSON.parse(await fs.readFile(path.join(stateB, "auth-profiles.json"), "utf8"));
   assert.equal(storeA.meta.observedRoot, stateA);
@@ -312,10 +297,9 @@ test("concurrent seeding agents keep their auth stores in disjoint state roots",
 
   // A replace=true write must wipe bookkeeping fields and leave the other
   // agent's store untouched.
-  await runIsolatedAuthStoreWorker({
-    agentDir: agentA,
+  await writeAuthProfiles({
+    agentId: "agent-a",
     profiles: { "pA2@example.com": { type: "bearer", token: "token-a2" } },
-    releaseAuthRuntimePath: runtimePath,
     replace: true,
     stateDir: stateA,
   });
@@ -340,12 +324,12 @@ test("isolated worker fails closed when the candidate runtime lacks the store co
   );
   const stateDir = path.join(root, "state");
   await fs.mkdir(path.join(stateDir, "agents/agent-a"), { recursive: true });
+  const writeAuthProfiles = await loadPatchedAuthWriter(t, runtimePath);
 
   await assert.rejects(
-    runIsolatedAuthStoreWorker({
-      agentDir: path.join(stateDir, "agents/agent-a"),
+    writeAuthProfiles({
+      agentId: "agent-a",
       profiles: { "p@example.com": { type: "bearer", token: "token" } },
-      releaseAuthRuntimePath: runtimePath,
       stateDir,
     }),
     /must export loadAuthProfileStoreWithoutExternalProfiles and saveAuthProfileStore/u,
@@ -382,18 +366,13 @@ test("commitPatchWrites restores already-renamed files when a later rename fails
 
 test("commitPatchWrites leaves targets untouched when a temp write fails mid-staging", async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-release-qa-stagefail-"));
-  t.after(async () => {
-    await fs.chmod(path.join(root, "read-only"), 0o755);
-    await fs.rm(root, { force: true, recursive: true });
-  });
+  t.after(() => fs.rm(root, { force: true, recursive: true }));
 
   const writableDir = path.join(root, "writable");
-  const readOnlyDir = path.join(root, "read-only");
+  const missingDir = path.join(root, "missing");
   await fs.mkdir(writableDir);
-  await fs.mkdir(readOnlyDir);
-  await fs.chmod(readOnlyDir, 0o555);
   const firstPath = path.join(writableDir, "first.txt");
-  const blockedPath = path.join(readOnlyDir, "blocked.txt");
+  const blockedPath = path.join(missingDir, "blocked.txt");
   const lastPath = path.join(writableDir, "last.txt");
   await Promise.all([
     fs.writeFile(firstPath, "first-original\n", "utf8"),
@@ -413,4 +392,18 @@ test("commitPatchWrites leaves targets untouched when a temp write fails mid-sta
   assert.equal(await fs.readFile(lastPath, "utf8"), "last-original\n");
   assert.equal(await fs.access(blockedPath).then(() => true, () => false), false);
   assert.deepEqual(await listTempFiles(writableDir), []);
+});
+
+test("commitPatchWrites preserves permissions and unrelated staging files", async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-release-qa-modes-"));
+  t.after(() => fs.rm(root, { force: true, recursive: true }));
+  const target = path.join(root, "target.txt");
+  const unrelated = path.join(root, ".tmp-target.txt");
+  await fs.writeFile(target, "original", { mode: 0o600 });
+  await fs.writeFile(unrelated, "unrelated");
+  await commitPatchWrites([{ path: target, original: "original", contents: "patched" }]);
+  assert.equal(await fs.readFile(target, "utf8"), "patched");
+  assert.equal((await fs.stat(target)).mode & 0o777, 0o600);
+  assert.equal(await fs.readFile(unrelated, "utf8"), "unrelated");
+  assert.deepEqual(await listTempFiles(root), [".tmp-target.txt"]);
 });
