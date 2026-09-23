@@ -100,15 +100,18 @@ export async function readAllChannelRows() {
     throw error;
   }
 
-  const rows = [];
+  const channelIds = new Set();
   for (const entry of entries) {
     if (entry.isFile() && entry.name.endsWith(".jsonl")) {
-      rows.push(...(await readJsonl(path.join(CHANNEL_DATA_DIR, entry.name))));
+      channelIds.add(entry.name.slice(0, -".jsonl".length));
     }
     if (entry.isDirectory()) {
-      const channelId = entry.name;
-      rows.push(...(await readChannelRows(channelId)));
+      channelIds.add(entry.name);
     }
+  }
+  const rows = [];
+  for (const channelId of channelIds) {
+    rows.push(...(await readChannelRows(channelId)));
   }
   return rows.sort(compareStartedAt);
 }
