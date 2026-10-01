@@ -28,6 +28,46 @@ async function readJsonl(pathname) {
     .map((line) => JSON.parse(line));
 }
 
+for (const variant of ["status-first", "status-last", "failed-status", "superseded", "ambiguous"]) {
+  test(`imports effective Telegram timing observations: ${variant}`, async (t) => {
+    const workspace = await makeWorkspace();
+    t.after(() => fs.rm(workspace, { recursive: true, force: true }));
+    const evidencePath = path.join(workspace, "qa-evidence.json");
+    const measured = {
+      test: { id: "telegram-reply-chain-exact-marker" },
+      effective: true,
+      execution: { packageSource: { spec: "openclaw@2026.9.7" } },
+      result: { status: "pass", timing: { rttMs: 998, p50Ms: 998, samples: 20 } },
+    };
+    const observation = structuredClone(measured);
+    delete observation.result.timing;
+    if (variant === "failed-status") observation.result.status = "fail";
+    if (variant === "superseded" || variant === "ambiguous") {
+      observation.result.timing = { rttMs: 10, p50Ms: 10, samples: 1 };
+      observation.effective = variant === "ambiguous";
+    }
+    await writeJson(evidencePath, {
+      kind: "openclaw.qa.evidence-summary",
+      entries: variant === "status-last" ? [measured, observation] : [observation, measured],
+    });
+    const invoke = () => execFileAsync(process.execPath, [
+      IMPORT_SCRIPT, evidencePath, "--version", "2026.9.7",
+      "--scenario", "telegram-reply-chain-exact-marker",
+      "--started-at", "2026-09-30T20:00:00.000Z",
+      "--finished-at", "2026-09-30T20:00:30.000Z",
+    ], { cwd: workspace });
+    if (variant === "ambiguous") {
+      await assert.rejects(invoke, /multiple effective timing observations/);
+      return;
+    }
+    await invoke();
+    const [row] = await readJsonl(path.join(workspace, "data/channels/telegram/2026.9.7.jsonl"));
+    assert.equal(row.rtt.p50Ms, 998);
+    assert.equal(row.rtt.sampleCount, 20);
+    assert.equal(row.run.status, variant === "failed-status" ? "fail" : "pass");
+  });
+}
+
 test("imports a selected Telegram QA scenario as the existing RTT row shape", async () => {
   const workspace = await makeWorkspace();
   const evidencePath = path.join(workspace, "qa-evidence.json");
