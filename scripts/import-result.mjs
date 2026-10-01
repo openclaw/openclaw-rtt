@@ -139,12 +139,21 @@ function requireEvidenceArgs(args) {
 
 function evidenceEntry(evidence, testId) {
   const entries = Array.isArray(evidence.entries) ? evidence.entries : [];
-  const entry = entries.find((candidate) => candidate?.test?.id === testId);
-  if (!entry) {
+  const matches = entries.filter(
+    (candidate) => candidate?.test?.id === testId && candidate.effective !== false,
+  );
+  if (matches.length === 0) {
     const available = entries.map((candidate) => candidate?.test?.id).filter(Boolean).join(", ");
     throw new Error(`qa evidence missing ${testId}; available: ${available || "<none>"}`);
   }
-  return entry;
+  const measured = matches.filter((entry) => {
+    const timing = entry?.result?.timing;
+    return timing && typeof timing === "object" && !Array.isArray(timing);
+  });
+  if (measured.length > 1) {
+    throw new Error(`${testId} has multiple effective timing observations.`);
+  }
+  return { entry: measured[0] ?? matches[0], entries: matches };
 }
 
 function packageSpecFromEvidence(entry) {
@@ -198,7 +207,7 @@ function buildResultFromEvidence(evidence, args) {
   const { finishedAtMs, startedAtMs } = requireEvidenceArgs(args);
   const scenario =
     args.scenario === undefined ? DEFAULT_TELEGRAM_SCENARIO : requireScenario(args.scenario);
-  const mention = evidenceEntry(evidence, scenario);
+  const { entry: mention, entries: scenarioEntries } = evidenceEntry(evidence, scenario);
   const packageSpec =
     args.spec === undefined
       ? packageSpecFromEvidence(mention)
@@ -227,7 +236,7 @@ function buildResultFromEvidence(evidence, args) {
       finishedAt: args.finishedAt,
       durationMs: finishedAtMs - startedAtMs,
       status:
-        statusFromEvidence([mention]) === "pass" &&
+        statusFromEvidence(scenarioEntries) === "pass" &&
         typeof canaryMs === "number" &&
         typeof mentionReplyMs === "number"
           ? "pass"
@@ -252,7 +261,7 @@ function buildResultFromEvidence(evidence, args) {
     samples: [
       {
         index: 1,
-        status: mention?.result?.status === "pass" ? "pass" : "fail",
+        status: statusFromEvidence(scenarioEntries),
         details: `aggregate timing from qa-evidence.json (${Math.max(
           0,
           sampleCount - (failedSamples ?? 0),
