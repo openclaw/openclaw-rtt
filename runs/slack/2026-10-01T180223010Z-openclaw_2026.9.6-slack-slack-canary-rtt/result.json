@@ -1,0 +1,72 @@
+{
+  "channel": {
+    "id": "slack",
+    "label": "Slack",
+    "scenario": "slack-canary"
+  },
+  "package": {
+    "spec": "openclaw@2026.9.6",
+    "version": "2026.9.6"
+  },
+  "run": {
+    "id": "2026-10-01T180223010Z-openclaw_2026.9.6-slack-slack-canary-rtt",
+    "startedAt": "2026-10-01T18:02:23.010Z",
+    "finishedAt": "2026-10-01T18:03:11.680Z",
+    "durationMs": 48670,
+    "status": "fail"
+  },
+  "polling": {
+    "attemptSamples": [
+      3
+    ],
+    "retryCount": 2,
+    "maxAttempts": 3
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "credentialSource": "mock-openai",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 1,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa slack"
+    },
+    "maxRssKbSamples": [
+      5470612
+    ],
+    "elapsedSecondsSamples": [
+      83.66
+    ],
+    "maxRssKb": {
+      "avg": 5470612,
+      "p50": 5470612,
+      "p95": 5470612,
+      "max": 5470612
+    },
+    "elapsedSeconds": {
+      "avg": 83.66,
+      "p50": 83.66,
+      "p95": 83.66,
+      "max": 83.66
+    }
+  },
+  "samples": [
+    {
+      "index": 1,
+      "status": "fail",
+      "attempts": 3,
+      "maxRssKb": 5470612,
+      "elapsedSeconds": 83.66
+    }
+  ],
+  "artifacts": {
+    "resultPath": "runs/slack/2026-10-01T180223010Z-openclaw_2026.9.6-slack-slack-canary-rtt/result.json"
+  }
+}
