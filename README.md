@@ -52,12 +52,12 @@ RPC and Control UI rows use the same normalized RTT shape as channel rows, but t
 
 <!-- surface-latest:start -->
 
-Latest imported surface run: `2026-10-03T07:00:30.237Z` · latest `2026.9.7` / `843c05384d`
+Latest imported surface run: `2026-10-03T14:14:02.789Z` · latest `2026.9.8` / `5f6ee754f6`
 
 | Surface | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| RPC | `2ms` | `3ms` | `91MB` | `113MB` | ok: gateway RPC |
-| Control UI | `147ms` | `169ms` | `532MB` | `1,048MB` | ok: browser/Gateway |
+| RPC | `2ms` | `3ms` | `92MB` | `115MB` | ok: gateway RPC |
+| Control UI | `151ms` | `160ms` | `533MB` | `990MB` | ok: browser/Gateway |
 
 <!-- surface-latest:end -->
 
