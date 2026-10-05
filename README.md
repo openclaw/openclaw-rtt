@@ -33,12 +33,12 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-10-05T01:08:54.311Z` · latest `2026.9.8` / `c501233304`
+Latest imported channel run: `2026-10-05T01:41:53.225Z` · latest `2026.9.8` / `a2affcf76e`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `1,005ms` | `2,001ms` | `77MB` | `77MB` | ok |
-| Discord | `7,510ms` | `7,740ms` | `1,526MB` | `1,622MB` | ok |
+| Discord | `7,510ms` | `7,740ms` | `1,526MB` | `1,622MB` | stale: latest failed; showing last pass (failed: Discord API /channels/1496962068027281447/messages?after=1556484177245904919&limit=50 failed (429): You are being rate limited. (retry after 0.7s)) |
 | Slack | `4,608ms` | `4,789ms` | `1,497MB` | `1,594MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed: QA command exited with status 1 after producing a missing summary.) |
 
