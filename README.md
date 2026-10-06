@@ -69,11 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-10-05T22:10:36.849Z`
+Latest imported release coverage run: `2026-10-06T01:37:43.076Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.10.1-beta.1` | `439ms` | `1,002ms` | - | fail | fail | `6ms` | `153ms` |
+| `2026.10.1-beta.1` | `1,419ms` | `1,002ms` | `3,544ms` | fail | fail | `6ms` | `153ms` |
 | `2026.9.8` | `2,215ms` | `1,002ms` | `5,407ms` | fail | fail | `2ms` | `110ms` |
 | `2026.9.7` | `1,655ms` | `998ms` | `4,102ms` | fail | fail | `5ms` | `146ms` |
 | `2026.9.6` | `1,439ms` | `1,000ms` | `3,590ms` | fail | fail | `1ms` | `154ms` |
@@ -451,7 +451,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.10.1-beta.1` | - | - | - | - | missing: no imported run |
+| `2026.10.1-beta.1` | `3,544ms` | `5,444ms` | `5,285MB` | `5,346MB` | ok |
 | `2026.9.8` | `5,407ms` | `6,376ms` | `5,161MB` | `5,217MB` | ok |
 | `2026.9.7` | `4,102ms` | `4,980ms` | `5,168MB` | `5,247MB` | ok |
 | `2026.9.6` | `3,590ms` | `3,845ms` | `5,130MB` | `5,190MB` | ok |
