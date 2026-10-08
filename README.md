@@ -69,13 +69,13 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-10-08T19:00:13.224Z`
+Latest imported release coverage run: `2026-10-08T19:24:44.514Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.10.1-beta.2` | `2,299ms` | `998ms` | `5,614ms` | fail | fail | `3ms` | `133ms` |
 | `2026.10.1-beta.1` | `1,419ms` | `1,002ms` | `3,544ms` | fail | fail | `6ms` | `153ms` |
-| `2026.9.9` | `445ms` | `1,000ms` | - | fail | fail | `3ms` | `121ms` |
+| `2026.9.9` | `2,087ms` | `1,000ms` | `5,111ms` | fail | fail | `3ms` | `121ms` |
 | `2026.9.8` | `2,215ms` | `1,002ms` | `5,407ms` | fail | fail | `2ms` | `110ms` |
 | `2026.9.7` | `1,655ms` | `998ms` | `4,102ms` | fail | fail | `5ms` | `146ms` |
 | `2026.9.6` | `1,439ms` | `1,000ms` | `3,590ms` | fail | fail | `1ms` | `154ms` |
@@ -459,7 +459,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 |---|---:|---:|---:|---:|---|
 | `2026.10.1-beta.2` | `5,614ms` | `6,134ms` | `5,154MB` | `5,193MB` | ok |
 | `2026.10.1-beta.1` | `3,544ms` | `5,444ms` | `5,285MB` | `5,346MB` | ok |
-| `2026.9.9` | - | - | - | - | missing: no imported run |
+| `2026.9.9` | `5,111ms` | `5,807ms` | `5,154MB` | `5,199MB` | ok |
 | `2026.9.8` | `5,407ms` | `6,376ms` | `5,161MB` | `5,217MB` | ok |
 | `2026.9.7` | `4,102ms` | `4,980ms` | `5,168MB` | `5,247MB` | ok |
 | `2026.9.6` | `3,590ms` | `3,845ms` | `5,130MB` | `5,190MB` | ok |
