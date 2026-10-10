@@ -33,7 +33,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
-  PNPM_VERSION: "12.5.1"
+  PNPM_VERSION: "12.10.1"
   PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"
 
 jobs:
@@ -243,7 +243,7 @@ jobs:
           } >"$import_dir/metadata.env"
 
       - name: Upload ${{ matrix.package.label }} release import artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-surface-rtt-import-${{ matrix.package.surface }}-${{ matrix.package.version }}
           path: ${{ runner.temp }}/release-surface-rtt-import-${{ matrix.package.surface }}-${{ matrix.package.version }}
@@ -252,7 +252,7 @@ jobs:
 
       - name: Upload ${{ matrix.package.label }} RTT artifacts
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-surface-rtt-${{ matrix.package.surface }}-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: openclaw/${{ steps.surface_rtt.outputs.output_root }}
@@ -294,7 +294,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Download surface release import artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: release-surface-rtt-import-*
           path: ${{ runner.temp }}/release-surface-rtt-imports

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Refresh pnpm within the existing major versions and update artifact actions to include rate-limit retry fixes.
 - Fix Main RTT packaging failures by installing the complete Node/npm toolchain so generated locks preserve native-package platform constraints.
 - Import Telegram timing from the unique effective measured observation when QA evidence also contains status-only observations; reject ambiguous timings and preserve failed observations.
 

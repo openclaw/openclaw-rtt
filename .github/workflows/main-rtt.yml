@@ -21,7 +21,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
-  PNPM_VERSION: "12.5.1"
+  PNPM_VERSION: "12.10.1"
   PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"
 
 jobs:
@@ -195,7 +195,7 @@ jobs:
 
       - name: Upload Telegram RTT diagnostics
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: main-telegram-rtt-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
