@@ -2,6 +2,8 @@
 
 `openclaw-rtt` imports normalized artifacts from OpenClaw channel QA runs. The measurement harness lives in `openclaw/openclaw`; this repo stores the rows and dashboard artifacts.
 
+The Main RTT workflow builds and packs OpenClaw before measuring Telegram. Its packaging step requires the complete Node/npm toolchain, installed after pnpm's runtime setup. A runtime-only Node installation can fall back to the runner's older npm, which drops native-package `libc` constraints and fails OpenClaw's package-lock validation.
+
 ## Import Commands
 
 Run importers from the repo root:

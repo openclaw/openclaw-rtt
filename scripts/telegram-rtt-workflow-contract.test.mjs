@@ -27,6 +27,18 @@ function countOccurrences(contents, value) {
   return contents.split(value).length - 1;
 }
 
+test("main Telegram packaging uses a complete Node and npm toolchain", async () => {
+  const contents = await fs.readFile(path.join(REPO_ROOT, WORKFLOW_PATHS[0]), "utf8");
+  const steps = contents.split(/^      - name: /mu);
+  const pnpmIndex = steps.findIndex((step) => step.includes("uses: pnpm/setup@"));
+  const nodeIndex = steps.findIndex((step) => step.includes("uses: actions/setup-node@"));
+  const packageIndex = steps.findIndex((step) => step.startsWith("Build OpenClaw package\n"));
+
+  assert.ok(nodeIndex > pnpmIndex, "full Node toolchain must replace pnpm's runtime-only Node");
+  assert.ok(packageIndex > nodeIndex, "npm must be available before generating package locks");
+  assert.match(steps[nodeIndex], /node-version: \$\{\{ env\.NODE_VERSION \}\}/u);
+});
+
 test("Telegram RTT workflows use the upstream harness contract", async () => {
   const workflows = await Promise.all(
     WORKFLOW_PATHS.map(async (relativePath) => ({
