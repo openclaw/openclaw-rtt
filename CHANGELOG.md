@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix Main RTT packaging failures by installing the complete Node/npm toolchain so generated locks preserve native-package platform constraints.
 - Import Telegram timing from the unique effective measured observation when QA evidence also contains status-only observations; reject ambiguous timings and preserve failed observations.
 
 - Fix concurrent release QA auth seeding leaking state directories between agents, and roll back partial compatibility patch writes while preserving file permissions. Thanks @petercheng.
