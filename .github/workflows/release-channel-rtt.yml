@@ -43,7 +43,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
-  PNPM_VERSION: "12.5.1"
+  PNPM_VERSION: "12.10.1"
   PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"
   CHANNEL_RTT_BUILD_NODE_OPTIONS: "--max-old-space-size=16384"
   CHANNEL_RTT_MAX_ATTEMPTS: "3"
@@ -469,7 +469,7 @@ jobs:
 
       - name: Upload ${{ matrix.package.label }} release import artifact
         if: github.event_name != 'workflow_dispatch' || inputs.prepare_only != true
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-channel-rtt-import-${{ matrix.package.channel }}-${{ matrix.package.version }}
           path: ${{ runner.temp }}/release-channel-rtt-import-${{ matrix.package.channel }}-${{ matrix.package.version }}
@@ -478,7 +478,7 @@ jobs:
 
       - name: Upload ${{ matrix.package.label }} RTT artifacts
         if: always() && (github.event_name != 'workflow_dispatch' || inputs.prepare_only != true)
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-channel-rtt-${{ matrix.package.channel }}-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: openclaw/.artifacts/qa-e2e/${{ matrix.package.channel }}-release-rtt-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -520,7 +520,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Download channel release import artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: release-channel-rtt-import-*
           path: ${{ runner.temp }}/release-channel-rtt-imports

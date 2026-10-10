@@ -21,7 +21,7 @@ const RTT_SELECTION =
 const IMPORT_SCENARIO = "--scenario telegram-reply-chain-exact-marker";
 const CONVEX_SOURCE = "OPENCLAW_QA_CREDENTIAL_SOURCE: convex";
 const CONVEX_ROLE = "OPENCLAW_QA_CREDENTIAL_ROLE: ci";
-const PNPM_VERSION = 'PNPM_VERSION: "12.5.1"';
+const PNPM_VERSION = 'PNPM_VERSION: "12.10.1"';
 
 function countOccurrences(contents, value) {
   return contents.split(value).length - 1;

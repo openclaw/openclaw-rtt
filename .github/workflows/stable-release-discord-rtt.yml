@@ -36,7 +36,7 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "26.x"
-  PNPM_VERSION: "12.5.1"
+  PNPM_VERSION: "12.10.1"
   PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"
 
 jobs:
@@ -310,7 +310,7 @@ jobs:
           } >"$import_dir/metadata.env"
 
       - name: Upload Discord release import artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-discord-rtt-import-${{ matrix.package.version }}
           path: ${{ runner.temp }}/release-discord-rtt-import-${{ matrix.package.version }}
@@ -319,7 +319,7 @@ jobs:
 
       - name: Upload Discord RTT artifacts
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-discord-rtt-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: openclaw/.artifacts/qa-e2e/discord-release-rtt-${{ matrix.package.version }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -361,7 +361,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Download Discord release import artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: release-discord-rtt-import-*
           path: ${{ runner.temp }}/release-discord-rtt-imports
