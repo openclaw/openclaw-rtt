@@ -33,11 +33,11 @@ Current `openclaw@main` channel snapshot. Channel jobs run on separate schedules
 
 <!-- latest-main:start -->
 
-Latest imported channel run: `2026-10-10T19:12:36.304Z` · latest `2026.9.9` / `5a44564c98`
+Latest imported channel run: `2026-10-11T01:00:43.802Z` · latest `2026.9.9` / `44f21b3a8e`
 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| Telegram | `1,003ms` | `2,005ms` | `76MB` | `76MB` | ok |
+| Telegram | `1,001ms` | `2,001ms` | `76MB` | `76MB` | ok |
 | Discord | `4,766ms` | `5,285ms` | `2,101MB` | `2,162MB` | ok |
 | Slack | `4,603ms` | `4,763ms` | `1,992MB` | `2,104MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed: QA command exited with status 1 after producing a missing summary.) |
