@@ -73,7 +73,7 @@ Latest imported release coverage run: `2026-10-13T13:32:53.967Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.10.5-beta.3` | `587ms` | `1,349ms` | - | - | - | `10ms` | `224ms` |
+| `2026.10.5-beta.3` | `642ms` | `1,349ms` | `1,431ms` | - | - | `10ms` | `224ms` |
 | `2026.10.5-beta.2` | `611ms` | `1,046ms` | `1,452ms` | fail | fail | `7ms` | `120ms` |
 | `2026.10.5-beta.1` | `2,101ms` | `1,004ms` | `5,157ms` | fail | fail | `5ms` | `150ms` |
 | `2026.10.2` | `2,245ms` | `999ms` | `5,491ms` | fail | fail | `3ms` | `143ms` |
@@ -472,7 +472,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.10.5-beta.3` | - | - | - | - | missing: no imported run |
+| `2026.10.5-beta.3` | `1,431ms` | `3,920ms` | `5,142MB` | `5,244MB` | timeout |
 | `2026.10.5-beta.2` | `1,452ms` | `1,805ms` | `5,161MB` | `5,186MB` | ok |
 | `2026.10.5-beta.1` | `5,157ms` | `5,530ms` | `5,230MB` | `5,292MB` | ok |
 | `2026.10.2` | `5,491ms` | `5,707ms` | `5,144MB` | `5,176MB` | ok |
