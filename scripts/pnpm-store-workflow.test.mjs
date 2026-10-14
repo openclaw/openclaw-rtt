@@ -26,7 +26,7 @@ test("RTT measurement workflows use the native pnpm runtime setup", async () => 
     const workflow = await fs.readFile(new URL(filename, workflowsDir), "utf8");
     assert.doesNotMatch(workflow, /pnpm\/action-setup@/u, `${filename} uses legacy pnpm setup`);
     assert.equal(
-      workflow.match(/uses: pnpm\/setup@v3\.0\.0/gu)?.length,
+      workflow.match(/uses: pnpm\/setup@v3\.\d+\.\d+(?=\s|$)/gu)?.length,
       1,
       `${filename} must configure one native pnpm runtime`,
     );
