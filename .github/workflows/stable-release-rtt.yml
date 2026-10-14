@@ -64,7 +64,7 @@ jobs:
           printf 'RTT_SCRIPTS_DIR=%s\n' "$scripts_archive_dir/scripts" >>"$GITHUB_ENV"
 
       - name: Setup Node and pnpm
-        uses: pnpm/setup@v3.0.0
+        uses: pnpm/setup@v3.1.1
         with:
           version: ${{ env.PNPM_VERSION }}
           runtime: node@${{ env.NODE_VERSION }}
