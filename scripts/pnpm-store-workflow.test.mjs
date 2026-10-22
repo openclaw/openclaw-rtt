@@ -8,7 +8,7 @@ import test from "node:test";
 
 const execFileAsync = promisify(execFile);
 const workflowsDir = new URL("../.github/workflows/", import.meta.url);
-const MANAGE_VERSION_ENV = 'PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS: "false"';
+const PINNED_VERSION_ENV = 'pnpm_config_pm_on_fail: "ignore"';
 const LATE_MANAGE_VERSION_SETTING = "--config.manage-package-manager-versions=false";
 const MEASUREMENT_WORKFLOWS = [
   "main-rtt.yml",
@@ -52,7 +52,7 @@ test("workflow-owned pnpm remains authoritative during every OpenClaw install", 
 
     const workflowHeader = workflow.split("\njobs:\n", 1)[0];
     assert.ok(
-      workflowHeader.includes(MANAGE_VERSION_ENV),
+      workflowHeader.includes(PINNED_VERSION_ENV),
       `${filename} must disable packageManager-driven pnpm switching before pnpm starts`,
     );
     assert.ok(
