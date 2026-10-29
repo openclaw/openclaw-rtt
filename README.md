@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-10-29T19:02:40.364Z`
+Latest imported release coverage run: `2026-10-29T22:36:20.675Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -77,7 +77,7 @@ Latest imported release coverage run: `2026-10-29T19:02:40.364Z`
 | `2026.10.10-beta.3` | `483ms` | `1,002ms` | `1,123ms` | fail | fail | `2ms` | `227ms` |
 | `2026.10.10-beta.2` | `572ms` | `1,001ms` | `1,375ms` | fail | fail | `3ms` | `157ms` |
 | `2026.10.10-beta.1` | `514ms` | `1,014ms` | `1,219ms` | fail | fail | `3ms` | `215ms` |
-| `2026.10.9` | `617ms` | `1,300ms` | `1,315ms` | - | - | `4ms` | `153ms` |
+| `2026.10.9` | `617ms` | `1,300ms` | `1,315ms` | fail | fail | `4ms` | `153ms` |
 | `2026.10.8` | `765ms` | `1,862ms` | `1,379ms` | fail | fail | `10ms` | `273ms` |
 | `2026.10.7` | `608ms` | `1,001ms` | `1,458ms` | fail | fail | `3ms` | `119ms` |
 | `2026.10.6` | `549ms` | `1,090ms` | `1,264ms` | fail | fail | `9ms` | `177ms` |
@@ -92,6 +92,7 @@ Latest imported release coverage run: `2026-10-29T19:02:40.364Z`
 | `2026.10.1` | `2,161ms` | `999ms` | `5,280ms` | fail | fail | `3ms` | `111ms` |
 | `2026.10.1-beta.2` | `2,299ms` | `998ms` | `5,614ms` | fail | fail | `3ms` | `133ms` |
 | `2026.10.1-beta.1` | `1,419ms` | `1,002ms` | `3,544ms` | fail | fail | `6ms` | `153ms` |
+| `2026.9.36` | n/a | - | - | fail | fail | - | - |
 | `2026.9.35` | n/a | - | - | fail | fail | - | - |
 | `2026.9.34` | n/a | - | - | fail | fail | - | - |
 | `2026.9.33` | n/a | - | - | fail | fail | - | - |
@@ -239,6 +240,7 @@ Latest imported surface run: `2026-10-29T18:49:40.660Z`
 | `2026.10.1` | `3ms` | `111ms` |
 | `2026.10.1-beta.2` | `3ms` | `133ms` |
 | `2026.10.1-beta.1` | `6ms` | `153ms` |
+| `2026.9.36` | - | - |
 | `2026.9.35` | - | - |
 | `2026.9.34` | - | - |
 | `2026.9.33` | - | - |
@@ -386,6 +388,7 @@ The system under test is the published package running its own Telegram bot. The
 | `2026.10.1` | `999ms` | `2,003ms` | `77MB` | `77MB` | ok |
 | `2026.10.1-beta.2` | `998ms` | `2,010ms` | `76MB` | `76MB` | ok |
 | `2026.10.1-beta.1` | `1,002ms` | `2,004ms` | `76MB` | `76MB` | ok |
+| `2026.9.36` | - | - | - | - | missing: no imported run |
 | `2026.9.35` | - | - | - | - | missing: no imported run |
 | `2026.9.34` | - | - | - | - | missing: no imported run |
 | `2026.9.33` | - | - | - | - | missing: no imported run |
@@ -536,6 +539,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.10.1` | `5,280ms` | `5,783ms` | `5,159MB` | `5,257MB` | ok |
 | `2026.10.1-beta.2` | `5,614ms` | `6,134ms` | `5,154MB` | `5,193MB` | ok |
 | `2026.10.1-beta.1` | `3,544ms` | `5,444ms` | `5,285MB` | `5,346MB` | ok |
+| `2026.9.36` | - | - | - | - | missing: no imported run |
 | `2026.9.35` | - | - | - | - | missing: no imported run |
 | `2026.9.34` | - | - | - | - | missing: no imported run |
 | `2026.9.33` | - | - | - | - | missing: no imported run |
@@ -666,7 +670,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.10.10-beta.3` | - | - | `5,406MB` | `5,406MB` | failed |
 | `2026.10.10-beta.2` | - | - | `5,421MB` | `5,421MB` | failed |
 | `2026.10.10-beta.1` | - | - | `5,332MB` | `5,332MB` | failed |
-| `2026.10.9` | - | - | - | - | missing: no imported run |
+| `2026.10.9` | - | - | `5,471MB` | `5,471MB` | failed |
 | `2026.10.8` | - | - | `5,378MB` | `5,378MB` | failed |
 | `2026.10.7` | - | - | `5,323MB` | `5,323MB` | failed |
 | `2026.10.6` | - | - | `5,249MB` | `5,249MB` | failed |
@@ -681,6 +685,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.10.1` | - | - | `5,473MB` | `5,473MB` | failed |
 | `2026.10.1-beta.2` | - | - | `5,418MB` | `5,418MB` | failed |
 | `2026.10.1-beta.1` | - | - | `5,291MB` | `5,291MB` | failed |
+| `2026.9.36` | - | - | `5,432MB` | `5,432MB` | failed |
 | `2026.9.35` | - | - | `5,326MB` | `5,326MB` | failed |
 | `2026.9.34` | - | - | `5,573MB` | `5,573MB` | failed |
 | `2026.9.33` | - | - | `5,015MB` | `5,015MB` | failed |
@@ -811,7 +816,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.10.10-beta.3` | - | - | `5,458MB` | `5,458MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.10-beta.2` | - | - | `5,333MB` | `5,333MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.10-beta.1` | - | - | `5,356MB` | `5,356MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.10.9` | - | - | - | - | missing: no imported run |
+| `2026.10.9` | - | - | `5,248MB` | `5,248MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.8` | - | - | `5,318MB` | `5,318MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.7` | - | - | `5,421MB` | `5,421MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.6` | - | - | `5,257MB` | `5,257MB` | failed: QA command exited with status 1 after producing a missing summary. |
@@ -826,6 +831,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.10.1` | - | - | `5,284MB` | `5,284MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.1-beta.2` | - | - | `5,435MB` | `5,435MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.1-beta.1` | - | - | `5,454MB` | `5,454MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.9.36` | - | - | `4,961MB` | `4,961MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.9.35` | - | - | `5,445MB` | `5,445MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.9.34` | - | - | `5,386MB` | `5,386MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.9.33` | - | - | `4,955MB` | `4,955MB` | failed: QA command exited with status 1 after producing a missing summary. |
