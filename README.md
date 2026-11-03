@@ -69,7 +69,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-03T06:47:23.910Z`
+Latest imported release coverage run: `2026-11-03T12:29:55.569Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -702,10 +702,10 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.9.9` | - | - | `5,350MB` | `5,350MB` | failed |
 | `2026.9.8` | - | - | `5,320MB` | `5,320MB` | failed |
 | `2026.9.7` | - | - | `5,277MB` | `5,277MB` | failed |
-| `2026.9.6` | - | - | `5,420MB` | `5,420MB` | failed |
-| `2026.9.5` | - | - | `5,306MB` | `5,306MB` | failed |
-| `2026.9.4` | - | - | `5,309MB` | `5,309MB` | failed |
-| `2026.9.3` | - | - | `5,296MB` | `5,296MB` | failed |
+| `2026.9.6` | - | - | `5,384MB` | `5,384MB` | failed |
+| `2026.9.5` | - | - | `5,423MB` | `5,423MB` | failed |
+| `2026.9.4` | - | - | `5,329MB` | `5,329MB` | failed |
+| `2026.9.3` | - | - | `4,902MB` | `4,902MB` | failed |
 | `2026.9.2` | `3,328ms` | `3,376ms` | `5,422MB` | `5,510MB` | ok |
 | `2026.9.1` | `2,925ms` | `2,925ms` | `5,159MB` | `5,159MB` | ok |
 | `2026.9.1-beta.1` | `2,983ms` | `2,983ms` | `5,097MB` | `5,097MB` | ok |
@@ -895,11 +895,11 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.6.9` | - | - | `636MB` | `636MB` | failed |
 | `2026.6.9-beta.1` | - | - | `667MB` | `667MB` | failed |
 | `2026.6.8` | - | - | `667MB` | `667MB` | failed |
-| `2026.6.8-beta.2` | - | - | `5,162MB` | `5,162MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.8-beta.2` | - | - | `5,168MB` | `5,168MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.6.8-beta.1` | `3,344ms` | `3,344ms` | `1,096MB` | `1,096MB` | ok |
 | `2026.6.7-beta.1` | `3,326ms` | `3,326ms` | `1,098MB` | `1,098MB` | ok |
-| `2026.6.6` | - | - | `5,313MB` | `5,313MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.6.6-beta.2` | - | - | `5,324MB` | `5,324MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.6` | - | - | `5,017MB` | `5,017MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.6.6-beta.2` | - | - | `4,960MB` | `4,960MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.6.5` | `3,135ms` | `3,936ms` | `1,013MB` | `1,036MB` | ok |
 | `2026.6.5-beta.6` | `3,125ms` | `4,420ms` | `1,017MB` | `1,041MB` | ok |
 | `2026.6.5-beta.5` | `2,668ms` | `3,611ms` | `1,060MB` | `1,073MB` | ok |
@@ -938,7 +938,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.5.19-beta.1` | `7,852ms` | `9,179ms` | `835MB` | `990MB` | ok |
 | `2026.5.18` | `7,618ms` | `8,715ms` | `923MB` | `1,549MB` | ok |
 | `2026.5.18-beta.1` | `7,875ms` | `8,927ms` | `876MB` | `1,592MB` | ok |
-| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `4,985MB` | `4,985MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.5.16-beta.7` | `7,607ms` | `9,241ms` | `5,431MB` | `5,431MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.5.16-beta.6` | `6,886ms` | `7,819ms` | `891MB` | `1,368MB` | ok |
 | `2026.5.16-beta.5` | `7,853ms` | `8,684ms` | `903MB` | `1,546MB` | ok |
 | `2026.5.16-beta.4` | `6,888ms` | `8,290ms` | `868MB` | `1,599MB` | ok |
