@@ -220,3 +220,48 @@ test("Main Channel has no unreachable pull-request sampling branch", async () =>
   assert.ok(!workflow.includes('GITHUB_EVENT_NAME}" == "pull_request"'));
   assert.match(workflow, /samples="\$\{INPUT_SAMPLES:-20\}"/u);
 });
+
+// Checkout attributes can change the bytes analyzed without changing a script path.
+test("CodeQL scans checkout-attribute PRs", async () => {
+  const workflow = await readWorkflow("codeql.yml");
+  const pr = workflow.split("  pull_request:\n")[1]?.split("  schedule:\n")[0];
+  assert.ok(pr);
+  for (const pattern of [
+    ".gitattributes",
+    "**/.gitattributes",
+    ".github/workflows/codeql.yml",
+    "scripts/**",
+  ]) {
+    assert.ok(pr.includes(`      - "${pattern}"`), `missing PR path ${pattern}`);
+  }
+});
+
+test("CodeQL preserves weekly coverage and isolates manual and PR runs", async () => {
+  const workflow = await readWorkflow("codeql.yml");
+  const header = workflow.split("\njobs:\n", 1)[0];
+  assert.doesNotMatch(header, /^  push:/mu);
+  assert.match(header, /cron: "22 9 \* \* 1"/u);
+  assert.match(header, /^  workflow_dispatch:/mu);
+  const group = header.match(/^  group: (.+)$/mu)?.[1];
+  assert.ok(group);
+  const key = (event, runId, pr) =>
+    group.replace(/\$\{\{ (.*?) \}\}/gu, (_, expression) =>
+      Function("github", `return (${expression})`)({
+        workflow: "CodeQL",
+        event_name: event,
+        run_id: runId,
+        event: { pull_request: { number: pr } },
+        ref: "refs/heads/main",
+      }),
+    );
+  assert.equal(key("schedule", 1), key("schedule", 2));
+  assert.equal(key("pull_request", 1, 7), key("pull_request", 2, 7));
+  assert.equal(new Set([
+    key("schedule", 1),
+    key("workflow_dispatch", 2),
+    key("workflow_dispatch", 3),
+    key("pull_request", 4, 7),
+    key("pull_request", 5, 8),
+  ]).size, 5);
+  assert.ok(header.includes("cancel-in-progress: ${{ github.event_name == 'pull_request' }}"));
+});

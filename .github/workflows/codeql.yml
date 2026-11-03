@@ -1,14 +1,10 @@
 name: CodeQL
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/codeql.yml"
-      - "scripts/**"
   pull_request:
     paths:
+      - ".gitattributes"
+      - "**/.gitattributes"
       - ".github/workflows/codeql.yml"
       - "scripts/**"
   schedule:
@@ -19,6 +15,10 @@ permissions:
   actions: read
   contents: read
   security-events: write
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.event_name }}-${{ github.event_name == 'workflow_dispatch' && github.run_id || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:
