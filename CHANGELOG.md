@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Update pnpm setup to 3.1.2 across the channel and surface QA workflows, retaining the pinned Node and pnpm runtimes. Thanks @dependabot[bot].
+
 - Keep full weekly CodeQL analysis without duplicate main-push scans, isolate manual and scheduled runs, and scan PRs that change checkout attributes.
 
 - Refresh pnpm within the existing major versions and update artifact actions to include rate-limit retry fixes.
