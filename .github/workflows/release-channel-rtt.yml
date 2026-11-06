@@ -94,7 +94,7 @@ jobs:
     name: Measure OpenClaw ${{ matrix.package.label }} ${{ matrix.package.version }} release RTT
     needs: resolve
     if: needs.resolve.outputs.should_run == 'true'
-    runs-on: blacksmith-16vcpu-ubuntu-2404
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     timeout-minutes: 120
     environment: qa-live-shared
     concurrency:
