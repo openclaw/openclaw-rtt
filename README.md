@@ -69,12 +69,12 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-08T13:08:51.348Z`
+Latest imported release coverage run: `2026-11-08T15:56:53.492Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.11.5-beta.1` | `435ms` | `999ms` | timeout | fail | fail | `1ms` | `176ms` |
-| `2026.11.2` | `463ms` | `1,055ms` | - | - | - | `2ms` | `162ms` |
+| `2026.11.2` | `463ms` | `1,055ms` | - | fail | fail | `2ms` | `162ms` |
 | `2026.11.1` | `517ms` | `1,004ms` | `1,201ms` | fail | fail | `1ms` | `168ms` |
 | `2026.10.10` | `466ms` | `1,000ms` | `1,011ms` | fail | fail | `2ms` | `158ms` |
 | `2026.10.10-beta.5` | `485ms` | `1,002ms` | `1,077ms` | fail | fail | `1ms` | `153ms` |
@@ -687,7 +687,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | `2026.11.5-beta.1` | - | - | `5,769MB` | `5,769MB` | failed |
-| `2026.11.2` | - | - | - | - | missing: no imported run |
+| `2026.11.2` | - | - | `5,541MB` | `5,541MB` | failed |
 | `2026.11.1` | - | - | `5,583MB` | `5,583MB` | failed |
 | `2026.10.10` | - | - | `5,433MB` | `5,433MB` | failed |
 | `2026.10.10-beta.5` | - | - | `5,362MB` | `5,362MB` | failed |
@@ -838,7 +838,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | `2026.11.5-beta.1` | - | - | `5,859MB` | `5,859MB` | failed: QA command exited with status 1 after producing a missing summary. |
-| `2026.11.2` | - | - | - | - | missing: no imported run |
+| `2026.11.2` | - | - | `5,476MB` | `5,476MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.1` | - | - | `5,815MB` | `5,815MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.10` | - | - | `5,377MB` | `5,377MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.10.10-beta.5` | - | - | `5,334MB` | `5,334MB` | failed: QA command exited with status 1 after producing a missing summary. |
