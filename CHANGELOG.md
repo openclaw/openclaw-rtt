@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refresh the Docker builder action used by Telegram RTT jobs and the pnpm setup patch used by Crabbox hydration. Thanks @dependabot[bot].
+
 - Update pnpm setup to 3.1.2 across the channel and surface QA workflows, retaining the pinned Node and pnpm runtimes. Thanks @dependabot[bot].
 
 - Keep full weekly CodeQL analysis without duplicate main-push scans, isolate manual and scheduled runs, and scan PRs that change checkout attributes.
