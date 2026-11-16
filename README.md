@@ -551,8 +551,8 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | `2026.11.5-beta.4` | - | - | - | - | missing: no imported run |
-| `2026.11.5-beta.3` | - | - | `5,213MB` | `5,272MB` | timeout |
-| `2026.11.5-beta.2` | - | - | `5,128MB` | `5,172MB` | timeout |
+| `2026.11.5-beta.3` | - | - | `5,100MB` | `5,165MB` | timeout |
+| `2026.11.5-beta.2` | - | - | `5,258MB` | `5,306MB` | timeout |
 | `2026.11.5-beta.1` | - | - | `5,234MB` | `5,289MB` | timeout |
 | `2026.11.3` | `1,124ms` | `1,376ms` | `5,278MB` | `5,338MB` | ok |
 | `2026.11.2` | `1,205ms` | `1,350ms` | `5,232MB` | `5,263MB` | ok |
