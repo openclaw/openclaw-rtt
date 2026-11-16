@@ -69,14 +69,15 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-16T03:47:20.709Z`
+Latest imported release coverage run: `2026-11-16T06:45:14.695Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.11.5-beta.4` | n/a | - | - | fail | fail | - | - |
+| `2026.11.5-beta.4` | n/a | `1,000ms` | - | fail | fail | - | - |
 | `2026.11.5-beta.3` | `438ms` | `1,001ms` | timeout | fail | fail | `1ms` | `165ms` |
 | `2026.11.5-beta.2` | `429ms` | `998ms` | timeout | fail | fail | `1ms` | `209ms` |
 | `2026.11.5-beta.1` | `435ms` | `999ms` | timeout | fail | fail | `1ms` | `176ms` |
+| `2026.11.4` | n/a | `999ms` | - | - | - | - | - |
 | `2026.11.3` | `454ms` | `1,000ms` | `1,124ms` | fail | fail | `2ms` | `407ms` |
 | `2026.11.2` | `530ms` | `1,055ms` | `1,205ms` | fail | fail | `2ms` | `162ms` |
 | `2026.11.1` | `517ms` | `1,004ms` | `1,201ms` | fail | fail | `1ms` | `168ms` |
@@ -235,6 +236,7 @@ Latest imported surface run: `2026-11-15T00:59:38.995Z`
 | `2026.11.5-beta.3` | `1ms` | `165ms` |
 | `2026.11.5-beta.2` | `1ms` | `209ms` |
 | `2026.11.5-beta.1` | `1ms` | `176ms` |
+| `2026.11.4` | - | - |
 | `2026.11.3` | `2ms` | `407ms` |
 | `2026.11.2` | `2ms` | `162ms` |
 | `2026.11.1` | `1ms` | `168ms` |
@@ -389,10 +391,11 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.5-beta.4` | - | - | - | - | missing: no imported run |
+| `2026.11.5-beta.4` | `1,000ms` | `2,068ms` | `86MB` | `86MB` | ok |
 | `2026.11.5-beta.3` | `1,001ms` | `2,008ms` | `86MB` | `86MB` | ok |
 | `2026.11.5-beta.2` | `998ms` | `2,007ms` | `86MB` | `86MB` | ok |
 | `2026.11.5-beta.1` | `999ms` | `2,012ms` | `84MB` | `84MB` | ok |
+| `2026.11.4` | `999ms` | `1,999ms` | `86MB` | `86MB` | ok |
 | `2026.11.3` | `1,000ms` | `2,003ms` | `86MB` | `86MB` | ok |
 | `2026.11.2` | `1,055ms` | `1,955ms` | `85MB` | `85MB` | ok |
 | `2026.11.1` | `1,004ms` | `2,059ms` | `83MB` | `83MB` | ok |
@@ -554,6 +557,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | `2026.11.5-beta.3` | - | - | `5,100MB` | `5,165MB` | timeout |
 | `2026.11.5-beta.2` | - | - | `5,258MB` | `5,306MB` | timeout |
 | `2026.11.5-beta.1` | - | - | `5,234MB` | `5,289MB` | timeout |
+| `2026.11.4` | - | - | - | - | missing: no imported run |
 | `2026.11.3` | `1,124ms` | `1,376ms` | `5,278MB` | `5,338MB` | ok |
 | `2026.11.2` | `1,205ms` | `1,350ms` | `5,232MB` | `5,263MB` | ok |
 | `2026.11.1` | `1,201ms` | `3,627ms` | `5,218MB` | `5,287MB` | ok |
@@ -710,6 +714,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 | `2026.11.5-beta.3` | - | - | `5,462MB` | `5,462MB` | failed |
 | `2026.11.5-beta.2` | - | - | `5,448MB` | `5,448MB` | failed |
 | `2026.11.5-beta.1` | - | - | `5,769MB` | `5,769MB` | failed |
+| `2026.11.4` | - | - | - | - | missing: no imported run |
 | `2026.11.3` | - | - | `5,356MB` | `5,356MB` | failed |
 | `2026.11.2` | - | - | `5,541MB` | `5,541MB` | failed |
 | `2026.11.1` | - | - | `5,583MB` | `5,583MB` | failed |
@@ -866,6 +871,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 | `2026.11.5-beta.3` | - | - | `5,411MB` | `5,411MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.5-beta.2` | - | - | `5,342MB` | `5,342MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.5-beta.1` | - | - | `5,859MB` | `5,859MB` | failed: QA command exited with status 1 after producing a missing summary. |
+| `2026.11.4` | - | - | - | - | missing: no imported run |
 | `2026.11.3` | - | - | `5,368MB` | `5,368MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.2` | - | - | `5,476MB` | `5,476MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.1` | - | - | `5,815MB` | `5,815MB` | failed: QA command exited with status 1 after producing a missing summary. |
