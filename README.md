@@ -69,10 +69,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-17T11:33:01.190Z`
+Latest imported release coverage run: `2026-11-17T12:30:41.994Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
+| `2026.11.5` | n/a | `995ms` | - | - | - | - | - |
 | `2026.11.5-beta.4` | `433ms` | `1,000ms` | timeout | fail | fail | `1ms` | `194ms` |
 | `2026.11.5-beta.3` | `438ms` | `1,001ms` | timeout | fail | fail | `1ms` | `165ms` |
 | `2026.11.5-beta.2` | `429ms` | `998ms` | timeout | fail | fail | `1ms` | `209ms` |
@@ -232,6 +233,7 @@ Latest imported surface run: `2026-11-16T07:13:45.600Z`
 
 | Version | RPC | Control UI |
 |---|---:|---:|
+| `2026.11.5` | - | - |
 | `2026.11.5-beta.4` | `1ms` | `194ms` |
 | `2026.11.5-beta.3` | `1ms` | `165ms` |
 | `2026.11.5-beta.2` | `1ms` | `209ms` |
@@ -391,6 +393,7 @@ The system under test is the published package running its own Telegram bot. The
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.11.5` | `995ms` | `2,077ms` | `87MB` | `87MB` | ok |
 | `2026.11.5-beta.4` | `1,000ms` | `2,068ms` | `86MB` | `86MB` | ok |
 | `2026.11.5-beta.3` | `1,001ms` | `2,008ms` | `86MB` | `86MB` | ok |
 | `2026.11.5-beta.2` | `998ms` | `2,007ms` | `86MB` | `86MB` | ok |
@@ -553,6 +556,7 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.11.5` | - | - | - | - | missing: no imported run |
 | `2026.11.5-beta.4` | - | - | `5,209MB` | `5,260MB` | timeout |
 | `2026.11.5-beta.3` | - | - | `5,277MB` | `5,331MB` | timeout |
 | `2026.11.5-beta.2` | - | - | `5,213MB` | `5,250MB` | timeout |
@@ -710,6 +714,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.11.5` | - | - | - | - | missing: no imported run |
 | `2026.11.5-beta.4` | - | - | `5,679MB` | `5,679MB` | failed |
 | `2026.11.5-beta.3` | - | - | `5,462MB` | `5,462MB` | failed |
 | `2026.11.5-beta.2` | - | - | `5,448MB` | `5,448MB` | failed |
@@ -867,6 +872,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
+| `2026.11.5` | - | - | - | - | missing: no imported run |
 | `2026.11.5-beta.4` | - | - | `5,657MB` | `5,657MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.5-beta.3` | - | - | `5,411MB` | `5,411MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.5-beta.2` | - | - | `5,342MB` | `5,342MB` | failed: QA command exited with status 1 after producing a missing summary. |
