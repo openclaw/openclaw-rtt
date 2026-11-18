@@ -38,7 +38,7 @@ Latest imported channel run: `2026-11-18T18:46:13.448Z` · latest `2026.11.5` / 
 | Channel | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | Telegram | `2,000ms` | `2,006ms` | `87MB` | `87MB` | ok |
-| Discord | `3,023ms` | `3,517ms` | `1,974MB` | `1,995MB` | ok |
+| Discord | `3,348ms` | `4,689ms` | `1,973MB` | `1,994MB` | ok |
 | Slack | `3,290ms` | `4,362ms` | `1,841MB` | `1,902MB` | ok |
 | WhatsApp | `3,143ms` | `3,638ms` | `1,049MB` | `1,055MB` | stale: latest failed; showing last pass (failed: QA command exited with status 1 after producing a missing summary.) |
 
