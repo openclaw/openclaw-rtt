@@ -1,0 +1,281 @@
+{
+  "channel": {
+    "id": "discord",
+    "label": "Discord",
+    "scenario": "discord-canary"
+  },
+  "package": {
+    "spec": "openclaw@2026.11.5-beta.4",
+    "version": "2026.11.5-beta.4"
+  },
+  "run": {
+    "id": "2026-11-19T143308915Z-openclaw_2026.11.5-beta.4-discord-rtt",
+    "startedAt": "2026-11-19T14:33:08.915Z",
+    "finishedAt": "2026-11-19T15:42:35.621Z",
+    "durationMs": 4166706,
+    "status": "fail"
+  },
+  "mode": {
+    "providerMode": "mock-openai",
+    "scenarios": [
+      "discord-canary"
+    ],
+    "credentialSource": "mock-openai",
+    "credentialRole": "ci"
+  },
+  "rtt": {
+    "warmSamples": [],
+    "failedSamples": 20,
+    "sources": []
+  },
+  "resources": {
+    "measurement": {
+      "kind": "process-max-rss",
+      "scope": "qa-command",
+      "command": "pnpm openclaw qa discord"
+    },
+    "maxRssKbSamples": [
+      5341356,
+      5251896,
+      5314780,
+      5373748,
+      5376768,
+      5354120,
+      5475012,
+      5338052,
+      5346952,
+      5355608,
+      5303808,
+      5319572,
+      5411316,
+      5349096,
+      5413076,
+      5269668,
+      5382960,
+      5291320,
+      5350860,
+      5343104
+    ],
+    "elapsedSecondsSamples": [
+      221.07,
+      221.18,
+      222.09,
+      221.13,
+      220.28,
+      177.49,
+      223.38,
+      223.03,
+      225.09,
+      223.03,
+      223.16,
+      186.96,
+      224.05,
+      222.54,
+      224.15,
+      229.05,
+      229.12,
+      225.28,
+      223.45,
+      221.09
+    ],
+    "maxRssKb": {
+      "avg": 5348153.6,
+      "p50": 5346952,
+      "p95": 5413076,
+      "max": 5475012
+    },
+    "elapsedSeconds": {
+      "avg": 219.33100000000005,
+      "p50": 223.03,
+      "p95": 229.05,
+      "max": 229.12
+    }
+  },
+  "discord": {
+    "samples": [
+      {
+        "index": 1,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5341356,
+          "elapsedSeconds": 221.07
+        }
+      },
+      {
+        "index": 2,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5251896,
+          "elapsedSeconds": 221.18
+        }
+      },
+      {
+        "index": 3,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5314780,
+          "elapsedSeconds": 222.09
+        }
+      },
+      {
+        "index": 4,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5373748,
+          "elapsedSeconds": 221.13
+        }
+      },
+      {
+        "index": 5,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5376768,
+          "elapsedSeconds": 220.28
+        }
+      },
+      {
+        "index": 6,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5354120,
+          "elapsedSeconds": 177.49
+        }
+      },
+      {
+        "index": 7,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5475012,
+          "elapsedSeconds": 223.38
+        }
+      },
+      {
+        "index": 8,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5338052,
+          "elapsedSeconds": 223.03
+        }
+      },
+      {
+        "index": 9,
+        "status": "fail",
+        "details": "timed out after 45000ms waiting for Discord message",
+        "resources": {
+          "maxRssKb": 5346952,
+          "elapsedSeconds": 225.09
+        }
+      },
+      {
+        "index": 10,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5355608,
+          "elapsedSeconds": 223.03
+        }
+      },
+      {
+        "index": 11,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5303808,
+          "elapsedSeconds": 223.16
+        }
+      },
+      {
+        "index": 12,
+        "status": "fail",
+        "details": "Discord API /channels/1496962068027281447/messages?after=1572992766231842838&limit=50 failed (429): You are being rate limited. (retry after 0.6s)",
+        "resources": {
+          "maxRssKb": 5319572,
+          "elapsedSeconds": 186.96
+        }
+      },
+      {
+        "index": 13,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5411316,
+          "elapsedSeconds": 224.05
+        }
+      },
+      {
+        "index": 14,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5349096,
+          "elapsedSeconds": 222.54
+        }
+      },
+      {
+        "index": 15,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5413076,
+          "elapsedSeconds": 224.15
+        }
+      },
+      {
+        "index": 16,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5269668,
+          "elapsedSeconds": 229.05
+        }
+      },
+      {
+        "index": 17,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5382960,
+          "elapsedSeconds": 229.12
+        }
+      },
+      {
+        "index": 18,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5291320,
+          "elapsedSeconds": 225.28
+        }
+      },
+      {
+        "index": 19,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5350860,
+          "elapsedSeconds": 223.45
+        }
+      },
+      {
+        "index": 20,
+        "status": "fail",
+        "details": "QA scenario flow timed out after 45000ms",
+        "resources": {
+          "maxRssKb": 5343104,
+          "elapsedSeconds": 221.09
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "resultPath": "runs/discord/2026-11-19T143308915Z-openclaw_2026.11.5-beta.4-discord-rtt/result.json"
+  }
+}
