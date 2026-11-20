@@ -69,12 +69,12 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-19T22:05:13.119Z`
+Latest imported release coverage run: `2026-11-19T23:23:26.652Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.11.10-beta.1` | `891ms` | `1,999ms` | - | fail | fail | `12ms` | `222ms` |
-| `2026.11.6` | `432ms` | `996ms` | - | fail | fail | `1ms` | `186ms` |
+| `2026.11.10-beta.1` | `891ms` | `1,999ms` | timeout | fail | fail | `12ms` | `222ms` |
+| `2026.11.6` | `432ms` | `996ms` | timeout | fail | fail | `1ms` | `186ms` |
 | `2026.11.5` | `436ms` | `995ms` | timeout | fail | fail | `1ms` | `160ms` |
 | `2026.11.5-beta.4` | `433ms` | `1,000ms` | timeout | fail | fail | `1ms` | `194ms` |
 | `2026.11.5-beta.3` | `438ms` | `1,001ms` | timeout | fail | fail | `1ms` | `165ms` |
@@ -565,13 +565,13 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.10-beta.1` | - | - | - | - | missing: no imported run |
-| `2026.11.6` | - | - | - | - | missing: no imported run |
-| `2026.11.5` | - | - | `5,214MB` | `5,277MB` | timeout |
-| `2026.11.5-beta.4` | - | - | `5,222MB` | `5,286MB` | timeout |
-| `2026.11.5-beta.3` | - | - | `5,209MB` | `5,251MB` | timeout |
-| `2026.11.5-beta.2` | - | - | `5,221MB` | `5,267MB` | timeout |
-| `2026.11.5-beta.1` | - | - | `5,204MB` | `5,270MB` | timeout |
+| `2026.11.10-beta.1` | - | - | `5,204MB` | `5,246MB` | timeout |
+| `2026.11.6` | - | - | `5,207MB` | `5,269MB` | timeout |
+| `2026.11.5` | - | - | `5,192MB` | `5,275MB` | timeout |
+| `2026.11.5-beta.4` | - | - | `5,134MB` | `5,188MB` | timeout |
+| `2026.11.5-beta.3` | - | - | `5,225MB` | `5,274MB` | timeout |
+| `2026.11.5-beta.2` | - | - | `5,230MB` | `5,305MB` | timeout |
+| `2026.11.5-beta.1` | - | - | `5,206MB` | `5,274MB` | timeout |
 | `2026.11.4` | `1,163ms` | `1,792ms` | `5,249MB` | `5,298MB` | ok |
 | `2026.11.3` | `1,124ms` | `1,376ms` | `5,278MB` | `5,338MB` | ok |
 | `2026.11.2` | `1,205ms` | `1,350ms` | `5,232MB` | `5,263MB` | ok |
