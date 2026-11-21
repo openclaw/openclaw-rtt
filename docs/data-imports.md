@@ -37,6 +37,8 @@ pnpm test:docker:npm-telegram-live
 
 Current channel folders are `telegram`, `discord`, `slack`, and `whatsapp`. Telegram and Discord still have specialized importers because their source artifact shapes differ; they now share the same storage contract as generic live-transport channels.
 
+Release rows with both passing and failing samples show `partial: passed/total samples passed` and the failed sample's reason. Discord counts use `discord.samples`; successful samples do not supply failure text.
+
 Readers also accept legacy `data/channels/<channel>.jsonl` files alongside versioned channel directories. Aggregate reports read each source file once, including when both layouts exist for the same channel.
 
 Raw Telegram QA artifacts stay in the OpenClaw repo artifact directory unless explicitly copied here later. Historical Telegram rows imported from the old package RTT wrapper may include `rtt.warmSamples` with every successful sample value. New Telegram imports from `qa-evidence.json` preserve the aggregate dashboard metrics (`canaryMs`, `mentionReplyMs`, `avgMs`, `p50Ms`, `p95Ms`, `maxMs`, `sampleCount`, and `failedSamples`) but do not reconstruct individual sample RTT arrays because the evidence artifact stores aggregate timing.
