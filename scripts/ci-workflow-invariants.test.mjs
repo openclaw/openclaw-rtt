@@ -40,10 +40,7 @@ test("CI owns README validation without a hydration workflow", async () => {
     workflow,
     /group: ci-\$\{\{ github\.event_name == 'pull_request' && github\.event\.pull_request\.number \|\| github\.run_id \}\}/u,
   );
-  assert.match(
-    workflow,
-    /cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/u,
-  );
+  assert.match(workflow, /cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/u);
   const verifyReadme = workflow
     .split("      - name: Verify README generation\n")[1]
     ?.split(/\n      - name:/u)[0];
@@ -54,6 +51,8 @@ test("CI owns README validation without a hydration workflow", async () => {
 });
 
 const SPLIT_WRITER_WORKFLOWS = [
+  "main-rtt.yml",
+  "main-discord-rtt.yml",
   "main-channel-rtt.yml",
   "main-surface-rtt.yml",
   "stable-release-discord-rtt.yml",
@@ -101,19 +100,28 @@ test("Main Surface preserves partial evidence across its read-only measurement b
     /^    outputs:\n      artifact_id: \$\{\{ steps\.upload_import\.outputs\.artifact-id \}\}\n      version: \$\{\{ steps\.openclaw_ref\.outputs\.version \}\}$/mu,
   );
   assert.match(report, /^    needs: measure$/mu);
-  assert.match(report, /^    if: always\(\) && github\.event_name != 'pull_request'$/mu);
+  assert.match(
+    report,
+    /^    if: github\.ref == 'refs\/heads\/main' && always\(\) && github\.event_name != 'pull_request'$/mu,
+  );
   assert.match(
     prepare,
     /if: always\(\) && \(steps\.rpc_surface_rtt\.outcome == 'success' \|\| steps\.surface_rtt\.outcome == 'success'\)/u,
   );
   assert.doesNotMatch(prepare, /manifest|metadata/u);
-  assert.match(prepare, /cp -R "\$\{\{ steps\.rpc_surface_rtt\.outputs\.output_root \}\}" "\$BUNDLE_DIR\/rpc"/u);
+  assert.match(
+    prepare,
+    /cp -R "\$\{\{ steps\.rpc_surface_rtt\.outputs\.output_root \}\}" "\$BUNDLE_DIR\/rpc"/u,
+  );
   assert.match(
     prepare,
     /cp -R "\$\{\{ steps\.surface_rtt\.outputs\.output_root \}\}" "\$BUNDLE_DIR\/control-ui"/u,
   );
   assert.match(upload, /^        id: upload_import$/mu);
-  assert.match(upload, /name: main-surface-rtt-import-v1-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/u);
+  assert.match(
+    upload,
+    /name: main-surface-rtt-import-v1-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/u,
+  );
   assert.doesNotMatch(upload, /overwrite:/u);
   assert.match(upload, /if-no-files-found: error/u);
   assert.match(download, /if: needs\.measure\.outputs\.artifact_id != ''/u);
@@ -125,7 +133,10 @@ test("Main Surface preserves partial evidence across its read-only measurement b
     [importControlUi, "control-ui", "control-ui", "Control UI"],
   ]) {
     assert.match(step, /continue-on-error: true/u);
-    assert.match(step, new RegExp(`--artifact-root "\\$artifact_root"[\\s\\S]*--surface ${surface}`, "u"));
+    assert.match(
+      step,
+      new RegExp(`--artifact-root "\\$artifact_root"[\\s\\S]*--surface ${surface}`, "u"),
+    );
     assert.match(step, new RegExp(`main-surface-rtt-import-v1/${root}`, "u"));
     assert.match(
       step,
@@ -136,7 +147,10 @@ test("Main Surface preserves partial evidence across its read-only measurement b
     );
     assert.match(step, /--version "\$VERSION"/u);
   }
-  assert.match(importRpc, /--provider-mode gateway-rpc[\s\S]*--scenario rpc-gateway-smoke[\s\S]*--require-pass/u);
+  assert.match(
+    importRpc,
+    /--provider-mode gateway-rpc[\s\S]*--scenario rpc-gateway-smoke[\s\S]*--require-pass/u,
+  );
   assert.match(importControlUi, /--provider-mode mock-openai[\s\S]*--require-pass/u);
   assert.match(validate, /if: always\(\)/u);
   assert.match(validate, /continue-on-error: true/u);
@@ -151,12 +165,15 @@ test("Main Surface preserves partial evidence across its read-only measurement b
         report.indexOf("      - name: Validate imported Surface RTT\n") &&
       report.indexOf("      - name: Validate imported Surface RTT\n") <
         report.indexOf("      - name: Commit imported Surface RTT\n") &&
-    report.indexOf("      - name: Commit imported Surface RTT\n") <
-      report.indexOf("      - name: Fail after partial Surface RTT import\n"),
+      report.indexOf("      - name: Commit imported Surface RTT\n") <
+        report.indexOf("      - name: Fail after partial Surface RTT import\n"),
     "RPC evidence must validate and commit before a Control UI import failure becomes terminal",
   );
   assert.match(terminal, /if: always\(\)/u);
-  assert.match(terminal, /CONTROL_UI_IMPORT_RESULT: \$\{\{ steps\.import_control_ui_surface_rtt\.outcome \}\}/u);
+  assert.match(
+    terminal,
+    /CONTROL_UI_IMPORT_RESULT: \$\{\{ steps\.import_control_ui_surface_rtt\.outcome \}\}/u,
+  );
   assert.match(terminal, /if \[\[ "\$MEASURE_RESULT" != "success" \]\]/u);
   assert.match(workflow, /pull_request:[\s\S]*- "scripts\/import-surface-rtt\.mjs"/u);
   assert.doesNotMatch(workflow, /import-surface-bundle/u);
@@ -246,7 +263,10 @@ test("CodeQL preserves weekly coverage and isolates manual and PR runs", async (
   assert.ok(group);
   const key = (event, runId, pr) =>
     group.replace(/\$\{\{ (.*?) \}\}/gu, (_, expression) =>
-      Function("github", `return (${expression})`)({
+      Function(
+        "github",
+        `return (${expression})`,
+      )({
         workflow: "CodeQL",
         event_name: event,
         run_id: runId,
@@ -256,12 +276,15 @@ test("CodeQL preserves weekly coverage and isolates manual and PR runs", async (
     );
   assert.equal(key("schedule", 1), key("schedule", 2));
   assert.equal(key("pull_request", 1, 7), key("pull_request", 2, 7));
-  assert.equal(new Set([
-    key("schedule", 1),
-    key("workflow_dispatch", 2),
-    key("workflow_dispatch", 3),
-    key("pull_request", 4, 7),
-    key("pull_request", 5, 8),
-  ]).size, 5);
+  assert.equal(
+    new Set([
+      key("schedule", 1),
+      key("workflow_dispatch", 2),
+      key("workflow_dispatch", 3),
+      key("pull_request", 4, 7),
+      key("pull_request", 5, 8),
+    ]).size,
+    5,
+  );
   assert.ok(header.includes("cancel-in-progress: ${{ github.event_name == 'pull_request' }}"));
 });

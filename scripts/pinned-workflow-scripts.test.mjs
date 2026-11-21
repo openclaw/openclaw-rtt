@@ -26,13 +26,11 @@ const WRITER_PATHS = [
     name: "main Telegram",
     workflow: ".github/workflows/main-rtt.yml",
     writerStep: "Import result",
-    checkoutPath: "openclaw-rtt",
   },
   {
     name: "main Discord",
     workflow: ".github/workflows/main-discord-rtt.yml",
     writerStep: "Import Discord RTT result",
-    checkoutPath: "openclaw-rtt",
   },
   {
     name: "main channel",
@@ -54,7 +52,6 @@ const WRITER_PATHS = [
     name: "release Telegram",
     workflow: ".github/workflows/stable-release-rtt.yml",
     writerStep: "Import result",
-    checkoutPath: "openclaw-rtt",
   },
   {
     name: "release Discord",
@@ -83,6 +80,7 @@ const EXPECTED_ENTRYPOINTS = [
   "import-surface-rtt.mjs",
   "measure-control-ui-rtt.mjs",
   "measure-rpc-rtt.mjs",
+  "publish-rtt-report.mjs",
   "summary.mjs",
   "surface-rtt-summary.mjs",
   "update-readme.mjs",
@@ -123,7 +121,7 @@ function dynamicImportExpressions(source) {
     .filter((expression) => !/^["'][^"']+["']$/u.test(expression));
 }
 
-test("all eight workflows snapshot scripts before nine writer pulls", async (t) => {
+test("all eight workflows snapshot scripts before nine writer refreshes", async (t) => {
   assert.equal(WORKFLOW_FILES.length, 8);
   assert.equal(WRITER_PATHS.length, 9);
   const workflowCache = new Map();
@@ -175,7 +173,9 @@ test("all eight workflows snapshot scripts before nine writer pulls", async (t) 
       );
       assert.doesNotMatch(archive.contents, /^\s*cd /mu);
 
-      const pullIndex = writerStep.contents.indexOf("git pull --rebase");
+      const pullIndex = writerStep.contents.indexOf(
+        'node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" prepare',
+      );
       assert.notEqual(pullIndex, -1, `${writer.name}: writer must update its checkout`);
       assert.ok(archive.index < writerStep.index, `${writer.name}: archive must precede the pull`);
       const absolutePullIndex = writerStep.index + pullIndex;
@@ -245,10 +245,7 @@ test("commit A workflow scripts survive deletion in commit B", async (t) => {
   const archiveTar = path.join(tempRoot, "scripts.tar");
   await fs.mkdir(scripts, { recursive: true });
   await fs.mkdir(archive);
-  await fs.writeFile(
-    path.join(scripts, "helper.mjs"),
-    'export const revision = "commit-a";\n',
-  );
+  await fs.writeFile(path.join(scripts, "helper.mjs"), 'export const revision = "commit-a";\n');
   await fs.writeFile(
     path.join(scripts, "entrypoint.mjs"),
     'import { revision } from "./helper.mjs";\nprocess.stdout.write(`${revision}\\n`);\n',

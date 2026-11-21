@@ -348,14 +348,17 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && !cancelled() && needs.resolve.outputs.should_run == 'true'
+    if: github.ref == 'refs/heads/main' && always() && !cancelled() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       actions: read
       contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
     concurrency:
-      group: rtt-report-writer-${{ github.event_name == 'pull_request' && github.run_id || github.ref }}
+      group: rtt-report-writer-main
       cancel-in-progress: false
       queue: max
     steps:
@@ -390,7 +393,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${GITHUB_EVENT_NAME}" != "pull_request" ]]; then
-            git pull --rebase origin main
+            node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" prepare
           fi
           import_root="$RUNNER_TEMP/channel-rtt-imports"
           shopt -s nullglob
@@ -448,28 +451,4 @@ jobs:
       - name: Commit result
         if: github.event_name != 'pull_request'
         shell: bash
-        run: |
-          set -euo pipefail
-          git add data/channels/ runs/ README.md
-          if git diff --cached --quiet --exit-code; then
-            echo "No channel RTT changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "data: record main channel rtt"
-          git push || {
-            # Drop only generated dashboard state so real data conflicts still fail the rebase.
-            git restore --source=HEAD^ --staged --worktree README.md
-            git commit --amend --no-edit
-            git pull --rebase origin main
-            if [[ "$(git rev-list --count "origin/main..HEAD")" == "0" ]]; then
-              echo "Channel RTT import is already present after rebase."
-              exit 0
-            fi
-            node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
-            node "$RTT_SCRIPTS_DIR/validate.mjs"
-            git add README.md
-            git commit --amend --no-edit
-            git push
-          }
+        run: node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" publish --family channel

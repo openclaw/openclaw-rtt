@@ -264,14 +264,17 @@ jobs:
     needs:
       - resolve
       - measure
-    if: always() && needs.resolve.outputs.should_run == 'true'
+    if: github.ref == 'refs/heads/main' && always() && needs.resolve.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       actions: read
       contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
     concurrency:
-      group: rtt-report-writer-${{ github.ref }}
+      group: rtt-report-writer-main
       cancel-in-progress: false
       queue: max
     steps:
@@ -305,7 +308,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git pull --rebase origin "${GITHUB_REF_NAME:-main}"
+          node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" prepare
           import_root="$RUNNER_TEMP/release-surface-rtt-imports"
           shopt -s nullglob
           import_dirs=("$import_root"/release-surface-rtt-import-*)
@@ -367,28 +370,4 @@ jobs:
 
       - name: Commit result
         shell: bash
-        run: |
-          set -euo pipefail
-          git add data/surfaces/ runs/surfaces/ README.md
-          if git diff --cached --quiet --exit-code; then
-            echo "No surface release RTT changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "data: record surface release rtt"
-          git push || {
-            # Drop only generated dashboard state so real data conflicts still fail the rebase.
-            git restore --source=HEAD^ --staged --worktree README.md
-            git commit --amend --no-edit
-            git pull --rebase origin "${GITHUB_REF_NAME:-main}"
-            if [[ "$(git rev-list --count "origin/${GITHUB_REF_NAME:-main}..HEAD")" == "0" ]]; then
-              echo "Surface release RTT import is already present after rebase."
-              exit 0
-            fi
-            node "$RTT_SCRIPTS_DIR/update-readme.mjs"
-            node "$RTT_SCRIPTS_DIR/validate.mjs"
-            git add README.md
-            git commit --amend --no-edit
-            git push
-          }
+        run: node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" publish --family surface

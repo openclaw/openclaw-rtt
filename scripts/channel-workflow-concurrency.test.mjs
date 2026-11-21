@@ -19,10 +19,7 @@ function extractBlock(job, blockName) {
 }
 
 function assertLine(block, expected) {
-  assert.ok(
-    block.split("\n").includes(expected),
-    `expected exact line in block: ${expected}`,
-  );
+  assert.ok(block.split("\n").includes(expected), `expected exact line in block: ${expected}`);
 }
 
 const channelWorkflows = [
@@ -67,6 +64,9 @@ test("release-channel-rtt.yml isolates prepare-only runs without changing normal
 });
 
 const reportWorkflows = [
+  "main-rtt.yml",
+  "main-discord-rtt.yml",
+  "stable-release-rtt.yml",
   "main-channel-rtt.yml",
   "main-surface-rtt.yml",
   "release-channel-rtt.yml",
@@ -85,3 +85,19 @@ for (const filename of reportWorkflows) {
     assertLine(concurrency, "      queue: max");
   });
 }
+
+test("Telegram RSS backfills hold the publication queue for each per-version merge", async () => {
+  const workflow = await fs.readFile(new URL("stable-release-rtt.yml", workflowsDir), "utf8");
+  const header = workflow.split("\njobs:\n")[0];
+  assert.match(header, /inputs\.rss_backfill == 'true' && 'rtt-report-writer-main'/u);
+  assert.match(header, /cancel-in-progress: false/u);
+  assert.match(header, /queue: max/u);
+  const step = workflow
+    .split("      - name: Run RSS backfill\n")[1]
+    .split("      - name: Run RTT\n")[0];
+  assert.match(step, /for index in/u);
+  assert.match(
+    step,
+    /publish-rtt-report\.mjs" prepare[\s\S]*backfill-release-rss\.mjs[\s\S]*publish-rtt-report\.mjs" publish --family telegram --key "\$version"[\s\S]*done/u,
+  );
+});

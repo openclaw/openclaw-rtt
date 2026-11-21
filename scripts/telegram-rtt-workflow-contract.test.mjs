@@ -16,8 +16,7 @@ const RETIRED_HELPER_PATHS = [
   "scripts/telegram-release-config-compat.d.mts",
   "scripts/telegram-release-config-compat.test.mjs",
 ];
-const RTT_SELECTION =
-  "OPENCLAW_NPM_TELEGRAM_RTT_CHECKS=telegram-reply-chain-exact-marker";
+const RTT_SELECTION = "OPENCLAW_NPM_TELEGRAM_RTT_CHECKS=telegram-reply-chain-exact-marker";
 const IMPORT_SCENARIO = "--scenario telegram-reply-chain-exact-marker";
 const CONVEX_SOURCE = "OPENCLAW_QA_CREDENTIAL_SOURCE: convex";
 const CONVEX_ROLE = "OPENCLAW_QA_CREDENTIAL_ROLE: ci";
@@ -64,14 +63,23 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
       expectedRuns[index],
     );
     assert.equal(
-      countOccurrences(contents, "OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}"),
+      countOccurrences(
+        contents,
+        "OPENCLAW_QA_CONVEX_SITE_URL: ${{ secrets.OPENCLAW_QA_CONVEX_SITE_URL }}",
+      ),
       expectedRuns[index],
     );
     assert.equal(
-      countOccurrences(contents, "OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}"),
+      countOccurrences(
+        contents,
+        "OPENCLAW_QA_CONVEX_SECRET_CI: ${{ secrets.OPENCLAW_QA_CONVEX_SECRET_CI }}",
+      ),
       expectedRuns[index],
     );
-    assert.doesNotMatch(contents, /OPENCLAW_QA_TELEGRAM_(?:GROUP_ID|DRIVER_BOT_TOKEN|SUT_BOT_TOKEN)/u);
+    assert.doesNotMatch(
+      contents,
+      /OPENCLAW_QA_TELEGRAM_(?:GROUP_ID|DRIVER_BOT_TOKEN|SUT_BOT_TOKEN)/u,
+    );
     assert.equal(
       countOccurrences(contents, IMPORT_SCENARIO),
       1,
@@ -104,14 +112,11 @@ test("Telegram RTT workflows use the upstream harness contract", async () => {
     mainWorkflow,
     /- name: Fail when Telegram RTT producer fails[\s\S]*if: steps\.rtt\.outputs\.status != '0'[\s\S]*producer failed with status \$\{\{ steps\.rtt\.outputs\.status \}\}[\s\S]*exit 1/u,
   );
-  assert.match(
-    mainWorkflow,
-    /- name: Import result\n\s+if: steps\.rtt\.outputs\.status == '0'/u,
-  );
-  assert.match(
-    mainWorkflow,
-    /- name: Commit result\n\s+if: steps\.rtt\.outputs\.status == '0'/u,
-  );
+  const report = mainWorkflow.split("\n  report:\n")[1];
+  assert.match(report, /needs\.measure\.outputs\.artifact_id != ''/u);
+  assert.match(report, /artifact-ids: \$\{\{ needs\.measure\.outputs\.artifact_id \}\}/u);
+  assert.match(report, /- name: Import result[\s\S]*- name: Commit result/u);
+  assert.match(report, /publish-rtt-report\.mjs" publish --family telegram/u);
 });
 
 test("retired Telegram harness helpers are absent and unreferenced", async () => {
@@ -122,9 +127,7 @@ test("retired Telegram harness helpers are absent and unreferenced", async () =>
   const scriptNames = await fs.readdir(path.join(REPO_ROOT, "scripts"));
   const currentTest = path.basename(fileURLToPath(import.meta.url));
   const remainingScripts = scriptNames.filter(
-    (name) =>
-      name !== currentTest &&
-      (name.endsWith(".mjs") || name.endsWith(".mts")),
+    (name) => name !== currentTest && (name.endsWith(".mjs") || name.endsWith(".mts")),
   );
   for (const name of remainingScripts) {
     const contents = await fs.readFile(path.join(REPO_ROOT, "scripts", name), "utf8");
