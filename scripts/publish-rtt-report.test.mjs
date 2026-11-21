@@ -82,6 +82,9 @@ async function fixture(t, scenario = "success") {
     PATH: `${bin}${path.delimiter}${process.env.PATH}`,
     FIXTURE_STATE: state,
     FIXTURE_REMOTE: remote,
+    // CI's relative cache path would create untracked files inside the Git
+    // fixture. Keep caching enabled under the fixture's disposable outer root.
+    NODE_COMPILE_CACHE: path.join(root, "node-compile-cache"),
     GITHUB_REPOSITORY: "openclaw/openclaw-rtt",
     GITHUB_REF: "refs/heads/main",
     GITHUB_RUN_ID: "123",
@@ -113,13 +116,18 @@ async function fixture(t, scenario = "success") {
   const base = git("rev-parse", "HEAD");
   const run = (...args) =>
     spawnSync(process.execPath, [SCRIPT, ...args], { cwd: checkout, env, encoding: "utf8" });
+  const runOk = (...args) => {
+    const result = run(...args);
+    assert.equal(result.status, 0, result.stderr || result.error?.message || result.signal);
+    return result;
+  };
   const addReport = async () => {
     await fs.appendFile(path.join(checkout, "data/channels/telegram/v1.jsonl"), '{"id":"new"}\n');
     await fs.mkdir(path.join(checkout, "runs/telegram/new"));
     await fs.writeFile(path.join(checkout, "runs/telegram/new/result.json"), '{"id":"new"}\n');
     await fs.writeFile(path.join(checkout, "README.md"), "updated dashboard\n");
   };
-  return { root, checkout, state, git, base, run, addReport };
+  return { root, checkout, state, git, base, run, runOk, addReport };
 }
 
 test("report families reject unrelated files before publication", () => {
@@ -134,7 +142,9 @@ test("report families reject unrelated files before publication", () => {
 
 test("normal squash publishes the complete report and verifies the real merged tree", async (t) => {
   const f = await fixture(t);
-  assert.equal(f.run("prepare").status, 0);
+  f.runOk("prepare");
+  assert((await fs.stat(path.join(f.root, "node-compile-cache"))).isDirectory());
+  assert.equal(f.git("status", "--porcelain", "--untracked-files=all"), "");
   await f.addReport();
   const run = f.run("publish", "--family", "telegram");
   assert.equal(run.status, 0, run.stderr);
@@ -170,7 +180,7 @@ test("verified merged report branches do not cap future imports", async (t) => {
 for (const scenario of ["base-race", "head-drift", "refused", "false-receipt", "wrong-tree"]) {
   test(`${scenario} never reports a verified publication`, async (t) => {
     const f = await fixture(t, scenario);
-    assert.equal(f.run("prepare").status, 0);
+    f.runOk("prepare");
     await f.addReport();
     const run = f.run("publish", "--family", "telegram");
     assert.notEqual(run.status, 0);
@@ -183,7 +193,7 @@ for (const scenario of ["base-race", "head-drift", "refused", "false-receipt", "
 
 test("a failed merge retains its payload and holds later imports", async (t) => {
   const f = await fixture(t, "refused");
-  assert.equal(f.run("prepare").status, 0);
+  f.runOk("prepare");
   await f.addReport();
   assert.notEqual(f.run("publish", "--family", "telegram").status, 0);
   const before = JSON.parse(await fs.readFile(f.state, "utf8")).pr;
@@ -197,13 +207,13 @@ test("a failed merge retains its payload and holds later imports", async (t) => 
 
 test("RSS iterations retain each earlier merged version and use distinct immutable branches", async (t) => {
   const f = await fixture(t);
-  assert.equal(f.run("prepare").status, 0);
+  f.runOk("prepare");
   await f.addReport();
-  assert.equal(f.run("publish", "--family", "telegram", "--key", "v1").status, 0);
+  f.runOk("publish", "--family", "telegram", "--key", "v1");
   const first = JSON.parse(await fs.readFile(f.state, "utf8")).pr;
-  assert.equal(f.run("prepare").status, 0);
+  f.runOk("prepare");
   await fs.writeFile(path.join(f.checkout, "README.md"), "second version dashboard\n");
-  assert.equal(f.run("publish", "--family", "telegram", "--key", "v2").status, 0);
+  f.runOk("publish", "--family", "telegram", "--key", "v2");
   const second = JSON.parse(await fs.readFile(f.state, "utf8")).pr;
   assert.notEqual(first.head.ref, second.head.ref);
   assert.match(
@@ -218,7 +228,7 @@ test("RSS iterations retain each earlier merged version and use distinct immutab
 for (const scenario of ["create-response-lost", "merge-response-lost", "pending-mergeability"]) {
   test(`${scenario} is reconciled by exact remote identity`, async (t) => {
     const f = await fixture(t, scenario);
-    assert.equal(f.run("prepare").status, 0);
+    f.runOk("prepare");
     await f.addReport();
     const run = f.run("publish", "--family", "telegram");
     assert.equal(run.status, 0, run.stderr);
@@ -229,7 +239,7 @@ for (const scenario of ["create-response-lost", "merge-response-lost", "pending-
 
 test("an orphan branch remains discoverable and holds later imports", async (t) => {
   const f = await fixture(t, "create-failed");
-  assert.equal(f.run("prepare").status, 0);
+  f.runOk("prepare");
   await f.addReport();
   const publish = f.run("publish", "--family", "telegram");
   assert.notEqual(publish.status, 0);
@@ -243,7 +253,7 @@ test("an orphan branch remains discoverable and holds later imports", async (t) 
 
 test("closing an unmerged report does not discard its held payload", async (t) => {
   const f = await fixture(t, "refused");
-  assert.equal(f.run("prepare").status, 0);
+  f.runOk("prepare");
   await f.addReport();
   assert.notEqual(f.run("publish", "--family", "telegram").status, 0);
   const state = JSON.parse(await fs.readFile(f.state, "utf8"));
