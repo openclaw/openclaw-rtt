@@ -4,6 +4,8 @@
 
 **Channel round-trip timing data for OpenClaw.** This repo stores normalized QA results and publishes the dashboard below; the harness itself lives in `openclaw/openclaw`.
 
+Automated imports publish measurements and dashboard updates through pull requests, then verify the squash merge before reporting success. Report jobs share one writer queue; RSS backfills publish each completed version separately. If a workflow reports a retained branch or PR, resolve that report before rerunning from `main`: later imports hold rather than overwrite its measurements.
+
 Each row measures how long a real channel takes to receive an OpenClaw agent reply after the test driver sends a controlled message. So yes: a Discord row is the agent-turn reply time observed back in Discord; Telegram, Slack, WhatsApp, and future channels measure the same loop in their own channel/scenario.
 
 RTT covers the whole observed path, not just model time:

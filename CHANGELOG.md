@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Publish all RTT measurements through verified pull-request merges, preserving pending reports and per-version RSS backfills under one shared writer queue.
+
 - Label mixed Discord release runs with their passing sample count and the failed sample's reason, rather than quoting a later success. Thanks @SebTardif.
 
 - Refresh the Docker builder action used by Telegram RTT jobs and the pnpm setup patch used by Crabbox hydration. Thanks @dependabot[bot].

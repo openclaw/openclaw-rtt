@@ -320,14 +320,17 @@ jobs:
   report:
     name: Import main surface RTT report
     needs: measure
-    if: always() && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && always() && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       actions: read
       contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
     concurrency:
-      group: rtt-report-writer-${{ github.ref }}
+      group: rtt-report-writer-main
       cancel-in-progress: false
       queue: max
     steps:
@@ -365,7 +368,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git pull --rebase origin main
+          node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" prepare
 
       - name: Import main RPC Surface RTT
         id: import_rpc_surface_rtt
@@ -426,31 +429,7 @@ jobs:
       - name: Commit imported Surface RTT
         if: always() && needs.measure.outputs.artifact_id != '' && steps.download_import.outcome == 'success' && steps.refresh_tracker.outcome == 'success' && steps.validate_imports.outcome == 'success'
         shell: bash
-        run: |
-          set -euo pipefail
-          if git diff --quiet --exit-code data/surfaces runs/surfaces README.md; then
-            echo "No Surface RTT changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/surfaces runs/surfaces README.md
-          git commit -m "data: import main surface rtt"
-          git push || {
-            # Drop only generated dashboard state so real data conflicts still fail the rebase.
-            git restore --source=HEAD^ --staged --worktree README.md
-            git commit --amend --no-edit
-            git pull --rebase origin main
-            if [[ "$(git rev-list --count "origin/main..HEAD")" == "0" ]]; then
-              echo "Surface RTT import is already present after rebase."
-              exit 0
-            fi
-            node "$RTT_SCRIPTS_DIR/update-readme.mjs" --latest-main-only
-            node "$RTT_SCRIPTS_DIR/validate.mjs"
-            git add README.md
-            git commit --amend --no-edit
-            git push
-          }
+        run: node "$RTT_SCRIPTS_DIR/publish-rtt-report.mjs" publish --family surface
 
       - name: Fail after partial Surface RTT import
         if: always()

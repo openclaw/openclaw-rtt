@@ -30,7 +30,7 @@ test("dispatch modes preserve safe publication defaults", async () => {
   );
   assert.match(
     workflow,
-    /if: always\(\) && needs\.resolve\.outputs\.should_run == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| \(inputs\.prepare_only != true && inputs\.publish_results\)\)/u,
+    /if: github\.ref == 'refs\/heads\/main' && always\(\) && needs\.resolve\.outputs\.should_run == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| \(inputs\.prepare_only != true && inputs\.publish_results\)\)/u,
   );
 });
 
@@ -50,10 +50,7 @@ test("release and QA native build caches use exact source identities", async () 
     /identity="openclaw-release-channel-rtt-build-v2-\$\{CACHE_OS\}-\$\{CACHE_ARCH\}-node-\$\{node_version\}-pnpm-\$\{pnpm_version\}-full-private-qa"/u,
   );
   assert.doesNotMatch(identity, /openclaw-release-channel-rtt-build-v1/u);
-  assert.match(
-    identity,
-    /printf 'release_key=%s-release-%s\\n' "\$identity" "\$release_head"/u,
-  );
+  assert.match(identity, /printf 'release_key=%s-release-%s\\n' "\$identity" "\$release_head"/u);
   assert.match(
     identity,
     /printf 'qa_key=%s-qa-%s-patch-%s\\n' "\$identity" "\$qa_head" "\$qa_patch_digest"/u,
@@ -74,7 +71,10 @@ test("native cache restore and save tightly wrap both full builds", async () => 
     "Run ${{ matrix.package.label }} RTT samples",
   ];
   const indices = names.map((name) => stepIndex(workflow, name));
-  assert.deepEqual(indices, indices.toSorted((left, right) => left - right));
+  assert.deepEqual(
+    indices,
+    indices.toSorted((left, right) => left - right),
+  );
 
   const releaseRestore = extractStep(workflow, names[0]);
   const releaseSave = extractStep(workflow, names[2]);
@@ -105,10 +105,7 @@ test("native cache restore and save tightly wrap both full builds", async () => 
     releaseSave,
     /key: \$\{\{ steps\.restore_release_build_cache\.outputs\.cache-primary-key \}\}/u,
   );
-  assert.match(
-    qaSave,
-    /if: steps\.restore_qa_build_cache\.outputs\.cache-hit != 'true'/u,
-  );
+  assert.match(qaSave, /if: steps\.restore_qa_build_cache\.outputs\.cache-hit != 'true'/u);
   assert.match(
     qaSave,
     /key: \$\{\{ steps\.restore_qa_build_cache\.outputs\.cache-primary-key \}\}/u,
