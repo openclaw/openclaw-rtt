@@ -18,3 +18,4 @@
 - Fix channel imports, surface imports, and RSS backfills failing to find sample files in TSV lists with CRLF line endings.
 - Fix surface imports recording incorrect run bounds for unordered samples or accepting invalid intermediate timestamps; normalize imported run timestamps to UTC.
 - Fix aggregate channel reports counting legacy rows twice when the same channel also has versioned data files.
+- Refresh pnpm setup to 3.2.0 across RTT collection workflows while retaining existing runtime pins. Thanks @dependabot[bot].
