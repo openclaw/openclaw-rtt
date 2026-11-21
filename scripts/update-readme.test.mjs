@@ -511,6 +511,12 @@ test("renders release coverage failure cells without verbose labels", async () =
       package: { spec: `openclaw@${version}`, version },
       run: { id: "discord-partial", startedAt: "2026-05-18T00:01:00.000Z", status: "fail" },
       rtt: { warmSamples: [7844], p50Ms: 7844, p95Ms: 7844 },
+      discord: {
+        samples: [
+          { index: 1, status: "fail", details: "discord canary missed the reply" },
+          { index: 2, status: "pass", details: "reply matched" },
+        ],
+      },
     }),
     rttRow({
       package: { spec: `openclaw@${timeoutVersion}`, version: timeoutVersion },
@@ -577,6 +583,11 @@ test("renders release coverage failure cells without verbose labels", async () =
     readme.indexOf("<!-- discord-release-sweep:end -->"),
   );
   assert.match(discordSection, /\| `2026\.5\.16-beta\.5` \| - \| - \| n\/a \| n\/a \| timeout \|/u);
+  assert.match(
+    discordSection,
+    /\| `2026\.5\.16-beta\.6` \| `7,844ms` \| `7,844ms` \| n\/a \| n\/a \| partial: 1\/2 samples passed; failed: discord canary missed the reply \|/u,
+  );
+  assert.doesNotMatch(discordSection, /reply matched/u);
 
   const whatsappSection = readme.slice(
     readme.indexOf("<!-- whatsapp-release-sweep:start -->"),

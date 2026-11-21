@@ -382,8 +382,13 @@ function releaseSkipReason(label, version) {
     : undefined;
 }
 
+function measurementSamples(row) {
+  return [...(row?.samples ?? []), ...(row?.discord?.samples ?? [])];
+}
+
 function sampleFailureDetails(row) {
-  return [...(row?.samples ?? []), ...(row?.discord?.samples ?? [])]
+  return measurementSamples(row)
+    .filter((sample) => sample?.status !== "pass")
     .reverse()
     .map((sample) => sample?.details)
     .filter((details) => typeof details === "string" && !details.startsWith("reply matched in "));
@@ -428,8 +433,12 @@ function releaseStatus(row, label, version) {
     const skipReason = releaseSkipReason(label, version);
     return skipReason ? `not supported: ${skipReason}` : "missing: no imported run";
   }
-  const totalSamples = row.samples?.length ?? row.rtt?.warmSamples?.length ?? 0;
-  const passedSamples = row.rtt?.warmSamples?.length ?? 0;
+  const listed = measurementSamples(row);
+  const totalSamples = listed.length > 0 ? listed.length : (row.rtt?.warmSamples?.length ?? 0);
+  const passedSamples =
+    listed.length > 0
+      ? listed.filter((sample) => sample?.status === "pass").length
+      : (row.rtt?.warmSamples?.length ?? 0);
   if (row.run?.status === "pass") {
     return "ok";
   }
