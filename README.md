@@ -77,7 +77,7 @@ Latest imported release coverage run: `2026-11-23T12:50:47.032Z`
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `2026.11.10-beta.2` | `897ms` | `1,995ms` | - | - | - | `5ms` | `195ms` |
 | `2026.11.10-beta.1` | `891ms` | `1,999ms` | timeout | fail | fail | `12ms` | `222ms` |
-| `2026.11.7` | `438ms` | `1,000ms` | - | fail | fail | `6ms` | `155ms` |
+| `2026.11.7` | `438ms` | `1,000ms` | timeout | fail | fail | `6ms` | `155ms` |
 | `2026.11.6` | `432ms` | `996ms` | timeout | fail | fail | `1ms` | `186ms` |
 | `2026.11.5` | `436ms` | `995ms` | timeout | fail | fail | `1ms` | `160ms` |
 | `2026.11.5-beta.4` | `433ms` | `1,000ms` | timeout | fail | fail | `1ms` | `194ms` |
@@ -574,14 +574,14 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
 | `2026.11.10-beta.2` | - | - | - | - | missing: no imported run |
-| `2026.11.10-beta.1` | - | - | `5,193MB` | `5,266MB` | timeout |
-| `2026.11.7` | - | - | - | - | missing: no imported run |
-| `2026.11.6` | - | - | `5,201MB` | `5,243MB` | timeout |
-| `2026.11.5` | - | - | `5,208MB` | `5,289MB` | timeout |
-| `2026.11.5-beta.4` | - | - | `5,215MB` | `5,276MB` | timeout |
-| `2026.11.5-beta.3` | - | - | `5,241MB` | `5,292MB` | timeout |
-| `2026.11.5-beta.2` | - | - | `5,218MB` | `5,268MB` | timeout |
-| `2026.11.5-beta.1` | - | - | `5,201MB` | `5,248MB` | timeout |
+| `2026.11.10-beta.1` | - | - | `5,216MB` | `5,258MB` | timeout |
+| `2026.11.7` | - | - | `5,213MB` | `5,258MB` | timeout |
+| `2026.11.6` | - | - | `5,197MB` | `5,245MB` | timeout |
+| `2026.11.5` | - | - | `5,141MB` | `5,192MB` | timeout |
+| `2026.11.5-beta.4` | - | - | `5,191MB` | `5,247MB` | timeout |
+| `2026.11.5-beta.3` | - | - | `5,124MB` | `5,178MB` | timeout |
+| `2026.11.5-beta.2` | - | - | `5,208MB` | `5,292MB` | timeout |
+| `2026.11.5-beta.1` | - | - | `5,252MB` | `5,308MB` | timeout |
 | `2026.11.4` | `1,163ms` | `1,792ms` | `5,249MB` | `5,298MB` | ok |
 | `2026.11.3` | `1,124ms` | `1,376ms` | `5,278MB` | `5,338MB` | ok |
 | `2026.11.2` | `1,205ms` | `1,350ms` | `5,232MB` | `5,263MB` | ok |
