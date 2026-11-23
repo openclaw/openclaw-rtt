@@ -71,11 +71,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-23T12:50:47.032Z`
+Latest imported release coverage run: `2026-11-23T15:45:50.766Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.11.10-beta.2` | `897ms` | `1,995ms` | - | - | - | `5ms` | `195ms` |
+| `2026.11.10-beta.2` | `897ms` | `1,995ms` | - | fail | fail | `5ms` | `195ms` |
 | `2026.11.10-beta.1` | `891ms` | `1,999ms` | timeout | fail | fail | `12ms` | `222ms` |
 | `2026.11.7` | `438ms` | `1,000ms` | timeout | fail | fail | `6ms` | `155ms` |
 | `2026.11.6` | `432ms` | `996ms` | timeout | fail | fail | `1ms` | `186ms` |
@@ -736,7 +736,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.10-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.11.10-beta.2` | - | - | `5,659MB` | `5,659MB` | failed |
 | `2026.11.10-beta.1` | - | - | `5,416MB` | `5,416MB` | failed |
 | `2026.11.7` | - | - | `5,539MB` | `5,539MB` | failed |
 | `2026.11.6` | - | - | `5,373MB` | `5,373MB` | failed |
@@ -899,7 +899,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.10-beta.2` | - | - | - | - | missing: no imported run |
+| `2026.11.10-beta.2` | - | - | `5,402MB` | `5,402MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.10-beta.1` | - | - | `5,547MB` | `5,547MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.7` | - | - | `5,398MB` | `5,398MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.6` | - | - | `5,319MB` | `5,319MB` | failed: QA command exited with status 1 after producing a missing summary. |
