@@ -71,11 +71,11 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-25T06:54:32.280Z`
+Latest imported release coverage run: `2026-11-25T09:41:41.748Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `2026.11.10` | `900ms` | `1,998ms` | - | - | - | `5ms` | `184ms` |
+| `2026.11.10` | `900ms` | `1,998ms` | - | fail | fail | `5ms` | `184ms` |
 | `2026.11.10-beta.3` | `892ms` | `1,997ms` | timeout | fail | fail | `6ms` | `221ms` |
 | `2026.11.10-beta.2` | `897ms` | `1,995ms` | timeout | fail | fail | `5ms` | `195ms` |
 | `2026.11.10-beta.1` | `891ms` | `1,999ms` | timeout | fail | fail | `12ms` | `222ms` |
@@ -752,7 +752,7 @@ Slack release runs use the OpenClaw Slack QA harness with `mock-openai`, scenari
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.10` | - | - | - | - | missing: no imported run |
+| `2026.11.10` | - | - | `5,502MB` | `5,502MB` | failed |
 | `2026.11.10-beta.3` | - | - | `5,414MB` | `5,414MB` | failed |
 | `2026.11.10-beta.2` | - | - | `5,659MB` | `5,659MB` | failed |
 | `2026.11.10-beta.1` | - | - | `5,416MB` | `5,416MB` | failed |
@@ -919,7 +919,7 @@ WhatsApp release runs use the OpenClaw WhatsApp QA harness with `mock-openai`, s
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.10` | - | - | - | - | missing: no imported run |
+| `2026.11.10` | - | - | `5,441MB` | `5,441MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.10-beta.3` | - | - | `5,500MB` | `5,500MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.10-beta.2` | - | - | `5,402MB` | `5,402MB` | failed: QA command exited with status 1 after producing a missing summary. |
 | `2026.11.10-beta.1` | - | - | `5,547MB` | `5,547MB` | failed: QA command exited with status 1 after producing a missing summary. |
