@@ -71,7 +71,7 @@ Use this as release coverage and regression signal, not a channel speed ranking.
 
 <!-- release-coverage:start -->
 
-Latest imported release coverage run: `2026-11-26T03:56:25.570Z`
+Latest imported release coverage run: `2026-11-26T04:45:20.101Z`
 
 | Version | p50 σ | Telegram | Discord | Slack | WhatsApp | RPC | Control UI |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -588,19 +588,19 @@ Discord release runs use the OpenClaw Discord QA harness with `mock-openai`, sce
 
 | npm version | RTT p50 | RTT p95 | RSS p50 | RSS p95 | Status |
 |---|---:|---:|---:|---:|---|
-| `2026.11.10` | - | - | `5,180MB` | `5,254MB` | timeout |
-| `2026.11.10-beta.3` | - | - | `5,201MB` | `5,258MB` | timeout |
+| `2026.11.10` | - | - | `5,223MB` | `5,277MB` | timeout |
+| `2026.11.10-beta.3` | - | - | `5,250MB` | `5,316MB` | timeout |
 | `2026.11.10-beta.2` | - | - | `5,206MB` | `5,252MB` | timeout |
-| `2026.11.10-beta.1` | - | - | `5,193MB` | `5,238MB` | timeout |
-| `2026.11.9` | - | - | `5,199MB` | `5,247MB` | timeout |
-| `2026.11.8` | - | - | `5,189MB` | `5,258MB` | timeout |
-| `2026.11.7` | - | - | `5,209MB` | `5,255MB` | timeout |
-| `2026.11.6` | - | - | `5,201MB` | `5,258MB` | timeout |
-| `2026.11.5` | - | - | `5,212MB` | `5,257MB` | timeout |
-| `2026.11.5-beta.4` | - | - | `5,219MB` | `5,262MB` | timeout |
-| `2026.11.5-beta.3` | - | - | `5,095MB` | `5,171MB` | timeout |
-| `2026.11.5-beta.2` | - | - | `5,218MB` | `5,259MB` | timeout |
-| `2026.11.5-beta.1` | - | - | `5,196MB` | `5,247MB` | timeout |
+| `2026.11.10-beta.1` | - | - | `5,185MB` | `5,261MB` | timeout |
+| `2026.11.9` | - | - | `5,158MB` | `5,179MB` | timeout |
+| `2026.11.8` | - | - | `5,216MB` | `5,252MB` | timeout |
+| `2026.11.7` | - | - | `5,205MB` | `5,256MB` | timeout |
+| `2026.11.6` | - | - | `5,198MB` | `5,239MB` | timeout |
+| `2026.11.5` | - | - | `5,219MB` | `5,266MB` | timeout |
+| `2026.11.5-beta.4` | - | - | `5,199MB` | `5,284MB` | timeout |
+| `2026.11.5-beta.3` | - | - | `5,214MB` | `5,270MB` | timeout |
+| `2026.11.5-beta.2` | - | - | `5,209MB` | `5,302MB` | timeout |
+| `2026.11.5-beta.1` | - | - | `5,206MB` | `5,287MB` | timeout |
 | `2026.11.4` | `1,163ms` | `1,792ms` | `5,249MB` | `5,298MB` | ok |
 | `2026.11.3` | `1,124ms` | `1,376ms` | `5,278MB` | `5,338MB` | ok |
 | `2026.11.2` | `1,205ms` | `1,350ms` | `5,232MB` | `5,263MB` | ok |
